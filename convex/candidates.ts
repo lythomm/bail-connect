@@ -12,6 +12,20 @@ const DOSSIER_FACILE_REGEX = /^https:\/\/[a-z0-9.-]*dossierfacile\.(logement\.go
 export const getByCampaign = query({
   args: { campaignId: v.id("campaigns") },
   handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Unauthorized");
+    }
+
+    const campaign = await ctx.db.get(args.campaignId);
+    if (!campaign) {
+      throw new Error("Campaign not found");
+    }
+
+    if (campaign.userId !== userId) {
+      throw new Error("Unauthorized access to this campaign's candidates");
+    }
+
     // Return candidates sorted by creation date (newest first)
     return await ctx.db
       .query("candidates")
@@ -45,6 +59,12 @@ export const create = mutation({
       throw new Error(
         "Invalid DossierFacile URL. A valid public sharing URL from dossierfacile.logement.gouv.fr is required."
       );
+    }
+
+    // Valider que la campagne existe
+    const campaign = await ctx.db.get(args.campaignId);
+    if (!campaign) {
+      throw new Error("Campaign not found");
     }
 
     // 2. Insert candidate with default "pending" status

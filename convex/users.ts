@@ -1,5 +1,5 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { query, mutation } from "./_generated/server";
+import { query, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 
 /**
@@ -16,19 +16,13 @@ export const current = query({
   },
 });
 
-/**
- * Update the user's tier.
- */
-export const updateTier = mutation({
+export const updateTier = internalMutation({
   args: {
+    userId: v.id("users"),
     tier: v.union(v.literal("free"), v.literal("pass"), v.literal("pro")),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) {
-      throw new Error("Not authenticated");
-    }
-    await ctx.db.patch(userId, { tier: args.tier });
-    return await ctx.db.get(userId);
+    await ctx.db.patch(args.userId, { tier: args.tier });
+    return await ctx.db.get(args.userId);
   },
 });

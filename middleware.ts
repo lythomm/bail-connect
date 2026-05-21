@@ -7,7 +7,7 @@ import {
 const isSignInPage = createRouteMatcher(["/signin"]);
 const isProtectedRoute = createRouteMatcher(["/dashboard(.*)"]);
 
-export const proxy = convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
+export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
   const isAuthenticated = await convexAuth.isAuthenticated();
 
   // Redirect authenticated users away from sign-in to the dashboard

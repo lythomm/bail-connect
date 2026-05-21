@@ -25,7 +25,7 @@ export const list = query({
 
     return await ctx.db
       .query("campaigns")
-      .filter((q) => q.eq(q.field("userId"), userId))
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
       .order("desc")
       .collect();
   },
@@ -127,7 +127,7 @@ export const listWithStats = query({
 
     const campaigns = await ctx.db
       .query("campaigns")
-      .filter((q) => q.eq(q.field("userId"), userId))
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
       .order("desc")
       .collect();
 
