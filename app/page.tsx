@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { ShieldCheck, Check, XCircle, CheckCircle, ClipboardCheck, Users, Landmark, ChevronDown } from "lucide-react";
+import { ShieldCheck, Check, XCircle, CheckCircle, ClipboardCheck, Users, ChevronDown, X, Mail, AlertTriangle, Clock, ShieldAlert, Link2, LayoutDashboard, Lock } from "lucide-react";
 
 export default function Home() {
   return (
@@ -25,6 +25,9 @@ export default function Home() {
           </a>
           <a href="#dossier-facile" className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors">
             Partenaire DossierFacile
+          </a>
+          <a href="#tarifs" className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors">
+            Tarifs
           </a>
           <a href="#faq" className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors">
             FAQ
@@ -197,70 +200,156 @@ export default function Home() {
       </section>
 
       {/* Pain Points vs. Solution (Avant / Après) */}
-      <section id="comparatif" className="bg-[#F6F6F6] border-b border-[#DDDDDD] py-16 px-6">
-        <div className="max-w-6xl mx-auto text-center">
-          <span className="gov-badge mb-3">La comparaison</span>
-          <h2 className="text-3xl font-extrabold text-[#161616] mb-4">
-            Pourquoi changer votre façon de recruter vos locataires ?
-          </h2>
-          <p className="text-base text-[#3A3A3A] max-w-2xl mx-auto mb-12">
-            La gestion traditionnelle des dossiers de location est une source de stress et de risques juridiques. Voici comment BailConnect simplifie tout.
-          </p>
+      <section id="comparatif" className="bg-[#F6F6F6] border-b border-[#DDDDDD] py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <span className="gov-badge mb-3">La comparaison</span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#161616] mb-4 tracking-tight">
+              Pourquoi changer votre façon de recruter vos locataires ?
+            </h2>
+            <p className="text-base text-[#3A3A3A] max-w-2xl mx-auto">
+              La gestion traditionnelle des dossiers de location est une source de stress et de risques juridiques. Voici comment BailConnect simplifie tout.
+            </p>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
 
             {/* The Old Painful Way */}
-            <div className="bg-white border-l-4 border-[#CE0500] p-8 shadow-sm rounded-2xl">
-              <h3 className="text-lg font-bold text-[#CE0500] mb-4 uppercase tracking-wider flex items-center gap-2">
-                <XCircle className="w-5 h-5 text-[#CE0500] flex-shrink-0" />
-                Avant : Le chaos des e-mails
-              </h3>
+            <div className="bg-[#FFFDFD] border border-[#FAD8D8] p-8 rounded-2xl shadow-xs relative overflow-hidden flex flex-col justify-between hover:shadow-md transition-all duration-300 before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-1.5 before:bg-[#CE0500]">
+              <div>
+                <div className="flex items-center justify-between mb-8">
+                  <h3 className="text-xl font-bold text-[#CE0500] uppercase tracking-wider flex items-center gap-2.5">
+                    <XCircle className="w-6 h-6 text-[#CE0500] flex-shrink-0" />
+                    Avant : Le chaos traditionnel
+                  </h3>
+                  <span className="text-xs font-semibold text-[#CE0500] bg-[#FFF0F0] border border-[#FCD8D0] px-3 py-1 rounded-full">
+                    Frustrant & risqué
+                  </span>
+                </div>
 
-              <ul className="space-y-4 text-sm text-[#3A3A3A]">
-                <li className="flex items-start gap-3">
-                  <span className="text-[#CE0500] font-bold mt-0.5">•</span>
-                  <span><strong>Saturation de votre messagerie :</strong> Des dizaines d'e-mails par jour contenant des gigaoctets de PDF à télécharger.</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-[#CE0500] font-bold mt-0.5">•</span>
-                  <span><strong>Risque élevé de faux documents :</strong> Impossible de vérifier par vous-même l'authenticité d'un avis d'imposition ou d'un bulletin de paie retouché.</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-[#CE0500] font-bold mt-0.5">•</span>
-                  <span><strong>Dossiers incomplets :</strong> Des allers-retours interminables par e-mail ou téléphone pour réclamer la pièce d'identité manquante ou le justificatif du garant.</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-[#CE0500] font-bold mt-0.5">•</span>
-                  <span><strong>Illégalité RGPD :</strong> Stocker des copies de cartes d'identité et de justificatifs d'impôt sur votre ordinateur personnel vous expose à des amendes et à des risques de piratage.</span>
-                </li>
-              </ul>
+                <div className="space-y-6">
+                  {/* Point 1 */}
+                  <div className="flex gap-4 items-start pb-6 border-b border-[#FAD8D8]/50 last:border-0 last:pb-0">
+                    <div className="flex-shrink-0 w-10 h-10 bg-[#FFF0F0] text-[#CE0500] rounded-xl flex items-center justify-center border border-[#FCD8D0]">
+                      <Mail className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-[#161616] text-sm md:text-base">Saturation de votre messagerie</h4>
+                      <p className="text-xs md:text-sm text-[#3A3A3A] mt-1 leading-relaxed">
+                        Des dizaines d'e-mails par jour contenant des gigaoctets de PDF non structurés à télécharger manuellement.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Point 2 */}
+                  <div className="flex gap-4 items-start pb-6 border-b border-[#FAD8D8]/50 last:border-0 last:pb-0">
+                    <div className="flex-shrink-0 w-10 h-10 bg-[#FFF0F0] text-[#CE0500] rounded-xl flex items-center justify-center border border-[#FCD8D0]">
+                      <AlertTriangle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-[#161616] text-sm md:text-base">Risque élevé de faux documents</h4>
+                      <p className="text-xs md:text-sm text-[#3A3A3A] mt-1 leading-relaxed">
+                        Impossible de vérifier par vous-même l'authenticité d'un avis d'imposition ou d'un bulletin de paie retouché sur Photoshop.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Point 3 */}
+                  <div className="flex gap-4 items-start pb-6 border-b border-[#FAD8D8]/50 last:border-0 last:pb-0">
+                    <div className="flex-shrink-0 w-10 h-10 bg-[#FFF0F0] text-[#CE0500] rounded-xl flex items-center justify-center border border-[#FCD8D0]">
+                      <Clock className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-[#161616] text-sm md:text-base">Dossiers incomplets & relances</h4>
+                      <p className="text-xs md:text-sm text-[#3A3A3A] mt-1 leading-relaxed">
+                        Des allers-retours interminables par e-mail ou téléphone pour réclamer la pièce d'identité manquante ou le garant.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Point 4 */}
+                  <div className="flex gap-4 items-start">
+                    <div className="flex-shrink-0 w-10 h-10 bg-[#FFF0F0] text-[#CE0500] rounded-xl flex items-center justify-center border border-[#FCD8D0]">
+                      <ShieldAlert className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-[#161616] text-sm md:text-base">Illégalité RGPD involontaire</h4>
+                      <p className="text-xs md:text-sm text-[#3A3A3A] mt-1 leading-relaxed">
+                        Stocker des copies de cartes d'identité et de pièces d'impôts sur votre ordinateur personnel vous expose à des risques juridiques et de piratage.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* The New BailConnect Way */}
-            <div className="bg-white border-l-4 border-[#18753C] p-8 shadow-sm rounded-2xl">
-              <h3 className="text-lg font-bold text-[#18753C] mb-4 uppercase tracking-wider flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-[#18753C] flex-shrink-0" />
-                Après : La sérénité et le gain de temps
-              </h3>
+            <div className="bg-[#F6FCF8] border-2 border-[#18753C] p-8 rounded-2xl shadow-sm relative overflow-hidden flex flex-col justify-between hover:shadow-lg transition-all duration-300 before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-1.5 before:bg-[#18753C] scale-[1.01]">
+              <span className="absolute top-4 right-4 bg-[#18753C] text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs">
+                Le choix de la sérénité
+              </span>
+              <div>
+                <div className="flex items-center justify-between mb-8">
+                  <h3 className="text-xl font-bold text-[#18753C] uppercase tracking-wider flex items-center gap-2.5">
+                    <CheckCircle className="w-6 h-6 text-[#18753C] flex-shrink-0" />
+                    Après : La méthode BailConnect
+                  </h3>
+                </div>
 
-              <ul className="space-y-4 text-sm text-[#3A3A3A]">
-                <li className="flex items-start gap-3">
-                  <span className="text-[#18753C] font-bold mt-0.5">•</span>
-                  <span><strong>Un seul lien d'annonce :</strong> Insérez votre lien unique sur LeBonCoin, PAP ou SeLoger. Plus aucun e-mail polluant sur votre messagerie personnelle.</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-[#18753C] font-bold mt-0.5">•</span>
-                  <span><strong>Sécurité anti-fraude garantie :</strong> Les candidats postulent en transmettant leur dossier DossierFacile, validé par l'État. Aucun risque de faux justificatifs.</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-[#18753C] font-bold mt-0.5">•</span>
-                  <span><strong>Format 100% standardisé :</strong> Toutes les candidatures s'affichent de façon homogène sur votre tableau de bord (CDI/CDD, revenus nets, revenus des garants).</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-[#18753C] font-bold mt-0.5">•</span>
-                  <span><strong>Sécurité juridique et RGPD :</strong> Vous ne stockez aucun fichier sensible. Vous consultez en ligne les pièces hébergées et sécurisées par DossierFacile.</span>
-                </li>
-              </ul>
+                <div className="space-y-6">
+                  {/* Point 1 */}
+                  <div className="flex gap-4 items-start pb-6 border-b border-[#D1FAE5]/60 last:border-0 last:pb-0">
+                    <div className="flex-shrink-0 w-10 h-10 bg-[#E6F4EA] text-[#18753C] rounded-xl flex items-center justify-center border border-[#C2E7CD]">
+                      <Link2 className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-[#161616] text-sm md:text-base">Un seul lien de candidature unique</h4>
+                      <p className="text-xs md:text-sm text-[#3A3A3A] mt-1 leading-relaxed">
+                        Insérez votre lien personnalisé sur LeBonCoin, PAP ou SeLoger. Plus aucun e-mail polluant sur votre boîte personnelle.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Point 2 */}
+                  <div className="flex gap-4 items-start pb-6 border-b border-[#D1FAE5]/60 last:border-0 last:pb-0">
+                    <div className="flex-shrink-0 w-10 h-10 bg-[#E6F4EA] text-[#18753C] rounded-xl flex items-center justify-center border border-[#C2E7CD]">
+                      <ShieldCheck className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-[#161616] text-sm md:text-base">Sécurité anti-fraude garantie</h4>
+                      <p className="text-xs md:text-sm text-[#3A3A3A] mt-1 leading-relaxed">
+                        Les candidats postulent en transmettant leur dossier validé et certifié par l'État via DossierFacile. Zéro faux justificatif.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Point 3 */}
+                  <div className="flex gap-4 items-start pb-6 border-b border-[#D1FAE5]/60 last:border-0 last:pb-0">
+                    <div className="flex-shrink-0 w-10 h-10 bg-[#E6F4EA] text-[#18753C] rounded-xl flex items-center justify-center border border-[#C2E7CD]">
+                      <LayoutDashboard className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-[#161616] text-sm md:text-base">Format 100% standardisé</h4>
+                      <p className="text-xs md:text-sm text-[#3A3A3A] mt-1 leading-relaxed">
+                        Toutes les candidatures s'affichent de façon homogène sur votre tableau de bord (situation, revenus nets, garant, etc.).
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Point 4 */}
+                  <div className="flex gap-4 items-start">
+                    <div className="flex-shrink-0 w-10 h-10 bg-[#E6F4EA] text-[#18753C] rounded-xl flex items-center justify-center border border-[#C2E7CD]">
+                      <Lock className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-[#161616] text-sm md:text-base">Sécurité juridique & conformité RGPD</h4>
+                      <p className="text-xs md:text-sm text-[#3A3A3A] mt-1 leading-relaxed">
+                        Vous ne stockez aucun fichier sensible sur vos disques. Vous consultez en ligne les pièces sécurisées par la plateforme d'État.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
           </div>
@@ -344,11 +433,6 @@ export default function Home() {
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
 
           <div className="md:col-span-8 flex flex-col items-start text-left">
-            <div className="flex items-center gap-2 bg-[#18753C]/10 text-[#18753C] text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-4">
-              <Landmark className="w-4 h-4" />
-              Intégration d'État Partenaire
-            </div>
-
             <h2 className="text-2xl sm:text-3xl font-extrabold text-[#161616] leading-tight mb-4">
               DossierFacile : L'assurance d'un dossier locataire certifié et sécurisé
             </h2>
@@ -404,7 +488,7 @@ export default function Home() {
       </section>
 
       {/* Testimonials (Avis de Bailleurs) */}
-      <section className="bg-white border-b border-[#DDDDDD] py-16 px-6">
+      {/* <section className="bg-white border-b border-[#DDDDDD] py-16 px-6">
         <div className="max-w-6xl mx-auto text-center">
           <span className="gov-badge mb-3">Témoignages</span>
           <h2 className="text-3xl font-extrabold text-[#161616] mb-4">
@@ -416,7 +500,6 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
 
-            {/* Testimonial 1 */}
             <div className="bg-[#F6F6F6] p-6 border border-[#DDDDDD] flex flex-col justify-between rounded-2xl">
               <p className="text-sm text-[#3a3a3a] italic leading-relaxed mb-6">
                 "J'ai mis mon T2 à Lyon en location sur LeBonCoin. J'ai reçu 62 messages en une seule journée. D'habitude, c'est le cauchemar : trier les emails, demander les fiches de paie oubliées... Avec BailConnect, j'ai simplement mis le lien unique dans l'annonce. Les dossiers complets sont arrivés structurés. J'ai choisi mon locataire en 15 minutes."
@@ -427,7 +510,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Testimonial 2 */}
             <div className="bg-[#F6F6F6] p-6 border border-[#DDDDDD] flex flex-col justify-between rounded-2xl">
               <p className="text-sm text-[#3a3a3a] italic leading-relaxed mb-6">
                 "Ce qui me rassure le plus, c'est l'aspect anti-fraude. J'avais toujours peur des faux bulletins de salaire, très faciles à fabriquer aujourd'hui. BailConnect s'appuie sur le contrôle officiel des agents de DossierFacile. Quand un profil s'affiche en vert sur mon tableau de bord, je sais que l'impôt et les revenus sont réels."
@@ -438,7 +520,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Testimonial 3 */}
             <div className="bg-[#F6F6F6] p-6 border border-[#DDDDDD] flex flex-col justify-between rounded-2xl">
               <p className="text-sm text-[#3a3a3a] italic leading-relaxed mb-6">
                 "Je craignais la réaction des locataires face à un lien de candidature. C'est en fait l'inverse : ils apprécient de ne pas envoyer leurs documents sensibles par email. Et comme DossierFacile est le service public de l'État, la confiance est immédiate. C'est simple, transparent et 100% conforme au RGPD."
@@ -449,6 +530,159 @@ export default function Home() {
               </div>
             </div>
 
+          </div>
+        </div>
+      </section> */}
+
+      {/* Pricing Section */}
+      <section id="tarifs" className="bg-white border-b border-[#DDDDDD] py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <span className="inline-flex items-center justify-center bg-white border border-[#E2E8F0] text-[#666666] text-xs font-semibold px-4 py-1.5 rounded-full shadow-xs mb-4">
+              Tarifs
+            </span>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-[#161616] mb-4 tracking-tight">
+              Des tarifs simples et transparents
+            </h2>
+            <p className="text-base text-[#3A3A3A] max-w-2xl mx-auto">
+              Choisissez le plan adapté à vos besoins de gestion locative. Sans aucun abonnement caché.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch mb-12">
+            {/* Plan 1: Découverte */}
+            <div className="bg-white border border-[#E2E8F0] rounded-2xl p-8 flex flex-col justify-between hover:shadow-md transition-all duration-300">
+              <div>
+                <h3 className="text-2xl font-bold text-[#161616] mt-2">Découverte</h3>
+                <p className="text-sm text-[#666666] mt-1">Idéal pour tester ou pour un besoin unique très simple.</p>
+                <div className="mt-6 flex items-baseline">
+                  <span className="text-4xl font-black text-[#161616]">0€</span>
+                  <span className="text-sm text-[#666666] ml-2">sans engagement</span>
+                </div>
+
+                <ul className="mt-8 space-y-4">
+                  <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
+                    <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
+                    <span>Jusqu'à <strong>10 candidats</strong> maximum</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
+                    <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
+                    <span>Lien de candidature unique</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
+                    <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
+                    <span>Accès aux dossiers DossierFacile</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-sm text-gray-400">
+                    <X className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    <span>Refus manuels uniquement</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-sm text-gray-400">
+                    <X className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    <span>Pas de relances automatiques</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="mt-8">
+                <Link href="/dashboard?plan=free" className="btn-secondary w-full text-center py-3 block font-bold rounded-2xl">
+                  Commencer gratuitement
+                </Link>
+              </div>
+            </div>
+
+            {/* Plan 2: Pass Annonce (Highlighted) */}
+            <div className="bg-white border-2 border-[#000091] rounded-2xl p-8 flex flex-col justify-between shadow-lg relative transform md:-translate-y-4 hover:shadow-xl transition-all duration-300">
+              <div className="absolute top-0 right-1/2 translate-x-1/2 -translate-y-1/2 bg-[#000091] text-white text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full whitespace-nowrap">
+                Recommandé
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-[#161616] mt-2">Pass Annonce</h3>
+                <p className="text-sm text-[#666666] mt-1">Parfait pour louer rapidement un bien en toute sérénité.</p>
+                <div className="mt-6 flex items-baseline">
+                  <span className="text-4xl font-black text-[#161616]">19€</span>
+                  <span className="text-sm text-[#666666] ml-2">/ annonce</span>
+                </div>
+
+                <ul className="mt-8 space-y-4">
+                  <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
+                    <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
+                    <span>Candidats <strong>illimités</strong></span>
+                  </li>
+                  <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
+                    <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
+                    <span>Refus automatisés par SMS</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
+                    <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
+                    <span>Planificateur de visites intégré</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
+                    <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
+                    <span>1 lot sous gestion</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
+                    <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
+                    <span>Support prioritaire</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="mt-8">
+                <Link href="/dashboard?plan=pass" className="btn-primary w-full text-center py-3 block font-bold rounded-2xl">
+                  Choisir ce plan
+                </Link>
+              </div>
+            </div>
+
+            {/* Plan 3: Abonnement Pro */}
+            <div className="bg-white border border-[#E2E8F0] rounded-2xl p-8 flex flex-col justify-between hover:shadow-md transition-all duration-300">
+              <div>
+                <h3 className="text-2xl font-bold text-[#161616] mt-2">Abonnement Pro</h3>
+                <p className="text-sm text-[#666666] mt-1">Pour les bailleurs multi-biens et professionnels de l'immobilier.</p>
+                <div className="mt-6 flex items-baseline">
+                  <span className="text-4xl font-black text-[#161616]">39€</span>
+                  <span className="text-sm text-[#666666] ml-2">/ mois, sans engagement</span>
+                </div>
+
+                <ul className="mt-8 space-y-4">
+                  <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
+                    <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
+                    <span>Candidats <strong>illimités</strong></span>
+                  </li>
+                  <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
+                    <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
+                    <span>Gestion <strong>multi-biens</strong></span>
+                  </li>
+                  <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
+                    <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
+                    <span>Toutes les fonctionnalités automatisées</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
+                    <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
+                    <span>Exports de données (CSV/PDF)</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
+                    <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
+                    <span>Support dédié et téléphonique</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="mt-8">
+                <Link href="/dashboard?plan=pro" className="btn-secondary w-full text-center py-3 block font-bold rounded-2xl">
+                  Essayer Pro gratuitement
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Co-branding security trust badge */}
+          <div className="text-center">
+            <div className="inline-flex flex-col sm:flex-row items-center justify-center gap-2 bg-[#F5F5FE] border border-[#E3E3FD] px-6 py-3 rounded-full text-xs text-[#3A3A3A]">
+              <span className="flex items-center gap-1.5 font-bold text-[#000091]">
+                <ShieldCheck className="w-4 h-4 text-[#000091]" />
+                Sécurité & Confidentialité :
+              </span>
+              <span>Zéro stockage de documents confidentiels. Intégration 100% sécurisée avec les standards DossierFacile.</span>
+            </div>
           </div>
         </div>
       </section>
@@ -570,6 +804,7 @@ export default function Home() {
             <a href="#comparatif" className="hover:underline">Pourquoi BailConnect</a>
             <a href="#fonctionnement" className="hover:underline">Comment ça marche</a>
             <a href="#dossier-facile" className="hover:underline">DossierFacile</a>
+            <a href="#tarifs" className="hover:underline">Tarifs</a>
             <a href="#faq" className="hover:underline">FAQ</a>
             <Link href="/dashboard" className="hover:underline font-semibold text-[#000091]">Espace Propriétaire</Link>
           </div>
