@@ -207,7 +207,14 @@ export default function ApplyPage() {
       {/* Main Content Form */}
       <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-8">
         <div className="mb-6">
-          <span className="gov-badge mb-2">Candidature locataire</span>
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <span className="gov-badge">Candidature locataire</span>
+            {campaign.rentAmount !== undefined && (
+              <span className="text-xs font-semibold bg-[#E3E3FD] text-[#000091] px-2.5 py-1 rounded-sm border border-[#000091]/20">
+                Loyer : {campaign.rentAmount} € / mois CC
+              </span>
+            )}
+          </div>
           <h1 className="text-2xl font-bold text-[#161616]">{campaign.title}</h1>
           {campaign.description && (
             <p className="text-sm text-[#666666] mt-2 bg-white p-4 border border-[#DDDDDD] whitespace-pre-line">

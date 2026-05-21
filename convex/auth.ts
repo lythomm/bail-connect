@@ -3,4 +3,12 @@ import { convexAuth } from "@convex-dev/auth/server";
 
 export const { auth, signIn, signOut, store } = convexAuth({
   providers: [Password],
+  callbacks: {
+    async afterUserCreatedOrUpdated(ctx, args) {
+      if (args.existingUserId) return;
+      await ctx.db.patch(args.userId, {
+        tier: "free",
+      });
+    },
+  },
 });

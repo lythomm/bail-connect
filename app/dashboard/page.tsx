@@ -1,17 +1,16 @@
 "use client";
 
 import { useQuery, useConvexAuth } from "convex/react";
-import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import Navbar from "@/components/Navbar";
 
 export default function Dashboard() {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const campaigns = useQuery(api.campaigns.list);
   const user = useQuery(api.users.current);
-  const { signOut } = useAuthActions();
   const router = useRouter();
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -20,11 +19,6 @@ export default function Dashboard() {
       router.replace("/signin");
     }
   }, [isLoading, isAuthenticated, router]);
-
-  const handleSignOut = async () => {
-    await signOut();
-    router.push("/signin");
-  };
 
   const copyToClipboard = (slug: string, id: string) => {
     const origin = window.location.origin;
@@ -44,31 +38,8 @@ export default function Dashboard() {
 
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-[#F6F6F6]">
-      {/* Header */}
-      <header className="bg-white border-b border-[#DDDDDD] h-16 flex items-center justify-between px-6 sticky top-0 z-10">
-        <div className="flex items-center gap-4">
-          <div className="h-8 w-8 bg-[#000091] text-white flex items-center justify-center font-bold text-sm select-none">
-            BC
-          </div>
-          <span className="font-bold text-[#161616] text-lg">BailConnect</span>
-        </div>
-        <div className="flex items-center gap-4">
-          {user?.name && (
-            <span className="text-sm font-medium text-[#3A3A3A] hidden sm:inline mr-2">
-              Bonjour, {user.name}
-            </span>
-          )}
-          <Link href="/dashboard/campaigns/new" className="btn-primary text-sm h-9 flex items-center">
-            Nouveau logement
-          </Link>
-          <button
-            onClick={handleSignOut}
-            className="btn-secondary text-sm h-9 flex items-center"
-          >
-            Se déconnecter
-          </button>
-        </div>
-      </header>
+      {/* Navbar */}
+      <Navbar />
 
       {/* Main Content */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-8">
@@ -102,6 +73,11 @@ export default function Dashboard() {
                 <div>
                   <div className="gov-card-header text-lg font-bold flex justify-between items-start gap-4">
                     <span className="truncate">{campaign.title}</span>
+                    {campaign.rentAmount !== undefined && (
+                      <span className="text-xs font-semibold bg-[#E3E3FD] text-[#000091] px-2.5 py-1 rounded-sm border border-[#000091]/20 whitespace-nowrap font-sans">
+                        Loyer : {campaign.rentAmount} €
+                      </span>
+                    )}
                   </div>
                   {campaign.description && (
                     <p className="text-sm text-[#666666] line-clamp-3 mb-4">

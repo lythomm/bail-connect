@@ -5,6 +5,7 @@ import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Navbar from "@/components/Navbar";
 
 export default function NewCampaign() {
   const { isAuthenticated, isLoading } = useConvexAuth();
@@ -12,6 +13,7 @@ export default function NewCampaign() {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [rentAmount, setRentAmount] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -32,10 +34,18 @@ export default function NewCampaign() {
       return;
     }
 
+    const parsedRent = rentAmount ? parseFloat(rentAmount) : undefined;
+    if (parsedRent !== undefined && (isNaN(parsedRent) || parsedRent <= 0)) {
+      setError("Le montant du loyer doit être un nombre supérieur à 0.");
+      setLoading(false);
+      return;
+    }
+
     try {
       await createCampaign({
         title: title.trim(),
         description: description.trim() || undefined,
+        rentAmount: parsedRent,
       });
       router.push("/dashboard");
     } catch (err: any) {
@@ -56,20 +66,8 @@ export default function NewCampaign() {
 
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-[#F6F6F6]">
-      {/* Header */}
-      <header className="bg-white border-b border-[#DDDDDD] h-16 flex items-center justify-between px-6 sticky top-0 z-10">
-        <div className="flex items-center gap-4">
-          <div className="h-8 w-8 bg-[#000091] text-white flex items-center justify-center font-bold text-sm select-none">
-            BC
-          </div>
-          <Link href="/dashboard" className="font-bold text-[#161616] text-lg hover:underline">
-            BailConnect
-          </Link>
-        </div>
-        <Link href="/dashboard" className="btn-secondary text-sm h-9 flex items-center">
-          Retour au tableau de bord
-        </Link>
-      </header>
+      {/* Navbar */}
+      <Navbar />
 
       {/* Main Form */}
       <main className="flex-1 max-w-2xl w-full mx-auto px-6 py-8">
@@ -114,6 +112,25 @@ export default function NewCampaign() {
               </div>
 
               <div>
+                <label htmlFor="rentAmount" className="form-label">
+                  Loyer mensuel charges comprises (en €) *
+                </label>
+                <input
+                  id="rentAmount"
+                  type="number"
+                  required
+                  min="1"
+                  value={rentAmount}
+                  onChange={(e) => setRentAmount(e.target.value)}
+                  className="form-input"
+                  placeholder="ex: 850"
+                />
+                <span className="text-xs text-[#666666] mt-1 block">
+                  Indiquez le loyer mensuel charges comprises pour calculer le ratio de revenus des candidats (ex: 3x le loyer).
+                </span>
+              </div>
+
+              <div>
                 <label htmlFor="description" className="form-label">
                   Description / Critères (Optionnel)
                 </label>
@@ -123,11 +140,17 @@ export default function NewCampaign() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   className="form-input h-auto min-h-[100px]"
-                  placeholder="ex: Loyer 850€ charges comprises. Disponible le 1er juin. Profils sérieux uniquement. Garant obligatoire."
+                  placeholder="ex: Disponible le 1er juin. Profils sérieux uniquement. Garant obligatoire."
                 />
               </div>
 
               <div className="flex gap-4 pt-4 border-t border-[#DDDDDD]">
+                <Link
+                  href="/dashboard"
+                  className="btn-secondary flex-1 text-center justify-center"
+                >
+                  Annuler
+                </Link>
                 <button
                   type="submit"
                   disabled={loading}
@@ -135,12 +158,6 @@ export default function NewCampaign() {
                 >
                   {loading ? "Création..." : "Créer l'annonce"}
                 </button>
-                <Link
-                  href="/dashboard"
-                  className="btn-secondary flex-1 text-center justify-center"
-                >
-                  Annuler
-                </Link>
               </div>
             </form>
           </div>

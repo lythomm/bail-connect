@@ -4,12 +4,28 @@ import { v } from "convex/values";
 
 export default defineSchema({
   ...authTables,
+  users: defineTable({
+    name: v.optional(v.string()),
+    image: v.optional(v.string()),
+    email: v.optional(v.string()),
+    emailVerificationTime: v.optional(v.number()),
+    phone: v.optional(v.string()),
+    phoneVerificationTime: v.optional(v.number()),
+    isAnonymous: v.optional(v.boolean()),
+    tier: v.optional(v.union(
+      v.literal("free"),
+      v.literal("pass"),
+      v.literal("pro")
+    )),
+  }).index("email", ["email"])
+    .index("phone", ["phone"]),
 
   campaigns: defineTable({
     userId: v.id("users"), // Landlord who created the campaign
     title: v.string(), // e.g., "Studio 20m² Paris 11"
     slug: v.string(), // Unique identifier for public application URL
     description: v.optional(v.string()),
+    rentAmount: v.optional(v.number()), // Monthly rent amount CC (in EUR)
     createdAt: v.number(),
   }).index("by_slug", ["slug"])
     .index("by_userId", ["userId"]), // INDISPENSABLE pour lister les campagnes d'un proprio connecté,

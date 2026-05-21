@@ -60,7 +60,13 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, h5, h6, .gov-card-header {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.gov-card-header {
   font-family: "Cal Sans", var(--font-sans);
 }
 
@@ -169,7 +175,7 @@ h1, h2, h3, h4, h5, h6, .gov-card-header {
 .gov-card {
   background-color: #FFFFFF;
   box-shadow: inset 0px 0px 0px 1px var(--border-inset);
-  border-radius: 0px;
+  border-radius: 0.3rem;
   padding: 24px;
   margin-bottom: 24px;
   color: var(--text-secondary);

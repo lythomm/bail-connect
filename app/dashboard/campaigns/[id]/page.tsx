@@ -5,6 +5,7 @@ import { api } from "@/convex/_generated/api";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
+import Navbar from "@/components/Navbar";
 import { Id } from "@/convex/_generated/dataModel";
 
 export default function CampaignDetail() {
@@ -97,20 +98,8 @@ export default function CampaignDetail() {
 
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-[#F6F6F6]">
-      {/* Header */}
-      <header className="bg-white border-b border-[#DDDDDD] h-16 flex items-center justify-between px-6 sticky top-0 z-10">
-        <div className="flex items-center gap-4">
-          <div className="h-8 w-8 bg-[#000091] text-white flex items-center justify-center font-bold text-sm select-none">
-            BC
-          </div>
-          <Link href="/dashboard" className="font-bold text-[#161616] text-lg hover:underline">
-            BailConnect
-          </Link>
-        </div>
-        <Link href="/dashboard" className="btn-secondary text-sm h-9 flex items-center">
-          Tableau de bord
-        </Link>
-      </header>
+      {/* Navbar */}
+      <Navbar />
 
       {/* Main content */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-8">
@@ -128,7 +117,14 @@ export default function CampaignDetail() {
               {candidates.length} candidat(s) au total
             </span>
           </div>
-          <h1 className="text-2xl font-bold text-[#161616] mb-2">{campaign.title}</h1>
+          <h1 className="text-2xl font-bold text-[#161616] mb-2 flex flex-wrap items-center gap-3">
+            <span>{campaign.title}</span>
+            {campaign.rentAmount !== undefined && (
+              <span className="text-xs font-semibold bg-[#E3E3FD] text-[#000091] px-2.5 py-1 rounded-sm border border-[#000091]/20">
+                Loyer : {campaign.rentAmount} € / mois
+              </span>
+            )}
+          </h1>
           {campaign.description && (
             <p className="text-sm text-[#3A3A3A] max-w-3xl mb-4">{campaign.description}</p>
           )}
@@ -228,7 +224,16 @@ export default function CampaignDetail() {
                       </span>
                     </td>
                     <td className="p-4 text-right font-semibold text-[#161616]">
-                      {candidate.monthlyIncome.toLocaleString("fr-FR")} €
+                      <div>{candidate.monthlyIncome.toLocaleString("fr-FR")} €</div>
+                      {campaign.rentAmount !== undefined && (
+                        <div className={`text-xs mt-1 font-medium ${
+                          (candidate.monthlyIncome / campaign.rentAmount) >= 3
+                            ? "text-[#18753C]"
+                            : "text-[#CE0500]"
+                        }`}>
+                          {(candidate.monthlyIncome / campaign.rentAmount).toFixed(1)}x le loyer
+                        </div>
+                      )}
                     </td>
                     <td className="p-4 text-center">
                       {candidate.hasGuarantor ? (

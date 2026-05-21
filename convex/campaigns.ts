@@ -76,6 +76,7 @@ export const getBySlug = query({
       title: campaign.title,
       description: campaign.description,
       slug: campaign.slug,
+      rentAmount: campaign.rentAmount,
     };
   },
 });
@@ -87,6 +88,7 @@ export const create = mutation({
   args: {
     title: v.string(),
     description: v.optional(v.string()),
+    rentAmount: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -104,6 +106,7 @@ export const create = mutation({
       title: args.title.trim(),
       slug,
       description: args.description?.trim(),
+      rentAmount: args.rentAmount,
       createdAt: Date.now(),
     });
 
