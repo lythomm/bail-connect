@@ -56,6 +56,26 @@ function TrigramCell({
   );
 }
 
+const JOB_STATUS_OPTIONS = [
+  { value: "CDI", label: "CDI" },
+  { value: "CDD", label: "CDD" },
+  { value: "Student", label: "Étudiant" },
+  { value: "Freelance", label: "Freelance" },
+  { value: "Functionary", label: "Fonctionnaire" },
+  { value: "Other", label: "Autre" },
+];
+
+const GUARANTOR_OPTIONS = [
+  { value: "yes", label: "Avec garant" },
+  { value: "no", label: "Sans garant" },
+];
+
+const STATUS_OPTIONS = [
+  { value: "pending", label: "En attente" },
+  { value: "accepted", label: "Accepté" },
+  { value: "rejected", label: "Refusé" },
+];
+
 export default function CampaignDetail() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const params = useParams();
@@ -69,8 +89,11 @@ export default function CampaignDetail() {
   const [sorting, setSorting] = useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedJobStatuses, setSelectedJobStatuses] = useState<string[]>([]);
+  const [selectedGuarantors, setSelectedGuarantors] = useState<string[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [activeDropdown, setActiveDropdown] = useState<"jobStatus" | "guarantor" | "status" | null>(null);
+
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
@@ -80,14 +103,48 @@ export default function CampaignDetail() {
     }
   }, [authLoading, isAuthenticated, router]);
 
-  // Sync statusFilter with columnFilters
-  useEffect(() => {
-    if (statusFilter === "all") {
-      setColumnFilters([]);
-    } else {
-      setColumnFilters([{ id: "status", value: statusFilter }]);
-    }
-  }, [statusFilter]);
+  const toggleJobStatus = useCallback((status: string) => {
+    setSelectedJobStatuses((prev) =>
+      prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]
+    );
+  }, []);
+
+  const toggleGuarantor = useCallback((val: string) => {
+    setSelectedGuarantors((prev) =>
+      prev.includes(val) ? prev.filter((v) => v !== val) : [...prev, val]
+    );
+  }, []);
+
+  const toggleStatus = useCallback((status: string) => {
+    setSelectedStatuses((prev) =>
+      prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]
+    );
+  }, []);
+
+  const clearFilters = useCallback(() => {
+    setSelectedJobStatuses([]);
+    setSelectedGuarantors([]);
+    setSelectedStatuses([]);
+  }, []);
+
+  const filteredCandidates = useMemo(() => {
+    if (!candidates) return [];
+    return candidates.filter((c) => {
+      if (selectedJobStatuses.length > 0 && !selectedJobStatuses.includes(c.jobStatus)) {
+        return false;
+      }
+      if (selectedGuarantors.length > 0) {
+        const hasGuarantorStr = c.hasGuarantor ? "yes" : "no";
+        if (!selectedGuarantors.includes(hasGuarantorStr)) {
+          return false;
+        }
+      }
+      if (selectedStatuses.length > 0 && !selectedStatuses.includes(c.status)) {
+        return false;
+      }
+      return true;
+    });
+  }, [candidates, selectedJobStatuses, selectedGuarantors, selectedStatuses]);
 
   const handleStatusChange = useCallback(async (candidateId: Id<"candidates">, newStatus: "accepted" | "rejected" | "pending") => {
     setActionLoadingId(candidateId);
@@ -279,20 +336,17 @@ export default function CampaignDetail() {
   ], [campaign, actionLoadingId, handleStatusChange]);
 
   const table = useReactTable({
-    data: candidates || [],
+    data: filteredCandidates,
     columns,
     state: {
       sorting,
-      columnFilters,
       columnVisibility: {
         createdAt: false,
       },
     },
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
   });
 
   if (authLoading || campaign === undefined || candidates === undefined) {
@@ -366,25 +420,131 @@ export default function CampaignDetail() {
         </div>
 
         {/* Filter controls */}
-        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mb-4">
-          <div className="flex gap-2 items-center w-full sm:w-auto">
-            <label htmlFor="filter-status" className="text-xs font-bold text-[#161616] whitespace-nowrap">
-              Filtrer par statut :
-            </label>
-            <select
-              id="filter-status"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="text-xs bg-white border border-[#DDDDDD] p-2 outline-none h-8"
-            >
-              <option value="all">Tous</option>
-              <option value="pending">En attente</option>
-              <option value="accepted">Accepté</option>
-              <option value="rejected">Refusé</option>
-            </select>
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between mb-4">
+          <div className="flex flex-wrap gap-2 items-center w-full md:w-auto">
+            <span className="text-xs font-bold text-[#161616] mr-2">Filtrer par :</span>
+
+            {/* Professional Status Dropdown */}
+            <div className={`relative ${activeDropdown === "jobStatus" ? "z-30" : ""}`}>
+              <button
+                type="button"
+                onClick={() => setActiveDropdown(activeDropdown === "jobStatus" ? null : "jobStatus")}
+                className={`h-8 px-3 border text-xs font-medium flex items-center gap-1.5 hover:bg-[#F6F6F6] focus:outline-none cursor-pointer transition-colors ${
+                  selectedJobStatuses.length > 0
+                    ? "bg-[#E3E3FD] text-[#000091] border-[#000091]"
+                    : "bg-white text-[#161616] border-[#DDDDDD]"
+                }`}
+              >
+                <span>Statut {selectedJobStatuses.length > 0 ? `(${selectedJobStatuses.length})` : ""}</span>
+                <svg className={`w-3.5 h-3.5 text-[#666666] transition-transform duration-200 ${activeDropdown === "jobStatus" ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {activeDropdown === "jobStatus" && (
+                <div className="absolute left-0 mt-1 w-56 bg-white border border-[#DDDDDD] shadow-lg z-30 py-2 rounded-sm">
+                  {JOB_STATUS_OPTIONS.map((opt) => (
+                    <label
+                      key={opt.value}
+                      className="flex items-center px-4 py-2 text-xs text-[#3A3A3A] hover:bg-[#F6F6F6] cursor-pointer select-none"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedJobStatuses.includes(opt.value)}
+                        onChange={() => toggleJobStatus(opt.value)}
+                        className="mr-2.5 h-3.5 w-3.5 border-[#DDDDDD] text-[#000091] focus:ring-[#000091] rounded-sm"
+                      />
+                      <span>{opt.label}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Guarantor Dropdown */}
+            <div className={`relative ${activeDropdown === "guarantor" ? "z-30" : ""}`}>
+              <button
+                type="button"
+                onClick={() => setActiveDropdown(activeDropdown === "guarantor" ? null : "guarantor")}
+                className={`h-8 px-3 border text-xs font-medium flex items-center gap-1.5 hover:bg-[#F6F6F6] focus:outline-none cursor-pointer transition-colors ${
+                  selectedGuarantors.length > 0
+                    ? "bg-[#E3E3FD] text-[#000091] border-[#000091]"
+                    : "bg-white text-[#161616] border-[#DDDDDD]"
+                }`}
+              >
+                <span>Garant {selectedGuarantors.length > 0 ? `(${selectedGuarantors.length})` : ""}</span>
+                <svg className={`w-3.5 h-3.5 text-[#666666] transition-transform duration-200 ${activeDropdown === "guarantor" ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {activeDropdown === "guarantor" && (
+                <div className="absolute left-0 mt-1 w-48 bg-white border border-[#DDDDDD] shadow-lg z-30 py-2 rounded-sm">
+                  {GUARANTOR_OPTIONS.map((opt) => (
+                    <label
+                      key={opt.value}
+                      className="flex items-center px-4 py-2 text-xs text-[#3A3A3A] hover:bg-[#F6F6F6] cursor-pointer select-none"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedGuarantors.includes(opt.value)}
+                        onChange={() => toggleGuarantor(opt.value)}
+                        className="mr-2.5 h-3.5 w-3.5 border-[#DDDDDD] text-[#000091] focus:ring-[#000091] rounded-sm"
+                      />
+                      <span>{opt.label}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Application State Dropdown */}
+            <div className={`relative ${activeDropdown === "status" ? "z-30" : ""}`}>
+              <button
+                type="button"
+                onClick={() => setActiveDropdown(activeDropdown === "status" ? null : "status")}
+                className={`h-8 px-3 border text-xs font-medium flex items-center gap-1.5 hover:bg-[#F6F6F6] focus:outline-none cursor-pointer transition-colors ${
+                  selectedStatuses.length > 0
+                    ? "bg-[#E3E3FD] text-[#000091] border-[#000091]"
+                    : "bg-white text-[#161616] border-[#DDDDDD]"
+                }`}
+              >
+                <span>État {selectedStatuses.length > 0 ? `(${selectedStatuses.length})` : ""}</span>
+                <svg className={`w-3.5 h-3.5 text-[#666666] transition-transform duration-200 ${activeDropdown === "status" ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {activeDropdown === "status" && (
+                <div className="absolute left-0 mt-1 w-48 bg-white border border-[#DDDDDD] shadow-lg z-30 py-2 rounded-sm">
+                  {STATUS_OPTIONS.map((opt) => (
+                    <label
+                      key={opt.value}
+                      className="flex items-center px-4 py-2 text-xs text-[#3A3A3A] hover:bg-[#F6F6F6] cursor-pointer select-none"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedStatuses.includes(opt.value)}
+                        onChange={() => toggleStatus(opt.value)}
+                        className="mr-2.5 h-3.5 w-3.5 border-[#DDDDDD] text-[#000091] focus:ring-[#000091] rounded-sm"
+                      />
+                      <span>{opt.label}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Clear filters button */}
+            {(selectedJobStatuses.length > 0 || selectedGuarantors.length > 0 || selectedStatuses.length > 0) && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="h-8 px-3 text-xs font-bold text-[#CE0500] hover:bg-[#FFE9E9] border border-[#CE0500]/20 rounded-sm focus:outline-none cursor-pointer transition-colors"
+              >
+                Réinitialiser
+              </button>
+            )}
           </div>
 
-          <div className="flex gap-2 w-full sm:w-auto justify-end">
+          <div className="flex gap-2 w-full md:w-auto justify-end">
             <button
               onClick={() => toggleSort("monthlyIncome")}
               className={`text-xs font-bold px-3 py-1.5 border cursor-pointer ${sortField === "monthlyIncome"
@@ -510,6 +670,9 @@ export default function CampaignDetail() {
           )}
         </div>
       </main>
+      {activeDropdown && (
+        <div className="fixed inset-0 z-20 cursor-default" onClick={() => setActiveDropdown(null)} />
+      )}
       {toast && (
         <Toast
           message={toast.message}
