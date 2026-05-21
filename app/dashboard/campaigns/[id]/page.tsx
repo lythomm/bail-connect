@@ -1,12 +1,24 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useParams, useRouter } from "next/navigation";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
-import { Id } from "@/convex/_generated/dataModel";
+import { Id, Doc } from "@/convex/_generated/dataModel";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  ColumnDef,
+  flexRender,
+  SortingState,
+  ColumnFiltersState,
+} from "@tanstack/react-table";
 
 export default function CampaignDetail() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
@@ -18,8 +30,10 @@ export default function CampaignDetail() {
   const candidates = useQuery(api.candidates.getByCampaign, campaignId ? { campaignId } : "skip");
   const updateStatus = useMutation(api.candidates.updateStatus);
 
-  const [sortField, setSortField] = useState<"monthlyIncome" | "createdAt">("createdAt");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "createdAt", desc: true },
+  ]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
@@ -29,31 +43,16 @@ export default function CampaignDetail() {
     }
   }, [authLoading, isAuthenticated, router]);
 
-  // Memoized and sorted candidates
-  const sortedAndFilteredCandidates = useMemo(() => {
-    if (!candidates) return [];
-
-    let filtered = [...candidates];
-
-    // Filter by status
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((c) => c.status === statusFilter);
+  // Sync statusFilter with columnFilters
+  useEffect(() => {
+    if (statusFilter === "all") {
+      setColumnFilters([]);
+    } else {
+      setColumnFilters([{ id: "status", value: statusFilter }]);
     }
+  }, [statusFilter]);
 
-    // Sort
-    filtered.sort((a, b) => {
-      const valA = a[sortField];
-      const valB = b[sortField];
-
-      if (valA < valB) return sortOrder === "asc" ? -1 : 1;
-      if (valA > valB) return sortOrder === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    return filtered;
-  }, [candidates, sortField, sortOrder, statusFilter]);
-
-  const handleStatusChange = async (candidateId: Id<"candidates">, newStatus: "accepted" | "rejected" | "pending") => {
+  const handleStatusChange = useCallback(async (candidateId: Id<"candidates">, newStatus: "accepted" | "rejected" | "pending") => {
     setActionLoadingId(candidateId);
     try {
       await updateStatus({ id: candidateId, status: newStatus });
@@ -63,16 +62,174 @@ export default function CampaignDetail() {
     } finally {
       setActionLoadingId(null);
     }
-  };
+  }, [updateStatus]);
 
   const toggleSort = (field: "monthlyIncome" | "createdAt") => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortOrder("desc");
-    }
+    setSorting((prev) => {
+      const existing = prev.find((s) => s.id === field);
+      if (existing) {
+        return [{ id: field, desc: !existing.desc }];
+      }
+      return [{ id: field, desc: true }];
+    });
   };
+
+  const sortField = sorting[0]?.id || "createdAt";
+  const sortOrder = sorting[0]?.desc ? "desc" : "asc";
+
+  const columns = useMemo<ColumnDef<Doc<"candidates">>[]>(() => [
+    {
+      accessorKey: "nameTrigram",
+      header: "Trigramme",
+      cell: ({ row }) => (
+        <span className="font-mono font-bold text-[#000091]">
+          {row.original.nameTrigram}
+        </span>
+      ),
+      enableSorting: false,
+    },
+    {
+      id: "candidateInfo",
+      header: "Candidat",
+      cell: ({ row }) => (
+        <div>
+          <div className="font-semibold text-[#161616]">
+            {row.original.firstName} {row.original.lastName}
+          </div>
+          <div className="text-xs text-[#666666]">
+            {row.original.email} • {row.original.phone}
+          </div>
+        </div>
+      ),
+      enableSorting: false,
+    },
+    {
+      accessorKey: "jobStatus",
+      header: "Statut",
+      cell: ({ row }) => (
+        <span className="bg-[#F6F6F6] px-2 py-0.5 border border-[#DDDDDD] text-xs font-semibold text-[#3A3A3A]">
+          {row.original.jobStatus}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "monthlyIncome",
+      header: "Revenus Mensuels",
+      cell: ({ row }) => {
+        const income = row.original.monthlyIncome;
+        return (
+          <div className="font-semibold text-[#161616]">
+            <div>{income.toLocaleString("fr-FR")} €</div>
+            {campaign?.rentAmount !== undefined && (
+              <div className={`text-xs mt-1 font-medium ${(income / campaign.rentAmount) >= 3
+                ? "text-[#18753C]"
+                : "text-[#CE0500]"
+                }`}>
+                {(income / campaign.rentAmount).toFixed(1)}x le loyer
+              </div>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "hasGuarantor",
+      header: "Garant",
+      cell: ({ row }) => (
+        <span className={row.original.hasGuarantor ? "text-[#18753C] font-semibold" : "text-[#666666]"}>
+          {row.original.hasGuarantor ? "Oui" : "Non"}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "dossierFacileUrl",
+      header: "Dossier",
+      cell: ({ row }) => (
+        <a
+          href={row.original.dossierFacileUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[#000091] hover:underline text-xs font-bold inline-flex items-center gap-1"
+        >
+          Ouvrir ↗
+        </a>
+      ),
+      enableSorting: false,
+    },
+    {
+      accessorKey: "status",
+      header: "État",
+      cell: ({ row }) => {
+        const status = row.original.status;
+        return (
+          <div>
+            {status === "accepted" && <span className="gov-badge gov-badge-success">Accepté</span>}
+            {status === "rejected" && <span className="gov-badge gov-badge-error">Refusé</span>}
+            {status === "pending" && <span className="gov-badge gov-badge-warning">En attente</span>}
+          </div>
+        );
+      },
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => {
+        const candidate = row.original;
+        return (
+          <div className="flex gap-2 justify-end">
+            {candidate.status !== "accepted" && (
+              <button
+                onClick={() => handleStatusChange(candidate._id, "accepted")}
+                disabled={actionLoadingId === candidate._id}
+                className="bg-[#18753C] text-white text-xs font-bold py-1 px-3 hover:bg-[#135c2f] disabled:opacity-50 cursor-pointer"
+              >
+                Accepter
+              </button>
+            )}
+            {candidate.status !== "rejected" && (
+              <button
+                onClick={() => handleStatusChange(candidate._id, "rejected")}
+                disabled={actionLoadingId === candidate._id}
+                className="bg-[#CE0500] text-white text-xs font-bold py-1 px-3 hover:bg-[#a60400] disabled:opacity-50 cursor-pointer"
+              >
+                Refuser
+              </button>
+            )}
+            {candidate.status !== "pending" && (
+              <button
+                onClick={() => handleStatusChange(candidate._id, "pending")}
+                disabled={actionLoadingId === candidate._id}
+                className="bg-transparent border border-[#DDDDDD] text-[#3A3A3A] text-xs font-bold py-1 px-3 hover:bg-[#F6F6F6] disabled:opacity-50 cursor-pointer"
+              >
+                Réinitialiser
+              </button>
+            )}
+          </div>
+        );
+      },
+      enableSorting: false,
+    },
+    {
+      accessorKey: "createdAt",
+    },
+  ], [campaign, actionLoadingId, handleStatusChange]);
+
+  const table = useReactTable({
+    data: candidates || [],
+    columns,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility: {
+        createdAt: false,
+      },
+    },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+  });
 
   if (authLoading || campaign === undefined || candidates === undefined) {
     return (
@@ -102,7 +259,7 @@ export default function CampaignDetail() {
       <Navbar />
 
       {/* Main content */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
         {/* Breadcrumbs */}
         <div className="flex items-center gap-2 text-xs text-[#666666] mb-4">
           <Link href="/dashboard" className="hover:underline">Logements</Link>
@@ -163,21 +320,19 @@ export default function CampaignDetail() {
           <div className="flex gap-2 w-full sm:w-auto justify-end">
             <button
               onClick={() => toggleSort("monthlyIncome")}
-              className={`text-xs font-bold px-3 py-1.5 border cursor-pointer ${
-                sortField === "monthlyIncome"
-                  ? "bg-[#000091] text-white border-[#000091]"
-                  : "bg-white text-[#3A3A3A] border-[#DDDDDD]"
-              }`}
+              className={`text-xs font-bold px-3 py-1.5 border cursor-pointer ${sortField === "monthlyIncome"
+                ? "bg-[#000091] text-white border-[#000091]"
+                : "bg-white text-[#3A3A3A] border-[#DDDDDD]"
+                }`}
             >
               Trier par Revenu {sortField === "monthlyIncome" && (sortOrder === "desc" ? "↓" : "↑")}
             </button>
             <button
               onClick={() => toggleSort("createdAt")}
-              className={`text-xs font-bold px-3 py-1.5 border cursor-pointer ${
-                sortField === "createdAt"
-                  ? "bg-[#000091] text-white border-[#000091]"
-                  : "bg-white text-[#3A3A3A] border-[#DDDDDD]"
-              }`}
+              className={`text-xs font-bold px-3 py-1.5 border cursor-pointer ${sortField === "createdAt"
+                ? "bg-[#000091] text-white border-[#000091]"
+                : "bg-white text-[#3A3A3A] border-[#DDDDDD]"
+                }`}
             >
               Trier par Date {sortField === "createdAt" && (sortOrder === "desc" ? "↓" : "↑")}
             </button>
@@ -186,114 +341,103 @@ export default function CampaignDetail() {
 
         {/* Candidates Table */}
         <div className="bg-white border border-[#DDDDDD] overflow-x-auto">
-          {sortedAndFilteredCandidates.length === 0 ? (
+          {table.getRowModel().rows.length === 0 ? (
             <div className="text-center py-12 px-4">
               <p className="text-sm text-[#666666]">Aucun candidat trouvé pour cette sélection.</p>
             </div>
           ) : (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-[#F6F6F6] border-b border-[#DDDDDD]">
-                  <th className="p-4 text-xs font-bold text-[#161616] uppercase tracking-wider">Trigramme</th>
-                  <th className="p-4 text-xs font-bold text-[#161616] uppercase tracking-wider">Candidat</th>
-                  <th className="p-4 text-xs font-bold text-[#161616] uppercase tracking-wider">Statut Professionnel</th>
-                  <th className="p-4 text-xs font-bold text-[#161616] uppercase tracking-wider text-right">Revenus Mensuels</th>
-                  <th className="p-4 text-xs font-bold text-[#161616] uppercase tracking-wider text-center">Garant</th>
-                  <th className="p-4 text-xs font-bold text-[#161616] uppercase tracking-wider text-center">Dossier</th>
-                  <th className="p-4 text-xs font-bold text-[#161616] uppercase tracking-wider text-center">Statut</th>
-                  <th className="p-4 text-xs font-bold text-[#161616] uppercase tracking-wider text-right">Actions</th>
-                </tr>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr key={headerGroup.id} className="bg-[#F6F6F6] border-b border-[#DDDDDD]">
+                    {headerGroup.headers.map((header) => {
+                      let alignmentClass = "text-left";
+                      if (header.column.id === "monthlyIncome" || header.column.id === "actions") {
+                        alignmentClass = "text-right";
+                      } else if (
+                        header.column.id === "hasGuarantor" ||
+                        header.column.id === "dossierFacileUrl" ||
+                        header.column.id === "status"
+                      ) {
+                        alignmentClass = "text-center";
+                      }
+
+                      const canSort = header.column.getCanSort();
+                      const isSorted = header.column.getIsSorted();
+
+                      return (
+                        <th
+                          key={header.id}
+                          onClick={
+                            canSort
+                              ? () => {
+                                  if (!isSorted) {
+                                    header.column.toggleSorting(false, false);
+                                  } else {
+                                    header.column.toggleSorting(isSorted === "asc", false);
+                                  }
+                                }
+                              : undefined
+                          }
+                          className={`p-4 text-xs font-bold text-[#161616] uppercase tracking-wider ${alignmentClass} ${
+                            canSort
+                              ? "cursor-pointer select-none hover:bg-[#E5E5E5] transition-colors"
+                              : ""
+                          }`}
+                        >
+                          {header.isPlaceholder ? null : (
+                            <div
+                              className={`inline-flex items-center gap-1 ${
+                                alignmentClass === "text-right"
+                                  ? "justify-end w-full"
+                                  : alignmentClass === "text-center"
+                                    ? "justify-center w-full"
+                                    : ""
+                              }`}
+                            >
+                              <span>
+                                {flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext()
+                                )}
+                              </span>
+                              {canSort && (
+                                <span className="text-[#666666] font-mono text-xs select-none">
+                                  {isSorted === "asc" ? "↑" : isSorted === "desc" ? "↓" : "↕"}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </th>
+                      );
+                    })}
+                  </tr>
+                ))}
               </thead>
               <tbody className="divide-y divide-[#DDDDDD]">
-                {sortedAndFilteredCandidates.map((candidate) => (
-                  <tr key={candidate._id} className="hover:bg-[#F5F5FE] text-sm text-[#3A3A3A]">
-                    <td className="p-4 font-mono font-bold text-[#000091]">
-                      {candidate.nameTrigram}
-                    </td>
-                    <td className="p-4">
-                      <div className="font-semibold text-[#161616]">
-                        {candidate.firstName} {candidate.lastName}
-                      </div>
-                      <div className="text-xs text-[#666666]">
-                        {candidate.email} • {candidate.phone}
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <span className="bg-[#F6F6F6] px-2 py-0.5 border border-[#DDDDDD] text-xs font-semibold text-[#3A3A3A]">
-                        {candidate.jobStatus}
-                      </span>
-                    </td>
-                    <td className="p-4 text-right font-semibold text-[#161616]">
-                      <div>{candidate.monthlyIncome.toLocaleString("fr-FR")} €</div>
-                      {campaign.rentAmount !== undefined && (
-                        <div className={`text-xs mt-1 font-medium ${
-                          (candidate.monthlyIncome / campaign.rentAmount) >= 3
-                            ? "text-[#18753C]"
-                            : "text-[#CE0500]"
-                        }`}>
-                          {(candidate.monthlyIncome / campaign.rentAmount).toFixed(1)}x le loyer
-                        </div>
-                      )}
-                    </td>
-                    <td className="p-4 text-center">
-                      {candidate.hasGuarantor ? (
-                        <span className="text-[#18753C] font-semibold">Oui</span>
-                      ) : (
-                        <span className="text-[#666666]">Non</span>
-                      )}
-                    </td>
-                    <td className="p-4 text-center">
-                      <a
-                        href={candidate.dossierFacileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[#000091] hover:underline text-xs font-bold inline-flex items-center gap-1"
-                      >
-                        Ouvrir ↗
-                      </a>
-                    </td>
-                    <td className="p-4 text-center">
-                      {candidate.status === "accepted" && (
-                        <span className="gov-badge gov-badge-success">Accepté</span>
-                      )}
-                      {candidate.status === "rejected" && (
-                        <span className="gov-badge gov-badge-error">Refusé</span>
-                      )}
-                      {candidate.status === "pending" && (
-                        <span className="gov-badge gov-badge-warning">En attente</span>
-                      )}
-                    </td>
-                    <td className="p-4 text-right">
-                      <div className="flex gap-2 justify-end">
-                        {candidate.status !== "accepted" && (
-                          <button
-                            onClick={() => handleStatusChange(candidate._id, "accepted")}
-                            disabled={actionLoadingId === candidate._id}
-                            className="bg-[#18753C] text-white text-xs font-bold py-1 px-3 hover:bg-[#135c2f] disabled:opacity-50 cursor-pointer"
-                          >
-                            Accepter
-                          </button>
-                        )}
-                        {candidate.status !== "rejected" && (
-                          <button
-                            onClick={() => handleStatusChange(candidate._id, "rejected")}
-                            disabled={actionLoadingId === candidate._id}
-                            className="bg-[#CE0500] text-white text-xs font-bold py-1 px-3 hover:bg-[#a60400] disabled:opacity-50 cursor-pointer"
-                          >
-                            Refuser
-                          </button>
-                        )}
-                        {candidate.status !== "pending" && (
-                          <button
-                            onClick={() => handleStatusChange(candidate._id, "pending")}
-                            disabled={actionLoadingId === candidate._id}
-                            className="bg-transparent border border-[#DDDDDD] text-[#3A3A3A] text-xs font-bold py-1 px-3 hover:bg-[#F6F6F6] disabled:opacity-50 cursor-pointer"
-                          >
-                            Réinitialiser
-                          </button>
-                        )}
-                      </div>
-                    </td>
+                {table.getRowModel().rows.map((row) => (
+                  <tr key={row.id} className="hover:bg-[#F5F5FE] text-sm text-[#3A3A3A]">
+                    {row.getVisibleCells().map((cell) => {
+                      let alignmentClass = "text-left";
+                      if (cell.column.id === "monthlyIncome" || cell.column.id === "actions") {
+                        alignmentClass = "text-right";
+                      } else if (
+                        cell.column.id === "hasGuarantor" ||
+                        cell.column.id === "dossierFacileUrl" ||
+                        cell.column.id === "status"
+                      ) {
+                        alignmentClass = "text-center";
+                      }
+
+                      return (
+                        <td key={cell.id} className={`p-4 ${alignmentClass}`}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))}
               </tbody>
