@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BailConnect - Tenant Funnel & Landlord CRM",
-  description: "Hyper-focused tenant recruitment funnel and minimal CRM for landlords to manage rental applications without email clutter.",
+  title: "Trier les candidatures locataires rapidement – BailConnect",
+  description: "Arrêtez de trier des e-mails toute la soirée. BailConnect centralise les dossiers DossierFacile de vos candidats locataires en 10 minutes. Essai gratuit.",
 };
 
 export default function RootLayout({
