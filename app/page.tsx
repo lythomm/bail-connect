@@ -841,18 +841,10 @@ export default function Home() {
             <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
               Créez votre première annonce en moins d'une minute, générez votre lien unique et commencez à recevoir des candidatures structurées et validées.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="flex  justify-center items-center">
               <Link href="/dashboard" className="bg-white text-[#000091] hover:bg-[#F5F5FE] text-base px-8 h-12 flex items-center justify-center font-bold rounded-2xl transition-colors">
                 Commencer gratuitement
               </Link>
-              <a
-                href="https://www.dossierfacile.logement.gouv.fr/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white hover:underline text-sm font-medium px-4 py-2"
-              >
-                Découvrir DossierFacile ↗
-              </a>
             </div>
           </div>
         </section>
