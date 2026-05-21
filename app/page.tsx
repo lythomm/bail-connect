@@ -159,24 +159,19 @@ export default function Home() {
         </header>
 
         {/* Hero Section */}
-        <section className="bg-gradient-to-b from-[#F5F5FE] to-white border-b border-[#DDDDDD] py-16 px-6">
-          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <section className="bg-gradient-to-b from-[#F5F5FE] to-white border-b border-[#DDDDDD] h-dvh flex items-center">
+          <div className="max-w-6xl mx-auto">
 
             {/* Left Hero Column: Copy & CTAs */}
-            <div className="lg:col-span-7 flex flex-col items-start text-left">
+            <div className="flex flex-col items-center text-center">
               <span className="gov-badge mb-4">Solution Bailleurs • Version Gratuite Disponible</span>
-              <h1 className="text-4xl sm:text-5xl font-extrabold text-[#161616] tracking-tight leading-tight mb-6">
+              <h1 className="text-4xl sm:text-7xl font-extrabold text-[#161616] tracking-tight leading-tight mb-6">
                 Gérez les candidatures locataires DossierFacile en 10 minutes chrono
               </h1>
               <p className="text-lg text-[#3A3A3A] mb-8 leading-relaxed">
                 Ne subissez plus la pollution d'e-mails et les dizaines de pièces jointes PDF en vrac.
                 Générez un lien de candidature unique à insérer dans vos annonces et recevez des profils complets,
                 <strong> pré-vérifiés par l'État via DossierFacile</strong>.
-              </p>
-
-              {/* Bloc définition extractable — optimisé pour les AI Overviews */}
-              <p className="text-sm text-[#666666] italic border-l-2 border-[#000091] pl-4 mb-8 leading-relaxed">
-                <strong className="text-[#161616] not-italic">BailConnect</strong> est un outil en ligne qui permet aux bailleurs de collecter, centraliser et comparer des candidatures locataires vérifiées par DossierFacile — sans email, sans PDF en vrac, sans perte de temps.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
@@ -196,107 +191,12 @@ export default function Home() {
                 <span>Conforme RGPD : aucun stockage local de documents d'identité</span>
               </div>
             </div>
-
-            {/* Right Hero Column: Dashboard Mockup Preview */}
-            <div className="lg:col-span-5 w-full">
-              <div className="bg-white border border-[#DDDDDD] shadow-lg rounded-2xl overflow-hidden">
-                {/* Fake Dashboard Title Bar */}
-                <div className="bg-[#000091] px-4 py-3 flex items-center justify-between text-white">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-green-400"></span>
-                    <span className="text-xs font-bold uppercase tracking-wider">Aperçu Propriétaire</span>
-                  </div>
-                  <span className="text-xs text-blue-200">Appartement Lyon 3e</span>
-                </div>
-
-                {/* Fake Candidates List */}
-                <div className="p-4 space-y-3 bg-[#F6F6F6]">
-                  {/* Candidate 1 */}
-                  <div className="bg-white p-3 border border-[#DDDDDD] rounded-2xl flex flex-col gap-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-sm text-[#161616]">Alexandre M.</span>
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#18753C] bg-green-50 px-2 py-0.5 rounded">
-                        <Check className="w-3 h-3 text-[#18753C]" />
-                        Dossier Certifié
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-1 text-xs text-[#3A3A3A] bg-[#F5F5FE] p-2 rounded-2xl">
-                      <div>
-                        <span className="block text-[9px] text-[#666666] uppercase">Contrat</span>
-                        <strong className="font-semibold text-xs">CDI</strong>
-                      </div>
-                      <div>
-                        <span className="block text-[9px] text-[#666666] uppercase">Revenus</span>
-                        <strong className="font-semibold text-xs">3 150 €</strong>
-                      </div>
-                      <div>
-                        <span className="block text-[9px] text-[#666666] uppercase">Garant</span>
-                        <strong className="font-semibold text-xs">Oui (Physique)</strong>
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-center text-xs mt-1 pt-1 border-t border-[#F2F2F2]">
-                      <span className="text-[#666666]">Revenus : <strong>3.7x</strong> le loyer</span>
-                      <span className="text-[#000091] font-semibold hover:underline">Voir dossier d'État ↗</span>
-                    </div>
-                  </div>
-
-                  {/* Candidate 2 */}
-                  <div className="bg-white p-3 border border-[#DDDDDD] rounded-2xl flex flex-col gap-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-sm text-[#161616]">Mélanie D.</span>
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#18753C] bg-green-50 px-2 py-0.5 rounded">
-                        <Check className="w-3 h-3 text-[#18753C]" />
-                        Dossier Certifié
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-1 text-xs text-[#3A3A3A] bg-[#F5F5FE] p-2 rounded-2xl">
-                      <div>
-                        <span className="block text-[9px] text-[#666666] uppercase">Contrat</span>
-                        <strong className="font-semibold text-xs">CDI (Période d'essai)</strong>
-                      </div>
-                      <div>
-                        <span className="block text-[9px] text-[#666666] uppercase">Revenus</span>
-                        <strong className="font-semibold text-xs">2 850 €</strong>
-                      </div>
-                      <div>
-                        <span className="block text-[9px] text-[#666666] uppercase">Garant</span>
-                        <strong className="font-semibold text-xs">Visale (Action Log.)</strong>
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-center text-xs mt-1 pt-1 border-t border-[#F2F2F2]">
-                      <span className="text-[#666666]">Revenus : <strong>3.3x</strong> le loyer</span>
-                      <span className="text-[#000091] font-semibold hover:underline">Voir dossier d'État ↗</span>
-                    </div>
-                  </div>
-
-                  {/* Candidate 3 */}
-                  <div className="bg-white p-3 border border-[#DDDDDD] rounded-2xl flex flex-col gap-2 opacity-75">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-sm text-[#161616] line-through">Julien L.</span>
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#CE0500] bg-red-50 px-2 py-0.5 rounded">
-                        Incomplet / Non validé
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-[#666666]">Dossier rejeté par DossierFacile</span>
-                      <span className="text-[#666666] text-[11px]">Éliminé d'office</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Fake dashboard summary bar */}
-                <div className="bg-white border-t border-[#DDDDDD] p-3 text-center text-xs text-[#666666]">
-                  Comparez instantanément les dossiers certifiés sur un tableau unique.
-                </div>
-              </div>
-            </div>
-
           </div>
         </section>
 
         {/* Metrics Section */}
-        <section className="bg-white border-b border-[#DDDDDD] py-12 px-6">
-          <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+        <section className="bg-white border-b border-[#DDDDDD] py-12 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div className="p-4">
               <h4 className="text-4xl sm:text-5xl font-black text-[#000091] mb-2">10 minutes</h4>
               <p className="text-sm font-bold text-[#161616] uppercase tracking-wider mb-2">De tri par annonce</p>
@@ -309,7 +209,6 @@ export default function Home() {
               <p className="text-sm font-bold text-[#161616] uppercase tracking-wider mb-2">Documents vérifiés par l’État</p>
               <p className="text-sm text-[#3A3A3A]">
                 Tous les documents (avis d’impôt, bulletins de salaire, identité) sont certifiés par les agents officiels DossierFacile.
-                <span className="block mt-1 text-[11px] text-[#666666]">Source : DossierFacile.logement.gouv.fr</span>
               </p>
             </div>
             <div className="p-4 border-t md:border-t-0 border-[#DDDDDD]">
@@ -320,6 +219,10 @@ export default function Home() {
               </p>
             </div>
           </div>
+          {/* Bloc définition extractable — optimisé pour les AI Overviews */}
+          <p className="text-sm text-[#666666] italic leading-relaxed text-center pt-8">
+            <strong className="text-[#161616] not-italic">BailConnect</strong> est un outil en ligne qui permet aux bailleurs de collecter, centraliser et comparer des candidatures locataires vérifiées par DossierFacile — sans email, sans PDF en vrac, sans perte de temps.
+          </p>
         </section>
 
         {/* Pain Points vs. Solution (Avant / Après) */}
