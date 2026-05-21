@@ -65,6 +65,15 @@ const JOB_STATUS_OPTIONS = [
   { value: "Other", label: "Autre" },
 ];
 
+const JOB_STATUS_STYLES: Record<string, { bg: string; text: string; border: string; label: string }> = {
+  CDI: { bg: "bg-[#E6F3EA]", text: "text-[#18753C]", border: "border-[#B9DFC5]", label: "CDI" },
+  CDD: { bg: "bg-[#FFF6E3]", text: "text-[#B35900]", border: "border-[#FFE9B3]", label: "CDD" },
+  Student: { bg: "bg-[#E3E3FD]", text: "text-[#000091]", border: "border-[#D0CFFF]", label: "Étudiant" },
+  Freelance: { bg: "bg-[#FFF4FA]", text: "text-[#851657]", border: "border-[#FFE6F2]", label: "Freelance" },
+  Functionary: { bg: "bg-[#E6FAFA]", text: "text-[#006363]", border: "border-[#B3F0F0]", label: "Fonctionnaire" },
+  Other: { bg: "bg-[#F6F6F6]", text: "text-[#3A3A3A]", border: "border-[#DDDDDD]", label: "Autre" },
+};
+
 const GUARANTOR_OPTIONS = [
   { value: "yes", label: "Avec garant" },
   { value: "no", label: "Sans garant" },
@@ -216,11 +225,15 @@ export default function CampaignDetail() {
     {
       accessorKey: "jobStatus",
       header: "Statut",
-      cell: ({ row }) => (
-        <span className="bg-[#F6F6F6] px-2 py-0.5 border border-[#DDDDDD] text-xs font-semibold text-[#3A3A3A]">
-          {row.original.jobStatus}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const jobStatus = row.original.jobStatus;
+        const style = JOB_STATUS_STYLES[jobStatus] || JOB_STATUS_STYLES.Other;
+        return (
+          <span className={`${style.bg} ${style.text} ${style.border} px-2 py-0.5 border text-xs font-semibold rounded-sm`}>
+            {style.label}
+          </span>
+        );
+      },
     },
     {
       accessorKey: "monthlyIncome",
