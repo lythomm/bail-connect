@@ -6,13 +6,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
+import Toast, { ToastType } from "@/components/Toast";
 
 export default function Dashboard() {
   const { isAuthenticated, isLoading } = useConvexAuth();
-  const campaigns = useQuery(api.campaigns.list);
+  const campaigns = useQuery(api.campaigns.listWithStats);
   const user = useQuery(api.users.current);
   const router = useRouter();
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -20,12 +22,24 @@ export default function Dashboard() {
     }
   }, [isLoading, isAuthenticated, router]);
 
-  const copyToClipboard = (slug: string, id: string) => {
+  const copyToClipboard = async (slug: string, id: string) => {
     const origin = window.location.origin;
     const url = `${origin}/apply/${slug}`;
-    navigator.clipboard.writeText(url);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
+    try {
+      await navigator.clipboard.writeText(url);
+      setToast({
+        message: "Lien de candidature copié !",
+        type: "success",
+      });
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      console.error("Failed to copy", err);
+      setToast({
+        message: "Une erreur est survenue lors de la copie du lien.",
+        type: "error",
+      });
+    }
   };
 
   if (isLoading) {
@@ -85,6 +99,19 @@ export default function Dashboard() {
                     </p>
                   )}
 
+                  {/* Campaign Stats badges */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <span className="text-xs font-semibold bg-[#FFEFE0] text-[#B35C00] px-2 py-0.5 border border-[#B35C00]/20 rounded-sm">
+                      {campaign.stats.pending} en attente
+                    </span>
+                    <span className="text-xs font-semibold bg-[#E8F6EE] text-[#18753C] px-2 py-0.5 border border-[#18753C]/20 rounded-sm">
+                      {campaign.stats.accepted} accepté(s)
+                    </span>
+                    <span className="text-xs font-semibold bg-[#FCEAEB] text-[#CE0500] px-2 py-0.5 border border-[#CE0500]/20 rounded-sm">
+                      {campaign.stats.rejected} refusé(s)
+                    </span>
+                  </div>
+
                   {/* Public Link section */}
                   <div className="bg-[#F5F5FE] p-3 border border-[#E3E3FD] mb-6">
                     <label className="block text-xs font-bold text-[#000091] uppercase tracking-wider mb-1">
@@ -120,6 +147,13 @@ export default function Dashboard() {
           </div>
         )}
       </main>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

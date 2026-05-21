@@ -113,3 +113,47 @@ export const create = mutation({
     return campaignId;
   },
 });
+
+/**
+ * List all campaigns for the authenticated landlord with computed candidate stats.
+ */
+export const listWithStats = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      return [];
+    }
+
+    const campaigns = await ctx.db
+      .query("campaigns")
+      .filter((q) => q.eq(q.field("userId"), userId))
+      .order("desc")
+      .collect();
+
+    const results = [];
+    for (const campaign of campaigns) {
+      const candidates = await ctx.db
+        .query("candidates")
+        .withIndex("by_campaignId", (q) => q.eq("campaignId", campaign._id))
+        .collect();
+
+      const total = candidates.length;
+      const accepted = candidates.filter((c) => c.status === "accepted").length;
+      const rejected = candidates.filter((c) => c.status === "rejected").length;
+      const pending = candidates.filter((c) => c.status === "pending").length;
+
+      results.push({
+        ...campaign,
+        stats: {
+          total,
+          accepted,
+          rejected,
+          pending,
+        },
+      });
+    }
+
+    return results;
+  },
+});

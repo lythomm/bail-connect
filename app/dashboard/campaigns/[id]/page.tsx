@@ -19,6 +19,42 @@ import {
   SortingState,
   ColumnFiltersState,
 } from "@tanstack/react-table";
+import Toast, { ToastType } from "@/components/Toast";
+
+function TrigramCell({
+  trigram,
+  onCopy,
+}: {
+  trigram: string;
+  onCopy: (message: string, type: ToastType) => void;
+}) {
+  const handleCopy = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(trigram);
+      onCopy(`Trigramme "${trigram}" copié.`, "success");
+    } catch (err) {
+      console.error("Failed to copy", err);
+      onCopy("Une erreur est survenue lors de la copie.", "error");
+    }
+  };
+
+  return (
+    <div className="justify-center flex">
+      <button
+        onClick={handleCopy}
+        title="Copier"
+        className="font-mono font-bold text-[#000091] hover:underline cursor-pointer focus:outline-none flex items-center gap-1.5 group"
+      >
+        <span>{trigram}</span>
+        <svg className="w-3.5 h-3.5 text-[#000091] opacity-70 group-hover:opacity-100 transition-opacity flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        </svg>
+      </button>
+    </div>
+  );
+}
 
 export default function CampaignDetail() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
@@ -36,6 +72,7 @@ export default function CampaignDetail() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -56,13 +93,39 @@ export default function CampaignDetail() {
     setActionLoadingId(candidateId);
     try {
       await updateStatus({ id: candidateId, status: newStatus });
+      setToast({
+        message: `Statut mis à jour avec succès : ${newStatus === "accepted" ? "Accepté" : newStatus === "rejected" ? "Refusé" : "En attente"
+          }`,
+        type: "success"
+      });
     } catch (err) {
       console.error("Failed to update status", err);
-      alert("Une erreur est survenue lors de la mise à jour du statut.");
+      setToast({
+        message: "Une erreur est survenue lors de la mise à jour du statut.",
+        type: "error"
+      });
     } finally {
       setActionLoadingId(null);
     }
   }, [updateStatus]);
+
+  const handleCopyApplyUrl = useCallback(async () => {
+    if (typeof window === "undefined" || !campaign?.slug) return;
+    const url = `${window.location.origin}/apply/${campaign.slug}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setToast({
+        message: "Lien de candidature copié !",
+        type: "success",
+      });
+    } catch (err) {
+      console.error("Failed to copy URL", err);
+      setToast({
+        message: "Une erreur est survenue lors de la copie du lien.",
+        type: "error",
+      });
+    }
+  }, [campaign?.slug]);
 
   const toggleSort = (field: "monthlyIncome" | "createdAt") => {
     setSorting((prev) => {
@@ -78,16 +141,6 @@ export default function CampaignDetail() {
   const sortOrder = sorting[0]?.desc ? "desc" : "asc";
 
   const columns = useMemo<ColumnDef<Doc<"candidates">>[]>(() => [
-    {
-      accessorKey: "nameTrigram",
-      header: "Trigramme",
-      cell: ({ row }) => (
-        <span className="font-mono font-bold text-[#000091]">
-          {row.original.nameTrigram}
-        </span>
-      ),
-      enableSorting: false,
-    },
     {
       id: "candidateInfo",
       header: "Candidat",
@@ -153,6 +206,17 @@ export default function CampaignDetail() {
         >
           Ouvrir ↗
         </a>
+      ),
+      enableSorting: false,
+    },
+    {
+      accessorKey: "nameTrigram",
+      header: "Trigramme",
+      cell: ({ row }) => (
+        <TrigramCell
+          trigram={row.original.nameTrigram}
+          onCopy={(message, type) => setToast({ message, type })}
+        />
       ),
       enableSorting: false,
     },
@@ -287,14 +351,17 @@ export default function CampaignDetail() {
           )}
           <div className="flex items-center gap-2 text-xs text-[#666666] mt-4 pt-4 border-t border-[#F6F6F6]">
             <span>Lien de candidature : </span>
-            <a
-              href={`${typeof window !== "undefined" ? window.location.origin : ""}/apply/${campaign.slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#000091] hover:underline font-medium"
+            <button
+              onClick={handleCopyApplyUrl}
+              title="Copier le lien de candidature"
+              className="text-[#000091] hover:underline font-medium cursor-pointer focus:outline-none inline-flex items-center gap-1.5 group"
             >
-              {typeof window !== "undefined" ? window.location.origin : ""}/apply/{campaign.slug}
-            </a>
+              <span>{typeof window !== "undefined" ? window.location.origin : ""}/apply/{campaign.slug}</span>
+              <svg className="w-4 h-4 text-[#000091] opacity-70 group-hover:opacity-100 transition-opacity flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+            </button>
           </div>
         </div>
 
@@ -371,29 +438,27 @@ export default function CampaignDetail() {
                           onClick={
                             canSort
                               ? () => {
-                                  if (!isSorted) {
-                                    header.column.toggleSorting(false, false);
-                                  } else {
-                                    header.column.toggleSorting(isSorted === "asc", false);
-                                  }
+                                if (!isSorted) {
+                                  header.column.toggleSorting(false, false);
+                                } else {
+                                  header.column.toggleSorting(isSorted === "asc", false);
                                 }
+                              }
                               : undefined
                           }
-                          className={`p-4 text-xs font-bold text-[#161616] uppercase tracking-wider ${alignmentClass} ${
-                            canSort
-                              ? "cursor-pointer select-none hover:bg-[#E5E5E5] transition-colors"
-                              : ""
-                          }`}
+                          className={`p-4 text-xs font-bold text-[#161616] uppercase tracking-wider ${alignmentClass} ${canSort
+                            ? "cursor-pointer select-none hover:bg-[#E5E5E5] transition-colors"
+                            : ""
+                            }`}
                         >
                           {header.isPlaceholder ? null : (
                             <div
-                              className={`inline-flex items-center gap-1 ${
-                                alignmentClass === "text-right"
-                                  ? "justify-end w-full"
-                                  : alignmentClass === "text-center"
-                                    ? "justify-center w-full"
-                                    : ""
-                              }`}
+                              className={`inline-flex items-center gap-1 ${alignmentClass === "text-right"
+                                ? "justify-end w-full"
+                                : alignmentClass === "text-center"
+                                  ? "justify-center w-full"
+                                  : ""
+                                }`}
                             >
                               <span>
                                 {flexRender(
@@ -445,6 +510,13 @@ export default function CampaignDetail() {
           )}
         </div>
       </main>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }
