@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { ShieldCheck, Check, XCircle, CheckCircle, ClipboardCheck, Users, ChevronDown, X, Mail, AlertTriangle, Clock, ShieldAlert, Link2, LayoutDashboard, Lock } from "lucide-react";
+import { ShieldCheck, Check, CheckCircle, ClipboardCheck, Users, ChevronDown, X, Clock, LayoutDashboard, Lock } from "lucide-react";
 
 export default function Home() {
   return (
@@ -47,7 +47,7 @@ export default function Home() {
 
           {/* Left Hero Column: Copy & CTAs */}
           <div className="lg:col-span-7 flex flex-col items-start text-left">
-            <span className="gov-badge mb-4">Solution Bailleurs • 100% Gratuit</span>
+            <span className="gov-badge mb-4">Solution Bailleurs • Version Gratuite Disponible</span>
             <h1 className="text-4xl sm:text-5xl font-extrabold text-[#161616] tracking-tight leading-tight mb-6">
               Divisez par 10 le temps de traitement de vos candidatures de locataires
             </h1>
@@ -190,10 +190,10 @@ export default function Home() {
             </p>
           </div>
           <div className="p-4 border-t md:border-t-0 border-[#DDDDDD]">
-            <h4 className="text-4xl sm:text-5xl font-black text-[#FF6B4A] mb-2">100% Gratuit</h4>
-            <p className="text-sm font-bold text-[#161616] uppercase tracking-wider mb-2">Pour tous les bailleurs</p>
+            <h4 className="text-4xl sm:text-5xl font-black text-[#FF6B4A] mb-2">Accès Libre</h4>
+            <p className="text-sm font-bold text-[#161616] uppercase tracking-wider mb-2">Formule gratuite disponible</p>
             <p className="text-sm text-[#3A3A3A]">
-              Pas de frais cachés. Créez autant de tunnels de candidature que nécessaire pour vos locations.
+              Commencez sans frais. Testez l'outil pour vos premiers candidats sans aucune carte bancaire requise.
             </p>
           </div>
         </div>
@@ -202,156 +202,99 @@ export default function Home() {
       {/* Pain Points vs. Solution (Avant / Après) */}
       <section id="comparatif" className="bg-[#F6F6F6] border-b border-[#DDDDDD] py-20 px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-8">
             <span className="gov-badge mb-3">La comparaison</span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-[#161616] mb-4 tracking-tight">
-              Pourquoi changer votre façon de recruter vos locataires ?
+              Pourquoi choisir BailConnect ?
             </h2>
             <p className="text-base text-[#3A3A3A] max-w-2xl mx-auto">
-              La gestion traditionnelle des dossiers de location est une source de stress et de risques juridiques. Voici comment BailConnect simplifie tout.
+              Découvrez comment notre solution élimine les complexités du tri manuel pour vous faire gagner un temps précieux et sécuriser vos locations.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-
-            {/* The Old Painful Way */}
-            <div className="bg-[#FFFDFD] border border-[#FAD8D8] p-8 rounded-2xl shadow-xs relative overflow-hidden flex flex-col justify-between hover:shadow-md transition-all duration-300 before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-1.5 before:bg-[#CE0500]">
+          {/* Bento Grid Layout */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+            {/* Card 1: Time Savings (Large) */}
+            <div className="md:col-span-2 bg-[#F6FCF8] border-2 border-[#18753C] p-8 rounded-2xl shadow-xs relative overflow-hidden flex flex-col justify-between hover:shadow-md transition-all duration-300 before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-1.5 before:bg-[#18753C]">
               <div>
-                <div className="flex items-center justify-between mb-8">
-                  <h3 className="text-xl font-bold text-[#CE0500] uppercase tracking-wider flex items-center gap-2.5">
-                    <XCircle className="w-6 h-6 text-[#CE0500] flex-shrink-0" />
-                    Avant : Le chaos traditionnel
-                  </h3>
-                  <span className="text-xs font-semibold text-[#CE0500] bg-[#FFF0F0] border border-[#FCD8D0] px-3 py-1 rounded-full">
-                    Frustrant & risqué
-                  </span>
+                <div className="w-12 h-12 bg-[#E6F4EA] text-[#18753C] rounded-2xl flex items-center justify-center border border-[#C2E7CD] mb-6">
+                  <Clock className="w-6 h-6" />
                 </div>
-
-                <div className="space-y-6">
-                  {/* Point 1 */}
-                  <div className="flex gap-4 items-start pb-6 border-b border-[#FAD8D8]/50 last:border-0 last:pb-0">
-                    <div className="flex-shrink-0 w-10 h-10 bg-[#FFF0F0] text-[#CE0500] rounded-xl flex items-center justify-center border border-[#FCD8D0]">
-                      <Mail className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-[#161616] text-sm md:text-base">Saturation de votre messagerie</h4>
-                      <p className="text-xs md:text-sm text-[#3A3A3A] mt-1 leading-relaxed">
-                        Des dizaines d'e-mails par jour contenant des gigaoctets de PDF non structurés à télécharger manuellement.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Point 2 */}
-                  <div className="flex gap-4 items-start pb-6 border-b border-[#FAD8D8]/50 last:border-0 last:pb-0">
-                    <div className="flex-shrink-0 w-10 h-10 bg-[#FFF0F0] text-[#CE0500] rounded-xl flex items-center justify-center border border-[#FCD8D0]">
-                      <AlertTriangle className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-[#161616] text-sm md:text-base">Risque élevé de faux documents</h4>
-                      <p className="text-xs md:text-sm text-[#3A3A3A] mt-1 leading-relaxed">
-                        Impossible de vérifier par vous-même l'authenticité d'un avis d'imposition ou d'un bulletin de paie retouché sur Photoshop.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Point 3 */}
-                  <div className="flex gap-4 items-start pb-6 border-b border-[#FAD8D8]/50 last:border-0 last:pb-0">
-                    <div className="flex-shrink-0 w-10 h-10 bg-[#FFF0F0] text-[#CE0500] rounded-xl flex items-center justify-center border border-[#FCD8D0]">
-                      <Clock className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-[#161616] text-sm md:text-base">Dossiers incomplets & relances</h4>
-                      <p className="text-xs md:text-sm text-[#3A3A3A] mt-1 leading-relaxed">
-                        Des allers-retours interminables par e-mail ou téléphone pour réclamer la pièce d'identité manquante ou le garant.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Point 4 */}
-                  <div className="flex gap-4 items-start">
-                    <div className="flex-shrink-0 w-10 h-10 bg-[#FFF0F0] text-[#CE0500] rounded-xl flex items-center justify-center border border-[#FCD8D0]">
-                      <ShieldAlert className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-[#161616] text-sm md:text-base">Illégalité RGPD involontaire</h4>
-                      <p className="text-xs md:text-sm text-[#3A3A3A] mt-1 leading-relaxed">
-                        Stocker des copies de cartes d'identité et de pièces d'impôts sur votre ordinateur personnel vous expose à des risques juridiques et de piratage.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                <h3 className="text-2xl font-bold text-[#161616] mb-3">
+                  Gagnez 8 heures par annonce et libérez vos soirées
+                </h3>
+                <p className="text-sm md:text-base text-[#3A3A3A] leading-relaxed max-w-2xl">
+                  Fini de passer vos soirées à télécharger, classer et renommer des dizaines de PDF mal organisés reçus par e-mail. Diffusez votre lien de candidature unique sur LeBonCoin, PAP ou SeLoger : vos candidats complètent un formulaire fluide et tout est trié et centralisé automatiquement.
+                </p>
+              </div>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <span className="text-xs font-semibold text-[#18753C] bg-[#E6F4EA] px-3 py-1.5 rounded-full border border-[#C2E7CD]">
+                  ⚡ Temps de tri divisé par 10
+                </span>
+                <span className="text-xs font-semibold text-[#18753C] bg-[#E6F4EA] px-3 py-1.5 rounded-full border border-[#C2E7CD]">
+                  📥 Centralisation automatique des dossiers
+                </span>
               </div>
             </div>
 
-            {/* The New BailConnect Way */}
-            <div className="bg-[#F6FCF8] border-2 border-[#18753C] p-8 rounded-2xl shadow-sm relative overflow-hidden flex flex-col justify-between hover:shadow-lg transition-all duration-300 before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-1.5 before:bg-[#18753C] scale-[1.01]">
-              <span className="absolute top-4 right-4 bg-[#18753C] text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs">
-                Le choix de la sérénité
-              </span>
+            {/* Card 2: Anti-Fraude (Medium) */}
+            <div className="md:col-span-1 bg-white border border-[#DDDDDD] p-8 rounded-2xl shadow-xs relative overflow-hidden flex flex-col justify-between hover:shadow-md transition-all duration-300">
               <div>
-                <div className="flex items-center justify-between mb-8">
-                  <h3 className="text-xl font-bold text-[#18753C] uppercase tracking-wider flex items-center gap-2.5">
-                    <CheckCircle className="w-6 h-6 text-[#18753C] flex-shrink-0" />
-                    Après : La méthode BailConnect
-                  </h3>
+                <div className="w-12 h-12 bg-[#E6F4EA] text-[#18753C] rounded-2xl flex items-center justify-center border border-[#C2E7CD] mb-6">
+                  <ShieldCheck className="w-6 h-6" />
                 </div>
-
-                <div className="space-y-6">
-                  {/* Point 1 */}
-                  <div className="flex gap-4 items-start pb-6 border-b border-[#D1FAE5]/60 last:border-0 last:pb-0">
-                    <div className="flex-shrink-0 w-10 h-10 bg-[#E6F4EA] text-[#18753C] rounded-xl flex items-center justify-center border border-[#C2E7CD]">
-                      <Link2 className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-[#161616] text-sm md:text-base">Un seul lien de candidature unique</h4>
-                      <p className="text-xs md:text-sm text-[#3A3A3A] mt-1 leading-relaxed">
-                        Insérez votre lien personnalisé sur LeBonCoin, PAP ou SeLoger. Plus aucun e-mail polluant sur votre boîte personnelle.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Point 2 */}
-                  <div className="flex gap-4 items-start pb-6 border-b border-[#D1FAE5]/60 last:border-0 last:pb-0">
-                    <div className="flex-shrink-0 w-10 h-10 bg-[#E6F4EA] text-[#18753C] rounded-xl flex items-center justify-center border border-[#C2E7CD]">
-                      <ShieldCheck className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-[#161616] text-sm md:text-base">Sécurité anti-fraude garantie</h4>
-                      <p className="text-xs md:text-sm text-[#3A3A3A] mt-1 leading-relaxed">
-                        Les candidats postulent en transmettant leur dossier validé et certifié par l'État via DossierFacile. Zéro faux justificatif.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Point 3 */}
-                  <div className="flex gap-4 items-start pb-6 border-b border-[#D1FAE5]/60 last:border-0 last:pb-0">
-                    <div className="flex-shrink-0 w-10 h-10 bg-[#E6F4EA] text-[#18753C] rounded-xl flex items-center justify-center border border-[#C2E7CD]">
-                      <LayoutDashboard className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-[#161616] text-sm md:text-base">Format 100% standardisé</h4>
-                      <p className="text-xs md:text-sm text-[#3A3A3A] mt-1 leading-relaxed">
-                        Toutes les candidatures s'affichent de façon homogène sur votre tableau de bord (situation, revenus nets, garant, etc.).
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Point 4 */}
-                  <div className="flex gap-4 items-start">
-                    <div className="flex-shrink-0 w-10 h-10 bg-[#E6F4EA] text-[#18753C] rounded-xl flex items-center justify-center border border-[#C2E7CD]">
-                      <Lock className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-[#161616] text-sm md:text-base">Sécurité juridique & conformité RGPD</h4>
-                      <p className="text-xs md:text-sm text-[#3A3A3A] mt-1 leading-relaxed">
-                        Vous ne stockez aucun fichier sensible sur vos disques. Vous consultez en ligne les pièces sécurisées par la plateforme d'État.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                <h3 className="text-xl font-bold text-[#161616] mb-3">
+                  Sécurité anti-fraude et zéro faux
+                </h3>
+                <p className="text-xs md:text-sm text-[#3A3A3A] leading-relaxed">
+                  Les candidats soumettent leur dossier d'un clic avec la certification officielle de l'État via DossierFacile. Vous évitez les vérifications manuelles complexes et les justificatifs retouchés.
+                </p>
+              </div>
+              <div className="mt-6 text-xs text-[#666666] font-semibold flex items-center gap-1.5">
+                <CheckCircle className="w-4 h-4 text-[#18753C]" /> Dossiers vérifiés officiellement
               </div>
             </div>
 
+            {/* Card 3: Dashboard/Tri express (Medium) */}
+            <div className="md:col-span-1 bg-white border border-[#DDDDDD] p-8 rounded-2xl shadow-xs relative overflow-hidden flex flex-col justify-between hover:shadow-md transition-all duration-300">
+              <div>
+                <div className="w-12 h-12 bg-[#E6F4EA] text-[#18753C] rounded-2xl flex items-center justify-center border border-[#C2E7CD] mb-6">
+                  <LayoutDashboard className="w-6 h-6" />
+                </div>
+                <h3 className="text-xl font-bold text-[#161616] mb-3">
+                  Tri et comparaison en 5 minutes
+                </h3>
+                <p className="text-xs md:text-sm text-[#3A3A3A] leading-relaxed">
+                  Comparez instantanément les revenus, les garanties et la situation de tous les candidats sur un tableau de bord standardisé et clair. Plus besoin d'ouvrir chaque dossier individuellement.
+                </p>
+              </div>
+              <div className="mt-6 text-xs text-[#666666] font-semibold flex items-center gap-1.5">
+                <CheckCircle className="w-4 h-4 text-[#18753C]" /> Synthèse visuelle immédiate
+              </div>
+            </div>
+
+            {/* Card 4: RGPD (Large) */}
+            <div className="md:col-span-2 bg-[#F5F5FE] border border-[#E2E8F0] p-8 rounded-2xl shadow-xs relative overflow-hidden flex flex-col justify-between hover:shadow-md transition-all duration-300">
+              <div>
+                <div className="w-12 h-12 bg-[#E3E3FD] text-[#000091] rounded-2xl flex items-center justify-center border border-[#CBCBFC] mb-6">
+                  <Lock className="w-6 h-6" />
+                </div>
+                <h3 className="text-2xl font-bold text-[#161616] mb-3">
+                  Zéro fichier stocké, 100% conforme RGPD
+                </h3>
+                <p className="text-sm md:text-base text-[#3A3A3A] leading-relaxed max-w-2xl">
+                  Consultez les pièces d'identité et justificatifs de revenus en ligne en toute sécurité sans encombrer ni exposer votre propre ordinateur. Éliminez les risques de piratage de données sensibles.
+                </p>
+              </div>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <span className="text-xs font-semibold text-[#000091] bg-[#E3E3FD] px-3 py-1.5 rounded-full border border-[#CBCBFC]">
+                  🔒 Hébergement sécurisé
+                </span>
+                <span className="text-xs font-semibold text-[#000091] bg-[#E3E3FD] px-3 py-1.5 rounded-full border border-[#CBCBFC]">
+                  🇪🇺 Respect de la vie privée
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -710,7 +653,7 @@ export default function Home() {
                 </span>
               </summary>
               <div className="mt-4 text-sm text-[#3A3A3A] leading-relaxed border-t border-gray-100 pt-4">
-                Non, BailConnect est 100% gratuit pour les propriétaires bailleurs. Vous pouvez générer autant de liens de candidature que vous le souhaitez, pour un nombre illimité de logements.
+                BailConnect propose une formule Découverte entièrement gratuite (jusqu'à 10 candidats par annonce), idéale pour tester l'outil ou pour un besoin unique. Si vos besoins évoluent, vous pouvez choisir notre Pass Annonce ou notre formule Pro.
               </div>
             </details>
 

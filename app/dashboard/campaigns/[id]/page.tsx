@@ -13,11 +13,9 @@ import {
   useReactTable,
   getCoreRowModel,
   getSortedRowModel,
-  getFilteredRowModel,
   ColumnDef,
   flexRender,
   SortingState,
-  ColumnFiltersState,
 } from "@tanstack/react-table";
 import Toast, { ToastType } from "@/components/Toast";
 
