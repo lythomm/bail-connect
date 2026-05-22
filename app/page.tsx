@@ -1,9 +1,35 @@
+"use client";
+
 export const dynamic = "force-dynamic";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ShieldCheck, Check, CheckCircle, ClipboardCheck, Users, ChevronDown, X, Clock, LayoutDashboard, Lock } from "lucide-react";
 
 export default function Home() {
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("reveal-active");
+        }
+      });
+    }, { threshold: 0.05 });
+    document.querySelectorAll(".reveal").forEach(el => observer.observe(el));
+
+    const mutationObserver = new MutationObserver(() => {
+      document.querySelectorAll(".reveal").forEach(el => observer.observe(el));
+    });
+    mutationObserver.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      observer.disconnect();
+      mutationObserver.disconnect();
+    };
+  }, []);
+
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -121,31 +147,6 @@ export default function Home() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }}
-      />
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-            (function() {
-              const runObserver = () => {
-                const observer = new IntersectionObserver((entries) => {
-                  entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                      entry.target.classList.add("reveal-active");
-                    }
-                  });
-                }, { threshold: 0.05 });
-                document.querySelectorAll(".reveal").forEach(el => observer.observe(el));
-              };
-              if (document.readyState === "loading") {
-                document.addEventListener("DOMContentLoaded", runObserver);
-              } else {
-                runObserver();
-              }
-              const observer = new MutationObserver(runObserver);
-              observer.observe(document.body, { childList: true, subtree: true });
-            })();
-          `
-        }}
       />
       <div className="flex-1 flex flex-col min-h-screen bg-white">
         {/* Hero Section */}
@@ -663,65 +664,110 @@ export default function Home() {
 
             <div className="space-y-4">
 
-              <details className="group bg-white p-6 border border-[#DDDDDD] rounded-2xl [&_summary::-webkit-details-marker]:hidden hover:border-[#CBCBFC] hover:shadow-sm transition-all duration-300 reveal">
-                <summary className="flex items-center justify-between font-bold text-[#161616] cursor-pointer">
+              {/* FAQ 1 */}
+              <div className="bg-white border border-[#DDDDDD] rounded-2xl hover:border-[#CBCBFC] hover:shadow-sm transition-all duration-300 reveal">
+                <button
+                  type="button"
+                  onClick={() => setOpenFaq(openFaq === 0 ? null : 0)}
+                  className="flex items-center justify-between w-full p-6 font-bold text-[#161616] text-left cursor-pointer focus:outline-none"
+                >
                   <span>Est-ce que BailConnect est payant pour les propriétaires ?</span>
-                  <span className="transition group-open:rotate-180 text-[#000091]">
+                  <span className={`transition-transform duration-500 text-[#000091] ${openFaq === 0 ? "rotate-180" : ""}`}>
                     <ChevronDown className="w-5 h-5" />
                   </span>
-                </summary>
-                <div className="mt-4 text-sm text-[#3A3A3A] leading-relaxed border-t border-gray-100 pt-4">
-                  BailConnect propose une formule Découverte entièrement gratuite (jusqu'à 10 candidats par annonce), idéale pour tester l'outil ou pour un besoin unique. Si vos besoins évoluent, vous pouvez choisir notre Pass Annonce ou notre formule Pro.
+                </button>
+                <div className={`grid transition-all duration-500 ease-in-out ${openFaq === 0 ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
+                  <div className="overflow-hidden">
+                    <div className="px-6 pb-6 text-sm text-[#3A3A3A] leading-relaxed border-t border-gray-100 pt-4">
+                      BailConnect propose une formule Découverte entièrement gratuite (jusqu'à 10 candidats par annonce), idéale pour tester l'outil ou pour un besoin unique. Si vos besoins évoluent, vous pouvez choisir notre Pass Annonce ou notre formule Pro.
+                    </div>
+                  </div>
                 </div>
-              </details>
+              </div>
 
-              <details className="group bg-white p-6 border border-[#DDDDDD] rounded-2xl [&_summary::-webkit-details-marker]:hidden hover:border-[#CBCBFC] hover:shadow-sm transition-all duration-300 reveal reveal-delay-100">
-                <summary className="flex items-center justify-between font-bold text-[#161616] cursor-pointer">
+              {/* FAQ 2 */}
+              <div className="bg-white border border-[#DDDDDD] rounded-2xl hover:border-[#CBCBFC] hover:shadow-sm transition-all duration-300 reveal reveal-delay-100">
+                <button
+                  type="button"
+                  onClick={() => setOpenFaq(openFaq === 1 ? null : 1)}
+                  className="flex items-center justify-between w-full p-6 font-bold text-[#161616] text-left cursor-pointer focus:outline-none"
+                >
                   <span>Comment l'État certifie-t-il les justificatifs des locataires ?</span>
-                  <span className="transition group-open:rotate-180 text-[#000091]">
+                  <span className={`transition-transform duration-500 text-[#000091] ${openFaq === 1 ? "rotate-180" : ""}`}>
                     <ChevronDown className="w-5 h-5" />
                   </span>
-                </summary>
-                <div className="mt-4 text-sm text-[#3A3A3A] leading-relaxed border-t border-gray-100 pt-4">
-                  BailConnect s'appuie sur <strong>DossierFacile</strong>, la plateforme publique officielle de l'État français. Lorsqu'un candidat soumet son dossier, des opérateurs de l'État analysent chaque document (carte d'identité, justificatif de domicile, contrat de travail, 3 derniers bulletins de salaire, dernier avis d'imposition). Ils vérifient directement auprès de l'administration fiscale la véracité des montants déclarés afin d'assurer l'absence totale de falsification.
+                </button>
+                <div className={`grid transition-all duration-500 ease-in-out ${openFaq === 1 ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
+                  <div className="overflow-hidden">
+                    <div className="px-6 pb-6 text-sm text-[#3A3A3A] leading-relaxed border-t border-gray-100 pt-4">
+                      BailConnect s'appuie sur <strong>DossierFacile</strong>, la plateforme publique officielle de l'État français. Lorsqu'un candidat soumet son dossier, des opérateurs de l'État analysent chaque document (carte d'identité, justificatif de domicile, contrat de travail, 3 derniers bulletins de salaire, dernier avis d'imposition). Ils vérifient directement auprès de l'administration fiscale la véracité des montants déclarés afin d'assurer l'absence totale de falsification.
+                    </div>
+                  </div>
                 </div>
-              </details>
+              </div>
 
-              <details className="group bg-white p-6 border border-[#DDDDDD] rounded-2xl [&_summary::-webkit-details-marker]:hidden hover:border-[#CBCBFC] hover:shadow-sm transition-all duration-300 reveal reveal-delay-200">
-                <summary className="flex items-center justify-between font-bold text-[#161616] cursor-pointer">
+              {/* FAQ 3 */}
+              <div className="bg-white border border-[#DDDDDD] rounded-2xl hover:border-[#CBCBFC] hover:shadow-sm transition-all duration-300 reveal reveal-delay-200">
+                <button
+                  type="button"
+                  onClick={() => setOpenFaq(openFaq === 2 ? null : 2)}
+                  className="flex items-center justify-between w-full p-6 font-bold text-[#161616] text-left cursor-pointer focus:outline-none"
+                >
                   <span>Le locataire est-il obligé de créer un compte DossierFacile ?</span>
-                  <span className="transition group-open:rotate-180 text-[#000091]">
+                  <span className={`transition-transform duration-500 text-[#000091] ${openFaq === 2 ? "rotate-180" : ""}`}>
                     <ChevronDown className="w-5 h-5" />
                   </span>
-                </summary>
-                <div className="mt-4 text-sm text-[#3A3A3A] leading-relaxed border-t border-gray-100 pt-4">
-                  Oui. DossierFacile est le standard recommandé par les autorités publiques pour protéger la vie privée des locataires et sécuriser les pièces d'identité contre l'usurpation (ajout de filigranes obligatoires sur les pièces). La création de compte est gratuite pour le locataire et lui servira pour toutes ses visites de logements.
+                </button>
+                <div className={`grid transition-all duration-500 ease-in-out ${openFaq === 2 ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
+                  <div className="overflow-hidden">
+                    <div className="px-6 pb-6 text-sm text-[#3A3A3A] leading-relaxed border-t border-gray-100 pt-4">
+                      Oui. DossierFacile est le standard recommandé par les autorités publiques pour protéger la vie privée des locataires et sécuriser les pièces d'identité contre l'usurpation (ajout de filigranes obligatoires sur les pièces). La création de compte est gratuite pour le locataire et lui servira pour toutes ses visites de logements.
+                    </div>
+                  </div>
                 </div>
-              </details>
+              </div>
 
-              <details className="group bg-white p-6 border border-[#DDDDDD] rounded-2xl [&_summary::-webkit-details-marker]:hidden hover:border-[#CBCBFC] hover:shadow-sm transition-all duration-300 reveal reveal-delay-300">
-                <summary className="flex items-center justify-between font-bold text-[#161616] cursor-pointer">
+              {/* FAQ 4 */}
+              <div className="bg-white border border-[#DDDDDD] rounded-2xl hover:border-[#CBCBFC] hover:shadow-sm transition-all duration-300 reveal reveal-delay-300">
+                <button
+                  type="button"
+                  onClick={() => setOpenFaq(openFaq === 3 ? null : 3)}
+                  className="flex items-center justify-between w-full p-6 font-bold text-[#161616] text-left cursor-pointer focus:outline-none"
+                >
                   <span>Comment respecte-t-on le RGPD avec BailConnect ?</span>
-                  <span className="transition group-open:rotate-180 text-[#000091]">
+                  <span className={`transition-transform duration-500 text-[#000091] ${openFaq === 3 ? "rotate-180" : ""}`}>
                     <ChevronDown className="w-5 h-5" />
                   </span>
-                </summary>
-                <div className="mt-4 text-sm text-[#3A3A3A] leading-relaxed border-t border-gray-100 pt-4">
-                  Le RGPD interdit de conserver indéfiniment et sans sécurité forte des documents personnels hautement sensibles (cartes d'identité, RIB, impôts). Avec BailConnect, <strong>aucun document n'est enregistré sur nos serveurs ni sur votre ordinateur</strong>. Les documents physiques restent hébergés dans l'infrastructure hautement sécurisée de l'État (DossierFacile). Vous ne consultez les dossiers qu'en ligne, via des liens sécurisés temporaires.
+                </button>
+                <div className={`grid transition-all duration-500 ease-in-out ${openFaq === 3 ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
+                  <div className="overflow-hidden">
+                    <div className="px-6 pb-6 text-sm text-[#3A3A3A] leading-relaxed border-t border-gray-100 pt-4">
+                      Le RGPD interdit de conserver indéfiniment et sans sécurité forte des documents personnels hautement sensibles (cartes d'identité, RIB, impôts). Avec BailConnect, <strong>aucun document n'est enregistré sur nos serveurs ni sur votre ordinateur</strong>. Les documents physiques restent hébergés dans l'infrastructure hautement sécurisée de l'État (DossierFacile). Vous ne consultez les dossiers qu'en ligne, via des liens sécurisés temporaires.
+                    </div>
+                  </div>
                 </div>
-              </details>
+              </div>
 
-              <details className="group bg-white p-6 border border-[#DDDDDD] rounded-2xl [&_summary::-webkit-details-marker]:hidden hover:border-[#CBCBFC] hover:shadow-sm transition-all duration-300 reveal reveal-delay-400">
-                <summary className="flex items-center justify-between font-bold text-[#161616] cursor-pointer">
+              {/* FAQ 5 */}
+              <div className="bg-white border border-[#DDDDDD] rounded-2xl hover:border-[#CBCBFC] hover:shadow-sm transition-all duration-300 reveal reveal-delay-400">
+                <button
+                  type="button"
+                  onClick={() => setOpenFaq(openFaq === 4 ? null : 4)}
+                  className="flex items-center justify-between w-full p-6 font-bold text-[#161616] text-left cursor-pointer focus:outline-none"
+                >
                   <span>Puis-je utiliser BailConnect avec n'importe quel site d'annonces ?</span>
-                  <span className="transition group-open:rotate-180 text-[#000091]">
+                  <span className={`transition-transform duration-500 text-[#000091] ${openFaq === 4 ? "rotate-180" : ""}`}>
                     <ChevronDown className="w-5 h-5" />
                   </span>
-                </summary>
-                <div className="mt-4 text-sm text-[#3A3A3A] leading-relaxed border-t border-gray-100 pt-4">
-                  Oui. Il vous suffit de copier-coller le lien public généré par BailConnect dans la description de vos annonces sur Leboncoin, PAP, SeLoger, Facebook Marketplace, GensdeConfiance, ou par e-mail direct. Les candidats cliquent simplement sur le lien pour soumettre leur candidature.
+                </button>
+                <div className={`grid transition-all duration-500 ease-in-out ${openFaq === 4 ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
+                  <div className="overflow-hidden">
+                    <div className="px-6 pb-6 text-sm text-[#3A3A3A] leading-relaxed border-t border-gray-100 pt-4">
+                      Oui. Il vous suffit de copier-coller le lien public généré par BailConnect dans la description de vos annonces sur Leboncoin, PAP, SeLoger, Facebook Marketplace, GensdeConfiance, ou par e-mail direct. Les candidats cliquent simplement sur le lien pour soumettre leur candidature.
+                    </div>
+                  </div>
                 </div>
-              </details>
+              </div>
 
             </div>
           </div>
