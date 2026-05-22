@@ -84,7 +84,7 @@ export default function Navbar() {
             onClick={(e) => handleScroll(e, "dossier-facile")}
             className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors"
           >
-            Partenaire DossierFacile
+            DossierFacile
           </Link>
           <Link 
             href="/#tarifs" 
@@ -132,7 +132,7 @@ export default function Navbar() {
             <span className="hidden sm:inline">Se déconnecter</span>
           </button>
         ) : (
-          <Link href="/signin" className="btn-secondary text-sm h-9 flex items-center">
+          <Link href="/signin" className="btn-primary text-sm h-9 flex items-center">
             Se connecter
           </Link>
         )}

@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ShieldCheck, Check, CheckCircle, ClipboardCheck, Users, ChevronDown, X, Clock, LayoutDashboard, Lock } from "lucide-react";
+import { ShieldCheck, Check, CheckCircle, ClipboardCheck, Users, ChevronDown, X, Clock, LayoutDashboard, Lock, Calendar } from "lucide-react";
 
 export default function Home() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -318,7 +318,6 @@ export default function Home() {
             </div>
           </div>
         </section>
-
         <section id="fonctionnement" className="bg-white border-b border-[#DDDDDD] py-20">
           <div className="max-w-6xl mx-auto rounded-2xl relative overflow-hidden">
 
@@ -328,58 +327,71 @@ export default function Home() {
                 La méthode
               </span>
               <h2 className="text-3xl md:text-4xl font-extrabold text-[#161616] mb-4 tracking-tight">
-                Comment centraliser vos candidatures locataires en 3 étapes
+                Comment centraliser et organiser vos visites en 4 étapes
               </h2>
               <p className="text-base text-[#3A3A3A] max-w-2xl mx-auto">
-                Une mise en place ultra-simple en 3 étapes, sans installation de logiciel.
+                Une gestion complète de vos locations, <br/>du dépôt de dossier jusqu'au rendez-vous de visite.
               </p>
             </div>
 
-            {/* Horizontal 3-Step Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10 px-6 md:px-0">
+            {/* Horizontal 4-Step Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-10 px-6 md:px-0">
 
               {/* Step 1 */}
-              <div className="bg-white border border-[#E2E8F0] rounded-2xl p-8 flex flex-col items-start hover:shadow-lg hover:-translate-y-1 hover:border-[#CBCBFC] transition-all duration-300 group reveal">
-                <div className="h-16 w-16 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-300">
-                  <ClipboardCheck className="w-8 h-8 text-republic-blue" />
+              <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 flex flex-col items-start hover:shadow-lg hover:-translate-y-1 hover:border-[#CBCBFC] transition-all duration-300 group reveal">
+                <div className="h-14 w-14 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-300">
+                  <ClipboardCheck className="w-7 h-7 text-republic-blue" />
                 </div>
-                <h3 className="text-lg md:text-xl font-bold text-[#161616] mb-3">
-                  1. Générez votre lien
+                <h3 className="text-base font-bold text-[#161616] mb-3">
+                  1. Génerez votre lien
                 </h3>
-                <p className="text-sm text-[#3A3A3A] leading-relaxed">
-                  Connectez-vous sur votre espace BailConnect, nommez votre logement (ex: <em>"Studio Lyon 3e"</em>) et obtenez immédiatement votre adresse de candidature publique unique.
+                <p className="text-xs text-[#3A3A3A] leading-relaxed">
+                  Connectez-vous sur votre espace, nommez votre logement (ex: <em>"Studio Lyon 3e"</em>) et obtenez votre lien unique de candidature.
                 </p>
               </div>
 
               {/* Step 2 */}
-              <div className="bg-white border border-[#E2E8F0] rounded-2xl p-8 flex flex-col items-start hover:shadow-lg hover:-translate-y-1 hover:border-[#CBCBFC] transition-all duration-300 group reveal reveal-delay-100">
-                <div className="h-16 w-16 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-300">
-                  <Users className="w-8 h-8 text-republic-blue" />
+              <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 flex flex-col items-start hover:shadow-lg hover:-translate-y-1 hover:border-[#CBCBFC] transition-all duration-300 group reveal reveal-delay-100">
+                <div className="h-14 w-14 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-300">
+                  <Users className="w-7 h-7 text-republic-blue" />
                 </div>
-                <h3 className="text-lg md:text-xl font-bold text-[#161616] mb-3">
+                <h3 className="text-base font-bold text-[#161616] mb-3">
                   2. Diffusez le lien
                 </h3>
-                <p className="text-sm text-[#3A3A3A] leading-relaxed mb-6">
-                  Copiez le lien et insérez-le directement dans le texte de vos annonces de location (LeBonCoin, PAP, SeLoger, Facebook, etc.).
+                <p className="text-xs text-[#3A3A3A] leading-relaxed mb-4">
+                  Copiez-collez le lien directement dans la description de vos annonces (Leboncoin, PAP, SeLoger, etc.).
                 </p>
-                <div className="bg-[#F8FAFC] p-4 border border-dashed border-[#E2E8F0] rounded-2xl w-full mt-auto">
-                  <span className="block text-xs font-bold text-[#000091] uppercase tracking-wider mb-2">Exemple de mention :</span>
-                  <p className="text-[11px] font-mono text-[#3A3A3A] leading-relaxed">
-                    "Pour postuler à cet appartement, merci de soumettre votre dossier certifié sur :<br /> <strong className="text-[#000091] font-semibold break-all">https://bailconnect.fr/apply/studio-lyon-3</strong>"
+                <div className="bg-[#F8FAFC] p-3 border border-dashed border-[#E2E8F0] rounded-2xl w-full mt-auto">
+                  <span className="block text-[10px] font-bold text-[#000091] uppercase tracking-wider mb-1">Exemple :</span>
+                  <p className="text-[10px] font-mono text-[#3A3A3A] leading-normal break-all">
+                    "Postulez sur :<br /> <strong className="text-[#000091] font-semibold">bailconnect.fr/apply/studio-lyon-3</strong>"
                   </p>
                 </div>
               </div>
 
               {/* Step 3 */}
-              <div className="bg-white border border-[#E2E8F0] rounded-2xl p-8 flex flex-col items-start hover:shadow-lg hover:-translate-y-1 hover:border-[#CBCBFC] transition-all duration-300 group reveal reveal-delay-200">
-                <div className="h-16 w-16 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-300">
-                  <ShieldCheck className="w-8 h-8 text-republic-blue" />
+              <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 flex flex-col items-start hover:shadow-lg hover:-translate-y-1 hover:border-[#CBCBFC] transition-all duration-300 group reveal reveal-delay-200">
+                <div className="h-14 w-14 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-300">
+                  <ShieldCheck className="w-7 h-7 text-republic-blue" />
                 </div>
-                <h3 className="text-lg md:text-xl font-bold text-[#161616] mb-3">
-                  3. Sélectionnez sans stress
+                <h3 className="text-base font-bold text-[#161616] mb-3">
+                  3. Comparez sans stress
                 </h3>
-                <p className="text-sm text-[#3A3A3A] leading-relaxed">
-                  Les candidats postulent en ligne via le service officiel <strong>DossierFacile</strong>. Leurs informations d'emploi, de revenus et de garants s'affichent de façon homogène sur votre tableau de bord.
+                <p className="text-xs text-[#3A3A3A] leading-relaxed">
+                  Les dossiers de vos candidats, pré-vérifiés officiellement par l'État via <strong>DossierFacile</strong>, s'affichent proprement sur votre tableau de bord.
+                </p>
+              </div>
+
+              {/* Step 4 */}
+              <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 flex flex-col items-start hover:shadow-lg hover:-translate-y-1 hover:border-[#CBCBFC] transition-all duration-300 group reveal reveal-delay-300">
+                <div className="h-14 w-14 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-300">
+                  <Calendar className="w-7 h-7 text-republic-blue" />
+                </div>
+                <h3 className="text-base font-bold text-[#161616] mb-3">
+                  4. Planifiez les visites
+                </h3>
+                <p className="text-xs text-[#3A3A3A] leading-relaxed">
+                  Invitez d'un clic les candidats retenus à réserver leur créneau sur votre calendrier. Les rappels sont gérés automatiquement.
                 </p>
               </div>
             </div>
