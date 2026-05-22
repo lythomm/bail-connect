@@ -39,7 +39,7 @@ export default function Home() {
         "name": "Est-ce que BailConnect est payant pour les propriétaires ?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "BailConnect propose une formule Découverte entièrement gratuite (jusqu\u2019à 10 candidats par annonce), idéale pour tester l\u2019outil. Si vos besoins évoluent, choisissez notre Pass Annonce à 19\u20ac par annonce ou l\u2019Abonnement Pro à 39\u20ac/mois sans engagement."
+          "text": "BailConnect propose une formule Découverte entièrement gratuite (jusqu\u2019à 10 candidats par annonce), idéale pour tester l\u2019outil. Si vos besoins évoluent, choisissez notre Pass Annonce à 19\u20ac par annonce ou l\u2019Abonnement Pro à 49\u20ac/mois sans engagement."
         }
       },
       {
@@ -103,7 +103,7 @@ export default function Home() {
       {
         "@type": "Offer",
         "name": "Abonnement Pro",
-        "price": "39",
+        "price": "49",
         "priceCurrency": "EUR",
         "description": "Gestion multi-biens, toutes fonctionnalités automatisées, exports CSV/PDF"
       }
@@ -537,10 +537,6 @@ export default function Home() {
                     </li>
                     <li className="flex items-start gap-3 text-sm text-gray-400">
                       <X className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                      <span>Refus manuels uniquement</span>
-                    </li>
-                    <li className="flex items-start gap-3 text-sm text-gray-400">
-                      <X className="w-5 h-5 text-gray-400 flex-shrink-0" />
                       <span>Limité à 1 annonce gratuite</span>
                     </li>
                   </ul>
@@ -572,19 +568,15 @@ export default function Home() {
                     </li>
                     <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
                       <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
+                      <span>Lien de candidature unique</span>
+                    </li>
+                    <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
+                      <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
                       <span>Notifications candidats automatisées</span>
                     </li>
                     <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
                       <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
-                      <span>Import LeBonCoin / SeLoger</span>
-                    </li>
-                    <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
-                      <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
                       <span>Planificateur de visites intégré</span>
-                    </li>
-                    <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
-                      <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
-                      <span>Support prioritaire</span>
                     </li>
                   </ul>
                 </div>
@@ -601,14 +593,13 @@ export default function Home() {
                   <h3 className="text-2xl font-bold text-[#161616] mt-2">Abonnement Pro</h3>
                   <p className="text-sm text-[#666666] mt-1">Pour les bailleurs multi-biens et / ou professionnels de l'immobilier.</p>
                   <div className="mt-6 flex items-baseline">
-                    <span className="text-4xl font-black text-[#161616]">39€</span>
+                    <span className="text-4xl font-black text-[#161616]">49€</span>
                     <span className="text-sm text-[#666666] ml-2">/ mois, sans engagement</span>
                   </div>
-
                   <ul className="mt-8 space-y-4">
                     <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
                       <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
-                      <span>Candidats <strong>illimités</strong></span>
+                      <span>Toutes les annonces bénéficient automatiquement du Pass Annonce</span>
                     </li>
                     <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
                       <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
@@ -618,13 +609,9 @@ export default function Home() {
                       <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
                       <span>Toutes les fonctionnalités automatisées</span>
                     </li>
-                    <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
+                                        <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
                       <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
-                      <span>Exports de données (CSV/PDF)</span>
-                    </li>
-                    <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
-                      <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
-                      <span>Support dédié et téléphonique</span>
+                      <span>Import LeBonCoin / SeLoger</span>
                     </li>
                   </ul>
                 </div>

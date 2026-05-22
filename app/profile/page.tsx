@@ -217,7 +217,7 @@ export default function ProfilePage() {
                   {currentTier === "free" ? "Découverte" : "Abonnement Pro"}
                 </span>
                 <span className="text-xs text-[#666666] block mt-1">
-                  {currentTier === "free" ? "Gratuit (limité à 10 dossiers)" : "39 € par mois"}
+                  {currentTier === "free" ? "Gratuit (limité à 10 dossiers)" : "49 € par mois"}
                 </span>
               </div>
 
@@ -234,7 +234,7 @@ export default function ProfilePage() {
                       <span className="font-bold text-sm text-[#161616] flex items-center gap-1">
                         Abonnement Pro <Sparkles className="w-3.5 h-3.5 text-[#B35C00]" />
                       </span>
-                      <span className="font-bold text-sm text-[#000091]">39 €<span className="text-[10px] text-[#666666]">/m</span></span>
+                      <span className="font-bold text-sm text-[#000091]">49 €<span className="text-[10px] text-[#666666]">/m</span></span>
                     </div>
                     <p className="text-[11px] text-[#666666] leading-relaxed mb-3">
                       Gestion multi-biens illimitée, exportations de dossiers et options d&apos;automatisation avancées.

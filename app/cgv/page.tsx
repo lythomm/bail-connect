@@ -75,7 +75,7 @@ export default function CGVPage() {
                     </tr>
                     <tr>
                       <td className="border border-[#DDDDDD] px-3 py-2 font-semibold">Abonnement Pro</td>
-                      <td className="border border-[#DDDDDD] px-3 py-2">39 € TTC / mois</td>
+                      <td className="border border-[#DDDDDD] px-3 py-2">49 € TTC / mois</td>
                       <td className="border border-[#DDDDDD] px-3 py-2">Mensuelle, reconduction tacite</td>
                       <td className="border border-[#DDDDDD] px-3 py-2">Sans engagement minimum</td>
                     </tr>
