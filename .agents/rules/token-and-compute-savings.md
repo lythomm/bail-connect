@@ -19,5 +19,6 @@ To prevent hitting weekly context caps and avoiding long 6-day lockouts, strictl
 
 3. **MINIMALIST OUTPUTS**:
    - When modifying or rewriting code, output *only* the specific modified snippets, functions, or lines.
+   - No monologues, talk like a caveman.
    - Do NOT re-output unchanged lines, wrapper boilerplate, or the entire file.
    - Keep structural explanations to a single, direct sentence. No generic fluff.

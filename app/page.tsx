@@ -122,6 +122,31 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }}
       />
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+            (function() {
+              const runObserver = () => {
+                const observer = new IntersectionObserver((entries) => {
+                  entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                      entry.target.classList.add("reveal-active");
+                    }
+                  });
+                }, { threshold: 0.05 });
+                document.querySelectorAll(".reveal").forEach(el => observer.observe(el));
+              };
+              if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", runObserver);
+              } else {
+                runObserver();
+              }
+              const observer = new MutationObserver(runObserver);
+              observer.observe(document.body, { childList: true, subtree: true });
+            })();
+          `
+        }}
+      />
       <div className="flex-1 flex flex-col min-h-screen bg-white">
         {/* Hero Section */}
         <section
@@ -131,31 +156,30 @@ export default function Home() {
           }}
         >
           <div className="max-w-6xl mx-auto px-6 md:px-0 w-full">
-            {/* Left Hero Column: Copy & CTAs */}
             <div className="flex flex-col items-center text-center">
-              <span className="gov-badge mb-4">Solution Bailleurs • Version Gratuite Disponible</span>
-              <h1 className="text-4xl sm:text-7xl font-extrabold text-white tracking-tight leading-tight mb-6">
+              <span className="gov-badge mb-4 animate-fade-in-up">Solution Bailleurs • Version Gratuite Disponible</span>
+              <h1 className="text-4xl sm:text-7xl font-extrabold text-white tracking-tight leading-tight mb-6 animate-fade-in-up animation-delay-100">
                 Gérez les candidatures locataires DossierFacile en 10 minutes chrono
               </h1>
-              <p className="text-lg text-white mb-8 leading-relaxed max-w-3xl">
+              <p className="text-lg text-white mb-8 leading-relaxed max-w-3xl animate-fade-in-up animation-delay-200">
                 Ne subissez plus la pollution d'e-mails et les dizaines de pièces jointes PDF en vrac.
                 Générez un lien de candidature unique à insérer dans vos annonces et recevez des profils complets,
                 <strong> pré-vérifiés par l'État via DossierFacile</strong>.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                <Link href="/dashboard" className="btn-primary text-base px-8 h-12 flex items-center justify-center font-bold">
+              <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto animate-fade-in-up animation-delay-300">
+                <Link href="/dashboard" className="btn-primary text-base px-8 h-12 flex items-center justify-center font-bold transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98]">
                   Commencez gratuitement
                 </Link>
                 <a
                   href="#fonctionnement"
-                  className="btn-secondary !bg-white text-base px-8 h-12 flex items-center justify-center font-semibold"
+                  className="btn-secondary !bg-white text-base px-8 h-12 flex items-center justify-center font-semibold transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98]"
                 >
                   Découvrir la méthode ↗
                 </a>
               </div>
 
-              <div className="mt-8 flex items-center gap-3 text-sm text-white/90 drop-shadow-sm">
+              <div className="mt-8 flex items-center gap-3 text-sm text-white/90 drop-shadow-sm animate-fade-in-up animation-delay-400">
                 <ShieldCheck className="w-5 h-5 text-[#22c55e] flex-shrink-0" />
                 <span>Conforme RGPD : aucun stockage local de documents d'identité</span>
               </div>
@@ -166,21 +190,21 @@ export default function Home() {
         {/* Metrics Section */}
         <section className="bg-white border-b border-[#DDDDDD] py-12 max-w-6xl mx-auto px-6 md:px-0">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            <div className="p-4">
+            <div className="p-4 reveal">
               <h4 className="text-4xl sm:text-5xl font-black text-[#000091] mb-2">10 minutes</h4>
               <p className="text-sm font-bold text-[#161616] uppercase tracking-wider mb-2">De tri par annonce</p>
               <p className="text-sm text-[#3A3A3A]">
                 Visualisez toutes les candidatures sur une page claire au lieu de passer des heures à ouvrir des e-mails.
               </p>
             </div>
-            <div className="p-4 border-t md:border-t-0 md:border-x border-[#DDDDDD]">
+            <div className="p-4 border-t md:border-t-0 md:border-x border-[#DDDDDD] reveal reveal-delay-100">
               <h4 className="text-4xl sm:text-5xl font-black text-[#18753C] mb-2">0% de Fraude</h4>
               <p className="text-sm font-bold text-[#161616] uppercase tracking-wider mb-2">Documents vérifiés par l’État</p>
               <p className="text-sm text-[#3A3A3A]">
                 Tous les documents (avis d’impôt, bulletins de salaire, identité) sont certifiés par les agents officiels DossierFacile.
               </p>
             </div>
-            <div className="p-4 border-t md:border-t-0 border-[#DDDDDD]">
+            <div className="p-4 border-t md:border-t-0 border-[#DDDDDD] reveal reveal-delay-200">
               <h4 className="text-4xl sm:text-5xl font-black text-[#FF6B4A] mb-2">Accès Libre</h4>
               <p className="text-sm font-bold text-[#161616] uppercase tracking-wider mb-2">Formule gratuite disponible</p>
               <p className="text-sm text-[#3A3A3A]">
@@ -189,7 +213,7 @@ export default function Home() {
             </div>
           </div>
           {/* Bloc définition extractable — optimisé pour les AI Overviews */}
-          <p className="text-sm text-[#666666] italic leading-relaxed text-center pt-8">
+          <p className="text-sm text-[#666666] italic leading-relaxed text-center pt-8 reveal reveal-delay-300">
             <strong className="text-[#161616] not-italic">BailConnect</strong> est un outil en ligne qui permet aux bailleurs de collecter, centraliser et comparer des candidatures locataires vérifiées par DossierFacile — sans email, sans PDF en vrac, sans perte de temps.
           </p>
         </section>
@@ -197,7 +221,7 @@ export default function Home() {
         {/* Pain Points vs. Solution (Avant / Après) */}
         <section id="comparatif" className="bg-[#F6F6F6] border-b border-[#DDDDDD] py-20 px-6">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-8">
+            <div className="text-center mb-8 reveal">
               <span className="gov-badge mb-3">La comparaison</span>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-[#161616] mb-4 tracking-tight">
                 Pourquoi BailConnect remplace le tri manuel de dossiers locataires
@@ -210,7 +234,7 @@ export default function Home() {
             {/* Bento Grid Layout */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
               {/* Card 1: Time Savings (Large) */}
-              <div className="md:col-span-2 bg-[#F6FCF8] border-2 border-[#18753C] p-8 rounded-2xl shadow-xs relative overflow-hidden flex flex-col justify-between hover:shadow-md transition-all duration-300 before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-1.5 before:bg-[#18753C]">
+              <div className="md:col-span-2 bg-[#F6FCF8] border-2 border-[#18753C] p-8 rounded-2xl shadow-xs relative overflow-hidden flex flex-col justify-between hover:shadow-lg hover:-translate-y-1 transition-all duration-300 before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-1.5 before:bg-[#18753C] reveal reveal-delay-100">
                 <div>
                   <div className="w-12 h-12 bg-[#E6F4EA] text-[#18753C] rounded-2xl flex items-center justify-center border border-[#C2E7CD] mb-6">
                     <Clock className="w-6 h-6" />
@@ -233,7 +257,7 @@ export default function Home() {
               </div>
 
               {/* Card 2: Anti-Fraude (Medium) */}
-              <div className="md:col-span-1 bg-white border border-[#DDDDDD] p-8 rounded-2xl shadow-xs relative overflow-hidden flex flex-col justify-between hover:shadow-md transition-all duration-300">
+              <div className="md:col-span-1 bg-white border border-[#DDDDDD] p-8 rounded-2xl shadow-xs relative overflow-hidden flex flex-col justify-between hover:shadow-lg hover:-translate-y-1 transition-all duration-300 reveal reveal-delay-200">
                 <div>
                   <div className="w-12 h-12 bg-[#E6F4EA] text-[#18753C] rounded-2xl flex items-center justify-center border border-[#C2E7CD] mb-6">
                     <ShieldCheck className="w-6 h-6" />
@@ -251,7 +275,7 @@ export default function Home() {
               </div>
 
               {/* Card 3: Dashboard/Tri express (Medium) */}
-              <div className="md:col-span-1 bg-white border border-[#DDDDDD] p-8 rounded-2xl shadow-xs relative overflow-hidden flex flex-col justify-between hover:shadow-md transition-all duration-300">
+              <div className="md:col-span-1 bg-white border border-[#DDDDDD] p-8 rounded-2xl shadow-xs relative overflow-hidden flex flex-col justify-between hover:shadow-lg hover:-translate-y-1 transition-all duration-300 reveal reveal-delay-100">
                 <div>
                   <div className="w-12 h-12 bg-[#E6F4EA] text-[#18753C] rounded-2xl flex items-center justify-center border border-[#C2E7CD] mb-6">
                     <LayoutDashboard className="w-6 h-6" />
@@ -269,7 +293,7 @@ export default function Home() {
               </div>
 
               {/* Card 4: RGPD (Large) */}
-              <div className="md:col-span-2 bg-[#F5F5FE] border border-[#E2E8F0] p-8 rounded-2xl shadow-xs relative overflow-hidden flex flex-col justify-between hover:shadow-md transition-all duration-300">
+              <div className="md:col-span-2 bg-[#F5F5FE] border border-[#E2E8F0] p-8 rounded-2xl shadow-xs relative overflow-hidden flex flex-col justify-between hover:shadow-lg hover:-translate-y-1 transition-all duration-300 reveal reveal-delay-200">
                 <div>
                   <div className="w-12 h-12 bg-[#E3E3FD] text-[#000091] rounded-2xl flex items-center justify-center border border-[#CBCBFC] mb-6">
                     <Lock className="w-6 h-6" />
@@ -297,7 +321,7 @@ export default function Home() {
         <section id="fonctionnement" className="bg-white border-b border-[#DDDDDD] py-20">
           <div className="max-w-6xl mx-auto rounded-2xl relative overflow-hidden">
 
-            <div className="text-center mb-16 relative z-10">
+            <div className="text-center mb-16 relative z-10 reveal">
               {/* Pill Badge matching the screenshot style */}
               <span className="inline-flex items-center justify-center bg-white border border-[#E2E8F0] text-[#666666] text-xs font-semibold px-4 py-1.5 rounded-full shadow-xs mb-4">
                 La méthode
@@ -314,8 +338,8 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10 px-6 md:px-0">
 
               {/* Step 1 */}
-              <div className="bg-white border border-[#E2E8F0] rounded-2xl p-8 flex flex-col items-start hover:shadow-md hover:-translate-y-1 transition-all duration-300 group">
-                <div className="h-16 w-16 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-6 ">
+              <div className="bg-white border border-[#E2E8F0] rounded-2xl p-8 flex flex-col items-start hover:shadow-lg hover:-translate-y-1 hover:border-[#CBCBFC] transition-all duration-300 group reveal">
+                <div className="h-16 w-16 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-300">
                   <ClipboardCheck className="w-8 h-8 text-republic-blue" />
                 </div>
                 <h3 className="text-lg md:text-xl font-bold text-[#161616] mb-3">
@@ -327,8 +351,8 @@ export default function Home() {
               </div>
 
               {/* Step 2 */}
-              <div className="bg-white border border-[#E2E8F0] rounded-2xl p-8 flex flex-col items-start hover:shadow-md hover:-translate-y-1 transition-all duration-300 group">
-                <div className="h-16 w-16 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-6 ">
+              <div className="bg-white border border-[#E2E8F0] rounded-2xl p-8 flex flex-col items-start hover:shadow-lg hover:-translate-y-1 hover:border-[#CBCBFC] transition-all duration-300 group reveal reveal-delay-100">
+                <div className="h-16 w-16 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-300">
                   <Users className="w-8 h-8 text-republic-blue" />
                 </div>
                 <h3 className="text-lg md:text-xl font-bold text-[#161616] mb-3">
@@ -346,8 +370,8 @@ export default function Home() {
               </div>
 
               {/* Step 3 */}
-              <div className="bg-white border border-[#E2E8F0] rounded-2xl p-8 flex flex-col items-start hover:shadow-md hover:-translate-y-1 transition-all duration-300 group">
-                <div className="h-16 w-16 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-6 ">
+              <div className="bg-white border border-[#E2E8F0] rounded-2xl p-8 flex flex-col items-start hover:shadow-lg hover:-translate-y-1 hover:border-[#CBCBFC] transition-all duration-300 group reveal reveal-delay-200">
+                <div className="h-16 w-16 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-300">
                   <ShieldCheck className="w-8 h-8 text-republic-blue" />
                 </div>
                 <h3 className="text-lg md:text-xl font-bold text-[#161616] mb-3">
@@ -359,8 +383,8 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="mt-16 text-center relative z-10">
-              <Link href="/dashboard" className="btn-primary text-base px-8 h-12 inline-flex items-center font-bold">
+            <div className="mt-16 text-center relative z-10 reveal reveal-delay-300">
+              <Link href="/dashboard" className="btn-primary text-base px-8 h-12 inline-flex items-center font-bold transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98]">
                 Essayer gratuitement maintenant
               </Link>
             </div>
@@ -370,7 +394,7 @@ export default function Home() {
         <section id="dossier-facile" className="bg-[#F5F5FE] border-b border-[#DDDDDD] py-16 px-6">
           <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
 
-            <div className="md:col-span-8 flex flex-col items-start text-left">
+            <div className="md:col-span-8 flex flex-col items-start text-left reveal">
               <h2 className="text-2xl sm:text-3xl font-extrabold text-[#161616] leading-tight mb-4">
                 DossierFacile : L'assurance d'un dossier locataire certifié et sécurisé
               </h2>
@@ -391,7 +415,7 @@ export default function Home() {
 
             <div className="md:col-span-4 flex justify-center">
               {/* Elegant visual box representing official credentials */}
-              <div className="bg-white border border-[#E3E3FD] p-6 w-full max-w-[280px] shadow-sm flex flex-col items-center text-center rounded-2xl">
+              <div className="bg-white border border-[#E3E3FD] p-6 w-full max-w-[280px] shadow-sm flex flex-col items-center text-center rounded-2xl reveal reveal-delay-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
                 <div className="h-14 w-14 rounded-full bg-[#E3E3FD] text-[#000091] flex items-center justify-center font-bold text-xl mb-4">
                   DF
                 </div>
@@ -475,7 +499,7 @@ export default function Home() {
         {/* Pricing Section */}
         <section id="tarifs" className="bg-white border-b border-[#DDDDDD] py-20 px-6">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
+            <div className="text-center mb-16 reveal">
               <span className="inline-flex items-center justify-center bg-white border border-[#E2E8F0] text-[#666666] text-xs font-semibold px-4 py-1.5 rounded-full shadow-xs mb-4">
                 Tarifs
               </span>
@@ -489,7 +513,7 @@ export default function Home() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch mb-12">
               {/* Plan 1: Découverte */}
-              <div className="bg-white border border-[#E2E8F0] rounded-2xl p-8 flex flex-col justify-between hover:shadow-md transition-all duration-300">
+              <div className="bg-white border border-[#E2E8F0] rounded-2xl p-8 flex flex-col justify-between hover:shadow-lg hover:-translate-y-1 transition-all duration-300 reveal">
                 <div>
                   <h3 className="text-2xl font-bold text-[#161616] mt-2">Découverte</h3>
                   <p className="text-sm text-[#666666] mt-1">Idéal pour tester ou pour un besoin unique très simple.</p>
@@ -528,7 +552,7 @@ export default function Home() {
               </div>
 
               {/* Plan 2: Pass Annonce (Highlighted) */}
-              <div className="bg-white border-2 border-[#000091] rounded-2xl p-8 flex flex-col justify-between shadow-lg relative transform md:-translate-y-4 hover:shadow-xl transition-all duration-300">
+              <div className="bg-white border-2 border-[#000091] rounded-2xl p-8 flex flex-col justify-between shadow-lg relative transform md:-translate-y-4 hover:shadow-2xl hover:-translate-y-1 md:hover:-translate-y-5 transition-all duration-300 reveal reveal-delay-100">
                 <div className="absolute top-0 right-1/2 translate-x-1/2 -translate-y-1/2 bg-[#000091] text-white text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full whitespace-nowrap">
                   Populaire
                 </div>
@@ -571,7 +595,7 @@ export default function Home() {
               </div>
 
               {/* Plan 3: Abonnement Pro */}
-              <div className="bg-white border border-[#E2E8F0] rounded-2xl p-8 flex flex-col justify-between hover:shadow-md transition-all duration-300">
+              <div className="bg-white border border-[#E2E8F0] rounded-2xl p-8 flex flex-col justify-between hover:shadow-lg hover:-translate-y-1 transition-all duration-300 reveal reveal-delay-200">
                 <div>
                   <h3 className="text-2xl font-bold text-[#161616] mt-2">Abonnement Pro</h3>
                   <p className="text-sm text-[#666666] mt-1">Pour les bailleurs multi-biens et / ou professionnels de l'immobilier.</p>
@@ -612,8 +636,8 @@ export default function Home() {
             </div>
 
             {/* Co-branding security trust badge */}
-            <div className="text-center">
-              <div className="inline-flex flex-col sm:flex-row items-center justify-center gap-2 bg-[#F5F5FE] border border-[#E3E3FD] px-6 py-3 rounded-full text-xs text-[#3A3A3A]">
+            <div className="text-center reveal reveal-delay-300">
+              <div className="inline-flex flex-col sm:flex-row items-center justify-center gap-2 bg-[#F5F5FE] border border-[#E3E3FD] px-6 py-3 rounded-full text-xs text-[#3A3A3A] hover:border-[#CBCBFC] transition-colors duration-300">
                 <span className="flex items-center gap-1.5 font-bold text-[#000091]">
                   <ShieldCheck className="w-4 h-4 text-[#000091]" />
                   Sécurité & Confidentialité :
@@ -627,7 +651,7 @@ export default function Home() {
         {/* FAQ Section */}
         <section id="faq" className="bg-[#F6F6F6] border-b border-[#DDDDDD] py-16 px-6">
           <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
+            <div className="text-center mb-12 reveal">
               <span className="gov-badge mb-3">FAQ</span>
               <h2 className="text-3xl font-extrabold text-[#161616] mb-4">
                 FAQ — Gestion des candidatures locataires avec BailConnect
@@ -639,7 +663,7 @@ export default function Home() {
 
             <div className="space-y-4">
 
-              <details className="group bg-white p-6 border border-[#DDDDDD] rounded-2xl [&_summary::-webkit-details-marker]:hidden">
+              <details className="group bg-white p-6 border border-[#DDDDDD] rounded-2xl [&_summary::-webkit-details-marker]:hidden hover:border-[#CBCBFC] hover:shadow-sm transition-all duration-300 reveal">
                 <summary className="flex items-center justify-between font-bold text-[#161616] cursor-pointer">
                   <span>Est-ce que BailConnect est payant pour les propriétaires ?</span>
                   <span className="transition group-open:rotate-180 text-[#000091]">
@@ -651,7 +675,7 @@ export default function Home() {
                 </div>
               </details>
 
-              <details className="group bg-white p-6 border border-[#DDDDDD] rounded-2xl [&_summary::-webkit-details-marker]:hidden">
+              <details className="group bg-white p-6 border border-[#DDDDDD] rounded-2xl [&_summary::-webkit-details-marker]:hidden hover:border-[#CBCBFC] hover:shadow-sm transition-all duration-300 reveal reveal-delay-100">
                 <summary className="flex items-center justify-between font-bold text-[#161616] cursor-pointer">
                   <span>Comment l'État certifie-t-il les justificatifs des locataires ?</span>
                   <span className="transition group-open:rotate-180 text-[#000091]">
@@ -663,7 +687,7 @@ export default function Home() {
                 </div>
               </details>
 
-              <details className="group bg-white p-6 border border-[#DDDDDD] rounded-2xl [&_summary::-webkit-details-marker]:hidden">
+              <details className="group bg-white p-6 border border-[#DDDDDD] rounded-2xl [&_summary::-webkit-details-marker]:hidden hover:border-[#CBCBFC] hover:shadow-sm transition-all duration-300 reveal reveal-delay-200">
                 <summary className="flex items-center justify-between font-bold text-[#161616] cursor-pointer">
                   <span>Le locataire est-il obligé de créer un compte DossierFacile ?</span>
                   <span className="transition group-open:rotate-180 text-[#000091]">
@@ -675,7 +699,7 @@ export default function Home() {
                 </div>
               </details>
 
-              <details className="group bg-white p-6 border border-[#DDDDDD] rounded-2xl [&_summary::-webkit-details-marker]:hidden">
+              <details className="group bg-white p-6 border border-[#DDDDDD] rounded-2xl [&_summary::-webkit-details-marker]:hidden hover:border-[#CBCBFC] hover:shadow-sm transition-all duration-300 reveal reveal-delay-300">
                 <summary className="flex items-center justify-between font-bold text-[#161616] cursor-pointer">
                   <span>Comment respecte-t-on le RGPD avec BailConnect ?</span>
                   <span className="transition group-open:rotate-180 text-[#000091]">
@@ -687,7 +711,7 @@ export default function Home() {
                 </div>
               </details>
 
-              <details className="group bg-white p-6 border border-[#DDDDDD] rounded-2xl [&_summary::-webkit-details-marker]:hidden">
+              <details className="group bg-white p-6 border border-[#DDDDDD] rounded-2xl [&_summary::-webkit-details-marker]:hidden hover:border-[#CBCBFC] hover:shadow-sm transition-all duration-300 reveal reveal-delay-400">
                 <summary className="flex items-center justify-between font-bold text-[#161616] cursor-pointer">
                   <span>Puis-je utiliser BailConnect avec n'importe quel site d'annonces ?</span>
                   <span className="transition group-open:rotate-180 text-[#000091]">
@@ -704,7 +728,7 @@ export default function Home() {
         </section>
 
         {/* Final Call to Action */}
-        <section className="bg-[#000091] text-white py-16 px-6 text-center">
+        <section className="bg-[#000091] text-white py-16 px-6 text-center reveal">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl font-extrabold mb-6">
               Reprenez le contrôle de vos locations dès aujourd'hui
@@ -712,8 +736,8 @@ export default function Home() {
             <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
               Créez votre première annonce en moins d'une minute, générez votre lien unique et commencez à recevoir des candidatures structurées et validées.
             </p>
-            <div className="flex  justify-center items-center">
-              <Link href="/dashboard" className="bg-white text-[#000091] hover:bg-[#F5F5FE] text-base px-8 h-12 flex items-center justify-center font-bold rounded-2xl transition-colors">
+            <div className="flex justify-center items-center">
+              <Link href="/dashboard" className="bg-white text-[#000091] hover:bg-[#F5F5FE] text-base px-8 h-12 flex items-center justify-center font-bold rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98]">
                 Commencer gratuitement
               </Link>
             </div>

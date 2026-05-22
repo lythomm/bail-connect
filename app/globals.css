@@ -321,5 +321,67 @@ h6,
 }
 
 .animate-slide-in-right {
-  animation: slideInRight 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideInRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  opacity: 0;
+  animation: fadeInUp 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animation-delay-100 {
+  animation-delay: 200ms;
+}
+
+.animation-delay-200 {
+  animation-delay: 400ms;
+}
+
+.animation-delay-300 {
+  animation-delay: 600ms;
+}
+
+.animation-delay-400 {
+  animation-delay: 800ms;
+}
+
+/* Scroll Reveal Animation System */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1), transform 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+.reveal.reveal-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-delay-100 {
+  transition-delay: 200ms;
+}
+
+.reveal-delay-200 {
+  transition-delay: 400ms;
+}
+
+.reveal-delay-300 {
+  transition-delay: 600ms;
+}
+
+.reveal-delay-400 {
+  transition-delay: 800ms;
+}
+
