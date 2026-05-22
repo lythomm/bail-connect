@@ -6,18 +6,23 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { CreditCard, Lock, CheckCircle2, Loader2 } from "lucide-react";
+import Toast, { ToastType } from "@/components/Toast";
 
 export default function NewCampaign() {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const user = useQuery(api.users.current);
   const createCampaign = useMutation(api.campaigns.create);
   const router = useRouter();
+  const campaigns = useQuery(api.campaigns.list, isAuthenticated ? {} : "skip");
   
   // Form states
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [rentAmount, setRentAmount] = useState("");
   const [adType, setAdType] = useState<"free" | "pass">("free");
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+
+  const hasFreeCampaign = campaigns?.some(c => c.adType === "free" || !c.adType) ?? false;
   
   // Stepper states
   const [currentStep, setCurrentStep] = useState(1);
@@ -123,6 +128,14 @@ export default function NewCampaign() {
     }
 
     if (user?.tier === "pro" || adType === "free") {
+      if (adType === "free" && user?.tier !== "pro" && hasFreeCampaign) {
+        setToast({
+          message: "Vous ne pouvez avoir qu'une seule annonce gratuite active à la fois.",
+          type: "error",
+        });
+        return;
+      }
+
       setLoading(true);
       const parsedRent = rentAmount ? parseFloat(rentAmount) : undefined;
       try {
@@ -621,6 +634,13 @@ export default function NewCampaign() {
           </div>
         </div>
       </main>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }
