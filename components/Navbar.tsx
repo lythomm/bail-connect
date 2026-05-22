@@ -1,16 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery, useConvexAuth } from "convex/react";
+import { useConvexAuth } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
-import { api } from "@/convex/_generated/api";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { LogOut, Plus, Home } from "lucide-react";
+import { LogOut } from "lucide-react";
 
 export default function Navbar() {
   const { isAuthenticated } = useConvexAuth();
-  const user = useQuery(api.users.current, isAuthenticated ? undefined : "skip");
+
   const { signOut } = useAuthActions();
   const router = useRouter();
   const pathname = usePathname();
@@ -48,7 +47,7 @@ export default function Navbar() {
         </Link>
       </div>
 
-      {/* Middle: Landing page links (Only when NOT authenticated) */}
+      {/* Middle: Landing page links (NOT authenticated) */}
       {!isAuthenticated && (
         <nav className="hidden md:flex items-center gap-1">
           <Link href="/#comparatif" className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors">
@@ -69,42 +68,31 @@ export default function Navbar() {
         </nav>
       )}
 
+      {/* Middle: Dashboard links (authenticated) */}
+      {isAuthenticated && (
+        <nav className="hidden md:flex items-center gap-1">
+          <Link href="/dashboard" className={`text-sm font-medium px-4 py-2 transition-colors ${pathname === "/dashboard" || pathname?.startsWith("/dashboard/campaigns") ? "text-[#000091] underline underline-offset-8" : "text-[#3A3A3A] hover:text-[#000091]"}`}>
+            Mes logements
+          </Link>
+          <Link href="/dashboard/appointments" className={`text-sm font-medium px-4 py-2 transition-colors ${pathname?.startsWith("/dashboard/appointments") ? "text-[#000091] underline underline-offset-8" : "text-[#3A3A3A] hover:text-[#000091]"}`}>
+            Mes rendez-vous
+          </Link>
+          <Link href="/dashboard/profile" className={`text-sm font-medium px-4 py-2 transition-colors ${pathname === "/dashboard/profile" ? "text-[#000091] underline underline-offset-8" : "text-[#3A3A3A] hover:text-[#000091]"}`}>
+            Mon Profil
+          </Link>
+        </nav>
+      )}
+
       {/* Right side actions */}
       <div className="flex items-center gap-4">
         {isAuthenticated ? (
-          <>
-            {user?.name && (
-              <span className="text-sm font-medium text-[#3A3A3A] hidden sm:inline mr-2">
-                Bonjour, {user.name}
-              </span>
-            )}
-
-            {pathname === "/dashboard" ? (
-              <Link
-                href="/dashboard/campaigns/new"
-                className="btn-primary text-sm h-9 flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Nouveau logement</span>
-              </Link>
-            ) : (
-              <Link
-                href="/dashboard"
-                className="btn-secondary text-sm h-9 flex items-center gap-2"
-              >
-                <Home className="w-4 h-4" />
-                <span>Tableau de bord</span>
-              </Link>
-            )}
-
-            <button
-              onClick={handleSignOut}
-              className="btn-secondary text-sm h-9 flex items-center gap-2"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Se déconnecter</span>
-            </button>
-          </>
+          <button
+            onClick={handleSignOut}
+            className="btn-secondary text-sm h-9 flex items-center gap-2"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="hidden sm:inline">Se déconnecter</span>
+          </button>
         ) : (
           <Link href="/signin" className="btn-secondary text-sm h-9 flex items-center">
             Se connecter

@@ -43,14 +43,14 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center min-h-screen bg-[#F6F6F6]">
+      <div className="flex-1 flex items-center justify-center bg-[#F6F6F6]">
         <span className="text-sm text-[#666666]">Chargement de votre session...</span>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen bg-[#F6F6F6]">
+    <div className="flex-1 flex flex-col bg-[#F6F6F6]">
       {/* Main Content */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-8">
         <div className="flex items-center justify-between mb-8">
