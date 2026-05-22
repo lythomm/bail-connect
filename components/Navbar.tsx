@@ -36,6 +36,17 @@ export default function Navbar() {
     router.push("/");
   };
 
+  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    if (pathname === "/") {
+      e.preventDefault();
+      const element = document.getElementById(targetId);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+        window.history.pushState(null, "", `#${targetId}`);
+      }
+    }
+  };
+
 
   return (
     <header className="bg-white border-b border-[#DDDDDD] h-16 flex items-center justify-between px-6 sticky top-0 z-50">
@@ -54,19 +65,39 @@ export default function Navbar() {
       {/* Middle: Landing page links (NOT authenticated) */}
       {!isAuthenticated && (
         <nav className="hidden md:flex items-center gap-1">
-          <Link href="/#comparatif" className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors">
+          <Link 
+            href="/#comparatif" 
+            onClick={(e) => handleScroll(e, "comparatif")}
+            className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors"
+          >
             Pourquoi nous ?
           </Link>
-          <Link href="/#fonctionnement" className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors">
+          <Link 
+            href="/#fonctionnement" 
+            onClick={(e) => handleScroll(e, "fonctionnement")}
+            className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors"
+          >
             Comment ça marche
           </Link>
-          <Link href="/#dossier-facile" className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors">
+          <Link 
+            href="/#dossier-facile" 
+            onClick={(e) => handleScroll(e, "dossier-facile")}
+            className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors"
+          >
             Partenaire DossierFacile
           </Link>
-          <Link href="/#tarifs" className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors">
+          <Link 
+            href="/#tarifs" 
+            onClick={(e) => handleScroll(e, "tarifs")}
+            className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors"
+          >
             Tarifs
           </Link>
-          <Link href="/#faq" className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors">
+          <Link 
+            href="/#faq" 
+            onClick={(e) => handleScroll(e, "faq")}
+            className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors"
+          >
             FAQ
           </Link>
         </nav>
