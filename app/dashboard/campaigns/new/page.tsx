@@ -305,18 +305,23 @@ export default function NewCampaign() {
                 <div className="space-y-6">
                   <div>
                     <label htmlFor="rentAmount" className="form-label">
-                      Loyer mensuel charges comprises (en €) *
+                      Loyer mensuel charges comprises *
                     </label>
-                    <input
-                      id="rentAmount"
-                      type="number"
-                      required
-                      min="1"
-                      value={rentAmount}
-                      onChange={(e) => setRentAmount(e.target.value)}
-                      className="form-input"
-                      placeholder="ex: 850"
-                    />
+                    <div className="relative flex items-center">
+                      <input
+                        id="rentAmount"
+                        type="number"
+                        required
+                        min="1"
+                        value={rentAmount}
+                        onChange={(e) => setRentAmount(e.target.value)}
+                        className="form-input pr-10"
+                        placeholder="ex: 850"
+                      />
+                      <span className="absolute right-4 text-sm text-[#929292] font-semibold pointer-events-none select-none">
+                        €
+                      </span>
+                    </div>
                     <span className="text-xs text-[#666666] mt-1 block">
                       Indiquez le loyer mensuel charges comprises pour calculer le ratio de revenus des candidats (ex: 3x le loyer).
                     </span>

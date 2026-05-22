@@ -316,6 +316,7 @@ export default function CampaignDetail() {
           <div>
             <div className="font-semibold text-[#0F172A]">
               {row.original.firstName} {row.original.lastName}
+              {row.original.age !== undefined && ` (${row.original.age} ans)`}
             </div>
             <div className="text-xs text-[#64748B]">
               {row.original.email} • {row.original.phone}

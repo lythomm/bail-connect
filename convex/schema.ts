@@ -36,6 +36,7 @@ export default defineSchema({
     lastName: v.string(),
     email: v.string(),
     phone: v.string(),
+    age: v.number(),
     status: v.union(
       v.literal("pending"),
       v.literal("accepted"),

@@ -5,7 +5,8 @@ export const dynamic = "force-dynamic";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Dialog from "@/components/Dialog";
 
 export default function ApplyPage() {
   const params = useParams();
@@ -23,6 +24,20 @@ export default function ApplyPage() {
   const [jobStatus, setJobStatus] = useState("CDI");
   const [hasGuarantor, setHasGuarantor] = useState(false);
   const [dossierFacileUrl, setDossierFacileUrl] = useState("");
+  const [age, setAge] = useState("");
+  const [showWarningDialog, setShowWarningDialog] = useState(false);
+
+  useEffect(() => {
+    const dismissed = localStorage.getItem("bailconnect_warning_dismissed");
+    if (dismissed !== "true") {
+      setShowWarningDialog(true);
+    }
+  }, []);
+
+  const handleCloseWarning = () => {
+    localStorage.setItem("bailconnect_warning_dismissed", "true");
+    setShowWarningDialog(false);
+  };
 
   // Stepper states
   const [currentStep, setCurrentStep] = useState(1);
@@ -41,6 +56,15 @@ export default function ApplyPage() {
     }
     if (!lastName.trim()) {
       setError("Veuillez saisir votre nom.");
+      return false;
+    }
+    const ageNum = parseInt(age.trim());
+    if (!age.trim() || isNaN(ageNum)) {
+      setError("Veuillez saisir votre âge.");
+      return false;
+    }
+    if (ageNum < 18) {
+      setError("Vous devez avoir au moins 18 ans pour candidater.");
       return false;
     }
     if (!email.trim() || !email.includes("@")) {
@@ -64,6 +88,19 @@ export default function ApplyPage() {
     return true;
   };
 
+  const validateStep3 = (): boolean => {
+    setError(null);
+    const cleanUrl = dossierFacileUrl.trim();
+    const dossierFacileRegex = /^https:\/\/[a-z0-9.-]*dossierfacile\.(logement\.gouv\.fr|fr)\/(file|pf)\/[a-zA-Z0-9-]+$/i;
+    if (!dossierFacileRegex.test(cleanUrl)) {
+      setError(
+        "L'URL DossierFacile est invalide. Exemple de format attendu : https://locataire.dossierfacile.logement.gouv.fr/file/votre-identifiant"
+      );
+      return false;
+    }
+    return true;
+  };
+
   const handleNext = () => {
     if (currentStep === 1) {
       if (validateStep1()) {
@@ -72,6 +109,10 @@ export default function ApplyPage() {
     } else if (currentStep === 2) {
       if (validateStep2()) {
         setCurrentStep(3);
+      }
+    } else if (currentStep === 3) {
+      if (validateStep3()) {
+        setCurrentStep(4);
       }
     }
   };
@@ -87,8 +128,8 @@ export default function ApplyPage() {
     e.preventDefault();
     setError(null);
 
-    // Validate step 1 & 2 first just in case
-    if (!validateStep1() || !validateStep2()) {
+    // Validate steps first just in case
+    if (!validateStep1() || !validateStep2() || !validateStep3()) {
       return;
     }
 
@@ -123,6 +164,7 @@ export default function ApplyPage() {
         lastName: cleanLastName,
         email: email.trim(),
         phone: phone.trim(),
+        age: parseInt(age.trim()),
         monthlyIncome: parseFloat(monthlyIncome),
         jobStatus,
         hasGuarantor,
@@ -196,6 +238,33 @@ export default function ApplyPage() {
 
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-[#F6F6F6]">
+      <Dialog
+        isOpen={showWarningDialog}
+        onClose={handleCloseWarning}
+        title="Préparation de votre dossier"
+        closeOnOverlayClick={false}
+        footer={
+          <button
+            type="button"
+            onClick={handleCloseWarning}
+            className="btn-primary w-full sm:w-auto cursor-pointer"
+          >
+            C'est noté !
+          </button>
+        }
+      >
+        <div className="space-y-4">
+          <div className="gov-callout gov-callout-info m-0">
+            <strong className="text-[#000091]">Conseil pour votre candidature</strong>
+            <p className="mt-1 text-xs leading-relaxed text-[#3A3A3A]">
+              Veillez à ce que les informations saisies correspondent bien aux justificatifs officiels de votre dossier DossierFacile pour éviter tout malentendu.
+            </p>
+          </div>
+          <p className="text-sm leading-relaxed text-[#3A3A3A]">
+            Une candidature transparente et cohérente instaure un climat de confiance réciproque et augmente vos chances d'obtenir rapidement un rendez-vous de visite.
+          </p>
+        </div>
+      </Dialog>
       {/* Header */}
       <header className="bg-white border-b border-[#DDDDDD] h-16 flex items-center justify-center px-6 sticky top-0 z-10">
         <div className="flex items-center gap-3">
@@ -231,23 +300,20 @@ export default function ApplyPage() {
             {/* Stepper progress indicator */}
             <div className="mb-8 select-none">
               <div className="flex justify-between items-center text-xs font-semibold text-[#666666] mb-3">
-                <span>Étape {currentStep} sur 3</span>
+                <span>Étape {currentStep} sur 4</span>
                 <span className="text-[#000091]">
                   {currentStep === 1 && "Identité & Contact"}
                   {currentStep === 2 && "Situation & Revenus"}
-                  {currentStep === 3 && "Dossier & Validation"}
+                  {currentStep === 3 && "Dossier"}
+                  {currentStep === 4 && "Validation"}
                 </span>
               </div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-4 gap-2">
                 <div className={`h-2 transition-all duration-300 ${currentStep >= 1 ? "bg-[#000091]" : "bg-[#EEEEEE]"}`}></div>
                 <div className={`h-2 transition-all duration-300 ${currentStep >= 2 ? "bg-[#000091]" : "bg-[#EEEEEE]"}`}></div>
                 <div className={`h-2 transition-all duration-300 ${currentStep >= 3 ? "bg-[#000091]" : "bg-[#EEEEEE]"}`}></div>
+                <div className={`h-2 transition-all duration-300 ${currentStep >= 4 ? "bg-[#000091]" : "bg-[#EEEEEE]"}`}></div>
               </div>
-              {currentStep < 3 && (
-                <p className="text-[11px] text-[#666666] mt-2 italic text-right">
-                  Suivant : {currentStep === 1 ? "Situation & Revenus" : "Dossier & Validation"}
-                </p>
-              )}
             </div>
 
             {error && (
@@ -265,6 +331,8 @@ export default function ApplyPage() {
                 } else if (currentStep === 2) {
                   handleNext();
                 } else if (currentStep === 3) {
+                  handleNext();
+                } else if (currentStep === 4) {
                   handleSubmit(e);
                 }
               }}
@@ -334,6 +402,25 @@ export default function ApplyPage() {
                     </div>
                   </div>
 
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="age" className="form-label">
+                        Âge *
+                      </label>
+                      <input
+                        id="age"
+                        type="number"
+                        required
+                        min="18"
+                        max="120"
+                        value={age}
+                        onChange={(e) => setAge(e.target.value)}
+                        className="form-input"
+                        placeholder="ex: 25"
+                      />
+                    </div>
+                  </div>
+
                   <div className="pt-4 border-t border-[#DDDDDD] flex justify-end">
                     <button
                       type="button"
@@ -369,18 +456,23 @@ export default function ApplyPage() {
                     </div>
                     <div>
                       <label htmlFor="income" className="form-label">
-                        Revenus mensuels nets (€) *
+                        Revenus mensuels nets *
                       </label>
-                      <input
-                        id="income"
-                        type="number"
-                        required
-                        min="0"
-                        value={monthlyIncome}
-                        onChange={(e) => setMonthlyIncome(e.target.value)}
-                        className="form-input"
-                        placeholder="ex: 2100"
-                      />
+                      <div className="relative flex items-center">
+                        <input
+                          id="income"
+                          type="number"
+                          required
+                          min="0"
+                          value={monthlyIncome}
+                          onChange={(e) => setMonthlyIncome(e.target.value)}
+                          className="form-input pr-10"
+                          placeholder="ex: 2100"
+                        />
+                        <span className="absolute right-4 text-sm text-[#929292] font-semibold pointer-events-none select-none">
+                          €
+                        </span>
+                      </div>
                     </div>
                   </div>
 
@@ -439,10 +531,39 @@ export default function ApplyPage() {
                     <span className="text-xs text-[#666666] mt-2 block leading-relaxed">
                       Le dépôt de dossier sur DossierFacile (service public gratuit) est requis. Obtenez votre lien de partage sécurisé dans votre espace locataire DossierFacile.
                     </span>
+                    <a
+                      href="https://www.dossierfacile.logement.gouv.fr/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-bold text-[#000091] hover:underline mt-2.5 inline-flex items-center gap-1"
+                    >
+                      Accéder à DossierFacile.fr ↗
+                    </a>
                   </div>
 
+                  <div className="pt-4 border-t border-[#DDDDDD] flex justify-between items-center gap-4">
+                    <button
+                      type="button"
+                      onClick={handlePrev}
+                      className="btn-secondary"
+                    >
+                      Retour
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleNext}
+                      className="btn-primary"
+                    >
+                      Suivant
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {currentStep === 4 && (
+                <div className="space-y-6">
                   {/* Recap Box */}
-                  <div className="border border-[#E3E3FD] bg-[#F5F5FE] p-5">
+                  <div className="border border-[#E3E3FD] bg-[#F5F5FE] p-5 animate-in fade-in duration-350">
                     <h3 className="text-sm font-bold text-[#000091] mb-3 uppercase tracking-wider border-b border-[#E3E3FD] pb-2">
                       Récapitulatif de votre dossier
                     </h3>
@@ -450,6 +571,10 @@ export default function ApplyPage() {
                       <div>
                         <dt className="text-xs text-[#666666] font-semibold">Identité :</dt>
                         <dd className="font-medium text-[#161616]">{firstName} {lastName}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs text-[#666666] font-semibold">Âge :</dt>
+                        <dd className="font-medium text-[#161616]">{age} ans</dd>
                       </div>
                       <div>
                         <dt className="text-xs text-[#666666] font-semibold">Contact :</dt>
@@ -473,6 +598,19 @@ export default function ApplyPage() {
                       <div className="sm:col-span-2">
                         <dt className="text-xs text-[#666666] font-semibold">Garant :</dt>
                         <dd className="font-medium text-[#161616]">{hasGuarantor ? "Oui, dispose d'un garant physique ou d'une garantie (ex: Visale)" : "Non, pas de garant"}</dd>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <dt className="text-xs text-[#666666] font-semibold">Lien DossierFacile :</dt>
+                        <dd className="font-medium text-[#000091] break-all">
+                          <a
+                            href={dossierFacileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline"
+                          >
+                            {dossierFacileUrl}
+                          </a>
+                        </dd>
                       </div>
                     </dl>
                   </div>
