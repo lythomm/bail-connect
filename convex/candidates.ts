@@ -133,6 +133,10 @@ export const updateStatus = mutation({
       await ctx.scheduler.runAfter(0, internal.emails.sendCandidateInvitation, {
         candidateId: args.id,
       });
+    } else if (args.status === "rejected") {
+      await ctx.scheduler.runAfter(0, internal.emails.sendCandidateRejection, {
+        candidateId: args.id,
+      });
     }
 
     return args.status;
