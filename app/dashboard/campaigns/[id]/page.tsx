@@ -385,12 +385,22 @@ export default function CampaignDetail() {
     <div className="flex-1 flex flex-col bg-[#F6F6F6]">
       {/* Main content */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
-        {/* Breadcrumbs */}
-        <div className="flex items-center gap-2 text-xs text-[#666666] mb-4">
-          <Link href="/dashboard" className="hover:underline">Logements</Link>
-          <span>&gt;</span>
-          <span className="text-[#000091] font-medium truncate max-w-[200px]">{campaign.title}</span>
-        </div>
+        {/* Retour button */}
+        <button
+          onClick={() => router.back()}
+          className="inline-flex items-center gap-2 text-sm text-[#000091] hover:text-[#0b0b7d] font-medium mb-5 group transition-colors focus:outline-none cursor-pointer"
+        >
+          <svg
+            className="w-4 h-4 transform group-hover:-translate-x-0.5 transition-transform"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          <span>Retour</span>
+        </button>
 
         {/* Campaign Info */}
         <div className="bg-white border border-[#DDDDDD] p-6 mb-8 relative">
