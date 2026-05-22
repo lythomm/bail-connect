@@ -140,6 +140,21 @@ export default function Dashboard() {
                 </div>
               </div>
             ))}
+
+            {/* New campaign mockup card */}
+            <Link
+              href="/dashboard/campaigns/new"
+              className="flex flex-col items-center justify-center min-h-[250px] border-2 border-dashed border-[#CCCCCC] rounded-lg hover:border-[#000091] hover:bg-[#F5F5FE] transition-all duration-200 group cursor-pointer"
+            >
+              <div className="h-12 w-12 rounded-full border-2 border-dashed border-[#CCCCCC] group-hover:border-[#000091] flex items-center justify-center mb-4 transition-colors">
+                <svg className="w-6 h-6 text-[#CCCCCC] group-hover:text-[#000091] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+              </div>
+              <span className="text-sm font-semibold text-[#999999] group-hover:text-[#000091] transition-colors">
+                Créer une annonce
+              </span>
+            </Link>
           </div>
         )}
       </main>
