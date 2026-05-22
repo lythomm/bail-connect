@@ -14,7 +14,6 @@ export default defineSchema({
     isAnonymous: v.optional(v.boolean()),
     tier: v.optional(v.union(
       v.literal("free"),
-      v.literal("pass"),
       v.literal("pro")
     )),
   }).index("email", ["email"])
@@ -26,6 +25,7 @@ export default defineSchema({
     slug: v.string(), // Unique identifier for public application URL
     description: v.optional(v.string()),
     rentAmount: v.optional(v.number()), // Monthly rent amount CC (in EUR)
+    adType: v.optional(v.union(v.literal("free"), v.literal("pass"))),
     createdAt: v.number(),
   }).index("by_slug", ["slug"])
     .index("by_userId", ["userId"]), // INDISPENSABLE pour lister les campagnes d'un proprio connecté,

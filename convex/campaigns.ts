@@ -89,6 +89,7 @@ export const create = mutation({
     title: v.string(),
     description: v.optional(v.string()),
     rentAmount: v.optional(v.number()),
+    adType: v.optional(v.union(v.literal("free"), v.literal("pass"))),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -107,6 +108,7 @@ export const create = mutation({
       slug,
       description: args.description?.trim(),
       rentAmount: args.rentAmount,
+      adType: args.adType || "free",
       createdAt: Date.now(),
     });
 

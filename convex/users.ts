@@ -19,7 +19,7 @@ export const current = query({
 export const updateTier = internalMutation({
   args: {
     userId: v.id("users"),
-    tier: v.union(v.literal("free"), v.literal("pass"), v.literal("pro")),
+    tier: v.union(v.literal("free"), v.literal("pro")),
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.userId, { tier: args.tier });

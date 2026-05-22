@@ -60,6 +60,11 @@ export default function AnnoncesPage() {
               Gérez vos annonces et visualisez les dossiers de candidature reçus.
             </p>
           </div>
+          {campaigns && campaigns.length > 0 && (
+            <Link href="/dashboard/campaigns/new" className="btn-primary">
+              Créer une annonce
+            </Link>
+          )}
         </div>
 
         {campaigns === undefined ? (
@@ -82,7 +87,20 @@ export default function AnnoncesPage() {
               <div key={campaign._id} className="gov-card flex flex-col justify-between h-full mb-0">
                 <div>
                   <div className="gov-card-header text-lg font-bold flex justify-between items-start gap-4">
-                    <span className="truncate">{campaign.title}</span>
+                    <div className="flex flex-col gap-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="truncate">{campaign.title}</span>
+                        {campaign.adType === "pass" ? (
+                          <span className="text-[10px] font-extrabold bg-[#E3F2FD] text-[#0D47A1] border border-[#90CAF9]/40 px-1.5 py-0.5 rounded-sm uppercase tracking-wider font-sans">
+                            Pass Premium
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold bg-[#EEEEEE] text-[#666666] border border-[#CCCCCC]/40 px-1.5 py-0.5 rounded-sm uppercase tracking-wider font-sans">
+                            Gratuit
+                          </span>
+                        )}
+                      </div>
+                    </div>
                     {campaign.rentAmount !== undefined && (
                       <span className="text-xs font-semibold bg-[#E3E3FD] text-[#000091] px-2.5 py-1 rounded-sm border border-[#000091]/20 whitespace-nowrap font-sans">
                         Loyer : {campaign.rentAmount} €

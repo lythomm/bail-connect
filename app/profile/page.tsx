@@ -214,34 +214,16 @@ export default function ProfilePage() {
               <div className="bg-[#F5F5FE] border border-[#E3E3FD] rounded-xl p-4 text-center">
                 <span className="text-xs font-bold text-[#000091] uppercase tracking-wider block mb-1">Formule Actuelle</span>
                 <span className="text-2xl font-extrabold text-[#000091] block">
-                  {currentTier === "free" ? "Découverte" : currentTier === "pass" ? "Pass Annonce" : "Abonnement Pro"}
+                  {currentTier === "free" ? "Découverte" : "Abonnement Pro"}
                 </span>
                 <span className="text-xs text-[#666666] block mt-1">
-                  {currentTier === "free" ? "Gratuit (limité à 10 dossiers)" : currentTier === "pass" ? "19 € par annonce" : "39 € par mois"}
+                  {currentTier === "free" ? "Gratuit (limité à 10 dossiers)" : "39 € par mois"}
                 </span>
               </div>
 
               {/* Available Upgrades */}
               <div className="space-y-4 pt-2">
                 <h3 className="text-xs font-bold text-[#3A3A3A] uppercase tracking-wider">Faire évoluer mon offre</h3>
-
-                {currentTier !== "pass" && (
-                  <div 
-                    onClick={() => handleUpgradePlan("Pass Annonce")}
-                    className="border border-[#DDDDDD] hover:border-[#000091] rounded-xl p-4 cursor-pointer transition-all group hover:bg-[#F5F5FE]/30"
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="font-bold text-sm text-[#161616]">Pass Annonce</span>
-                      <span className="font-bold text-sm text-[#000091]">19 €</span>
-                    </div>
-                    <p className="text-[11px] text-[#666666] leading-relaxed mb-3">
-                      Candidats illimités par annonce, rappels automatiques et planification des visites.
-                    </p>
-                    <div className="text-xs font-bold text-[#000091] group-hover:underline flex items-center gap-1">
-                      Choisir cette offre <ArrowRight className="w-3 h-3" />
-                    </div>
-                  </div>
-                )}
 
                 {currentTier !== "pro" && (
                   <div 
