@@ -126,6 +126,13 @@ export const updateStatus = mutation({
     }
 
     await ctx.db.patch(args.id, { status: args.status });
+
+    if (args.status === "accepted") {
+      await ctx.scheduler.runAfter(0, internal.emails.sendCandidateInvitation, {
+        candidateId: args.id,
+      });
+    }
+
     return args.status;
   },
 });

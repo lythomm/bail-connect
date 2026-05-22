@@ -1,5 +1,5 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { query, internalMutation } from "./_generated/server";
+import { query, internalMutation, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
 /**
@@ -26,3 +26,22 @@ export const updateTier = internalMutation({
     return await ctx.db.get(args.userId);
   },
 });
+
+export const update = mutation({
+  args: {
+    name: v.optional(v.string()),
+    phone: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Non autorisé");
+    }
+    await ctx.db.patch(userId, {
+      name: args.name,
+      phone: args.phone,
+    });
+    return await ctx.db.get(userId);
+  },
+});
+

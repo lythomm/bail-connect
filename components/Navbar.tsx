@@ -23,7 +23,11 @@ export default function Navbar() {
   }, [shouldSignOut, pathname, signOut]);
 
   const excludedPaths = ["/signin", "/cgu", "/cgv", "/confidentialite", "/mentions-legales"];
-  if (excludedPaths.includes(pathname) || pathname?.startsWith("/apply/")) {
+  if (
+    excludedPaths.includes(pathname) || 
+    pathname?.startsWith("/apply/") || 
+    pathname?.startsWith("/calendar/book")
+  ) {
     return null;
   }
 
@@ -71,13 +75,16 @@ export default function Navbar() {
       {/* Middle: Dashboard links (authenticated) */}
       {isAuthenticated && (
         <nav className="hidden md:flex items-center gap-1">
-          <Link href="/dashboard" className={`text-sm font-medium px-4 py-2 transition-colors ${pathname === "/dashboard" || pathname?.startsWith("/dashboard/campaigns") ? "text-[#000091] underline underline-offset-8" : "text-[#3A3A3A] hover:text-[#000091]"}`}>
+          <Link href="/dashboard" className={`text-sm font-medium px-4 py-2 transition-colors ${pathname === "/dashboard" ? "text-[#000091] underline underline-offset-8" : "text-[#3A3A3A] hover:text-[#000091]"}`}>
+            Tableau de bord
+          </Link>
+          <Link href="/annonces" className={`text-sm font-medium px-4 py-2 transition-colors ${pathname === "/annonces" || pathname?.startsWith("/dashboard/campaigns") ? "text-[#000091] underline underline-offset-8" : "text-[#3A3A3A] hover:text-[#000091]"}`}>
             Mes logements
           </Link>
-          <Link href="/dashboard/appointments" className={`text-sm font-medium px-4 py-2 transition-colors ${pathname?.startsWith("/dashboard/appointments") ? "text-[#000091] underline underline-offset-8" : "text-[#3A3A3A] hover:text-[#000091]"}`}>
+          <Link href="/calendar" className={`text-sm font-medium px-4 py-2 transition-colors ${pathname === "/calendar" ? "text-[#000091] underline underline-offset-8" : "text-[#3A3A3A] hover:text-[#000091]"}`}>
             Mes rendez-vous
           </Link>
-          <Link href="/dashboard/profile" className={`text-sm font-medium px-4 py-2 transition-colors ${pathname === "/dashboard/profile" ? "text-[#000091] underline underline-offset-8" : "text-[#3A3A3A] hover:text-[#000091]"}`}>
+          <Link href="/profile" className={`text-sm font-medium px-4 py-2 transition-colors ${pathname === "/profile" ? "text-[#000091] underline underline-offset-8" : "text-[#3A3A3A] hover:text-[#000091]"}`}>
             Mon Profil
           </Link>
         </nav>

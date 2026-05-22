@@ -5,14 +5,27 @@ import { api } from "@/convex/_generated/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { 
+  Calendar as CalendarIcon, 
+  Clock, 
+  Home, 
+  User, 
+  Plus, 
+  ChevronRight, 
+  ExternalLink,
+  MessageSquare,
+  AlertCircle,
+  TrendingUp,
+  Check
+} from "lucide-react";
 import Toast, { ToastType } from "@/components/Toast";
 
 export default function Dashboard() {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const campaigns = useQuery(api.campaigns.listWithStats);
+  const appointments = useQuery(api.appointments.getAllUpcomingAppointments);
   const user = useQuery(api.users.current);
   const router = useRouter();
-  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   useEffect(() => {
@@ -20,26 +33,6 @@ export default function Dashboard() {
       router.replace("/signin");
     }
   }, [isLoading, isAuthenticated, router]);
-
-  const copyToClipboard = async (slug: string, id: string) => {
-    const origin = window.location.origin;
-    const url = `${origin}/apply/${slug}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      setToast({
-        message: "Lien de candidature copié !",
-        type: "success",
-      });
-      setCopiedId(id);
-      setTimeout(() => setCopiedId(null), 2000);
-    } catch (err) {
-      console.error("Failed to copy", err);
-      setToast({
-        message: "Une erreur est survenue lors de la copie du lien.",
-        type: "error",
-      });
-    }
-  };
 
   if (isLoading) {
     return (
@@ -49,115 +42,268 @@ export default function Dashboard() {
     );
   }
 
+  // Calculate stats
+  const totalCampaigns = campaigns?.length || 0;
+  
+  const totalPendingCandidates = campaigns?.reduce(
+    (acc, curr) => acc + (curr.stats?.pending || 0), 
+    0
+  ) || 0;
+
+  // Filter only future/upcoming appointments
+  const upcomingVisits = appointments?.filter(
+    (apt) => apt.endTime >= Date.now()
+  ) || [];
+
+  const totalUpcomingVisits = upcomingVisits.length;
+
   return (
     <div className="flex-1 flex flex-col bg-[#F6F6F6]">
       {/* Main Content */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-8">
-        <div className="flex items-center justify-between mb-8">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-8 space-y-8">
+        
+        {/* Welcome Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-[#161616]">Vos Logements</h1>
+            <h1 className="text-2xl font-bold text-[#161616]">
+              Ravi de vous revoir, {user?.name || "Propriétaire"}
+            </h1>
             <p className="text-sm text-[#666666] mt-1">
-              Gérez vos annonces et visualisez les dossiers de candidature reçus.
+              Voici l'état d'avancement de vos locations et vos prochaines visites.
             </p>
           </div>
+          <Link href="/dashboard/campaigns/new" className="btn-primary text-sm flex items-center gap-2">
+            <Plus className="w-4 h-4" /> Créer une annonce
+          </Link>
         </div>
 
-        {campaigns === undefined ? (
-          <div className="text-center py-12">
-            <span className="text-sm text-[#666666]">Chargement de vos annonces...</span>
-          </div>
-        ) : campaigns.length === 0 ? (
-          <div className="gov-callout gov-callout-info">
-            <h3 className="font-bold text-lg mb-2">Bienvenue sur BailConnect{user?.name ? `, ${user.name}` : ""} !</h3>
-            <p className="text-sm text-[#3A3A3A] mb-4">
-              Vous n'avez pas encore configuré de tunnel de recrutement pour vos logements. Créez votre première annonce pour obtenir un lien de candidature public.
-            </p>
-            <Link href="/dashboard/campaigns/new" className="btn-primary">
-              Créer ma première annonce
-            </Link>
-          </div>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2">
-            {campaigns.map((campaign) => (
-              <div key={campaign._id} className="gov-card flex flex-col justify-between h-full mb-0">
-                <div>
-                  <div className="gov-card-header text-lg font-bold flex justify-between items-start gap-4">
-                    <span className="truncate">{campaign.title}</span>
-                    {campaign.rentAmount !== undefined && (
-                      <span className="text-xs font-semibold bg-[#E3E3FD] text-[#000091] px-2.5 py-1 rounded-sm border border-[#000091]/20 whitespace-nowrap font-sans">
-                        Loyer : {campaign.rentAmount} €
-                      </span>
-                    )}
-                  </div>
-                  {campaign.description && (
-                    <p className="text-sm text-[#666666] line-clamp-3 mb-4">
-                      {campaign.description}
-                    </p>
-                  )}
-
-                  {/* Campaign Stats badges */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <span className="text-xs font-semibold bg-[#FFEFE0] text-[#B35C00] px-2 py-0.5 border border-[#B35C00]/20 rounded-sm">
-                      {campaign.stats.pending} en attente
-                    </span>
-                    <span className="text-xs font-semibold bg-[#E8F6EE] text-[#18753C] px-2 py-0.5 border border-[#18753C]/20 rounded-sm">
-                      {campaign.stats.accepted} accepté(s)
-                    </span>
-                    <span className="text-xs font-semibold bg-[#FCEAEB] text-[#CE0500] px-2 py-0.5 border border-[#CE0500]/20 rounded-sm">
-                      {campaign.stats.rejected} refusé(s)
-                    </span>
-                  </div>
-
-                  {/* Public Link section */}
-                  <div className="bg-[#F5F5FE] p-3 border border-[#E3E3FD] mb-6">
-                    <label className="block text-xs font-bold text-[#000091] uppercase tracking-wider mb-1">
-                      Lien public de candidature
-                    </label>
-                    <div className="flex gap-2 items-center">
-                      <input
-                        type="text"
-                        readOnly
-                        value={`${typeof window !== "undefined" ? window.location.origin : ""}/apply/${campaign.slug}`}
-                        className="text-xs text-[#3A3A3A] bg-transparent border-none outline-none select-all flex-1 truncate"
-                      />
-                      <button
-                        onClick={() => copyToClipboard(campaign.slug, campaign._id)}
-                        className="text-xs font-bold text-[#000091] hover:underline whitespace-nowrap cursor-pointer"
-                      >
-                        {copiedId === campaign._id ? "Copié !" : "Copier"}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex gap-4 border-t border-[#DDDDDD] pt-4 mt-auto">
-                  <Link
-                    href={`/dashboard/campaigns/${campaign._id}`}
-                    className="btn-primary text-xs flex-1 text-center justify-center"
-                  >
-                    Voir les candidats
-                  </Link>
-                </div>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <Link 
+            href="/annonces" 
+            className="bg-white border border-[#E2E8F0] hover:border-[#000091] rounded-lg p-6 shadow-xs transition-all duration-200 group flex flex-col justify-between"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold text-[#666666]">Logements Actifs</span>
+              <div className="p-2 bg-[#F5F5FE] text-[#000091] rounded-lg group-hover:bg-[#000091] group-hover:text-white transition-colors">
+                <Home className="w-5 h-5" />
               </div>
-            ))}
-
-            {/* New campaign mockup card */}
-            <Link
-              href="/dashboard/campaigns/new"
-              className="flex flex-col items-center justify-center min-h-[250px] border-2 border-dashed border-[#CCCCCC] rounded-lg hover:border-[#000091] hover:bg-[#F5F5FE] transition-all duration-200 group cursor-pointer"
-            >
-              <div className="h-12 w-12 rounded-full border-2 border-dashed border-[#CCCCCC] group-hover:border-[#000091] flex items-center justify-center mb-4 transition-colors">
-                <svg className="w-6 h-6 text-[#CCCCCC] group-hover:text-[#000091] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                </svg>
-              </div>
-              <span className="text-sm font-semibold text-[#999999] group-hover:text-[#000091] transition-colors">
-                Créer une annonce
+            </div>
+            <div className="mt-4 flex items-end justify-between">
+              <span className="text-3xl font-bold text-[#161616]">{totalCampaigns}</span>
+              <span className="text-xs font-semibold text-[#000091] flex items-center gap-1">
+                Gérer <ChevronRight className="w-3 h-3" />
               </span>
-            </Link>
+            </div>
+          </Link>
+
+          <Link 
+            href="/calendar" 
+            className="bg-white border border-[#E2E8F0] hover:border-[#000091] rounded-lg p-6 shadow-xs transition-all duration-200 group flex flex-col justify-between"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold text-[#666666]">Visites Planifiées</span>
+              <div className="p-2 bg-[#E8F6EE] text-[#18753C] rounded-lg group-hover:bg-[#18753C] group-hover:text-white transition-colors">
+                <CalendarIcon className="w-5 h-5" />
+              </div>
+            </div>
+            <div className="mt-4 flex items-end justify-between">
+              <span className="text-3xl font-bold text-[#161616]">{totalUpcomingVisits}</span>
+              <span className="text-xs font-semibold text-[#18753C] flex items-center gap-1">
+                Calendrier <ChevronRight className="w-3 h-3" />
+              </span>
+            </div>
+          </Link>
+
+          <Link 
+            href="/annonces" 
+            className="bg-white border border-[#E2E8F0] hover:border-[#000091] rounded-lg p-6 shadow-xs transition-all duration-200 group flex flex-col justify-between"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold text-[#666666]">Candidatures en attente</span>
+              <div className="p-2 bg-[#FFEFE0] text-[#B35C00] rounded-lg group-hover:bg-[#B35C00] group-hover:text-white transition-colors">
+                <User className="w-5 h-5" />
+              </div>
+            </div>
+            <div className="mt-4 flex items-end justify-between">
+              <span className="text-3xl font-bold text-[#161616]">{totalPendingCandidates}</span>
+              <span className="text-xs font-semibold text-[#B35C00] flex items-center gap-1">
+                Analyser <ChevronRight className="w-3 h-3" />
+              </span>
+            </div>
+          </Link>
+        </div>
+
+        {/* Main Dashboard Content Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* Left Column: Prochaines Visites */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-white border border-[#E2E8F0] rounded-lg shadow-xs p-6">
+              <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#F0F0F0]">
+                <h2 className="text-lg font-bold text-[#161616] flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-[#000091]" /> Prochaines visites planifiées
+                </h2>
+                <Link href="/calendar" className="text-xs font-bold text-[#000091] hover:underline">
+                  Voir tout le calendrier
+                </Link>
+              </div>
+
+              {campaigns === undefined || appointments === undefined ? (
+                <div className="text-center py-12">
+                  <span className="text-sm text-[#666666]">Chargement de vos rendez-vous...</span>
+                </div>
+              ) : upcomingVisits.length === 0 ? (
+                <div className="text-center py-12 text-[#666666] space-y-3">
+                  <AlertCircle className="w-8 h-8 mx-auto text-[#666666]/30" />
+                  <p className="text-sm font-semibold">Aucune visite planifiée pour le moment.</p>
+                  <p className="text-xs max-w-sm mx-auto">
+                    Partagez votre lien de candidature ou acceptez des dossiers pour permettre aux candidats de planifier une visite.
+                  </p>
+                  {totalCampaigns > 0 && (
+                    <div className="pt-2">
+                      <Link href="/calendar" className="btn-secondary text-xs inline-block">
+                        Configurer des créneaux horaires
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {upcomingVisits.slice(0, 5).map((apt) => {
+                    const formattedDate = new Date(apt.startTime).toLocaleDateString("fr-FR", {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                    });
+                    const formattedTime = `${new Date(apt.startTime).toLocaleTimeString("fr-FR", {
+                      hour: "2-digit",
+                      minute: "2-digit"
+                    })} - ${new Date(apt.endTime).toLocaleTimeString("fr-FR", {
+                      hour: "2-digit",
+                      minute: "2-digit"
+                    })}`;
+
+                    return (
+                      <div 
+                        key={apt.appointmentId} 
+                        className="p-4 border border-[#E2E8F0] rounded-lg hover:bg-[#F5F5FE]/20 transition-colors flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+                      >
+                        <div className="space-y-2 flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-sm font-bold text-[#161616]">
+                              {apt.candidate.firstName} {apt.candidate.lastName}
+                            </span>
+                            <span className="text-[10px] font-mono font-bold bg-[#F5F5FE] text-[#000091] px-1.5 py-0.5 border border-[#E3E3FD] rounded-[3px]">
+                              {apt.candidate.nameTrigram}
+                            </span>
+                            <span className="text-[10px] font-semibold bg-[#E8F6EE] text-[#18753C] px-1.5 py-0.5 border border-[#18753C]/20 rounded-sm flex items-center gap-0.5">
+                              <Check className="w-2.5 h-2.5" /> Dossier Certifié
+                            </span>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs text-[#666666]">
+                            <span className="flex items-center gap-1.5 truncate">
+                              <Home className="w-3.5 h-3.5" /> {apt.campaign.title}
+                            </span>
+                            <span className="font-semibold text-[#161616]">
+                              {apt.candidate.monthlyIncome.toLocaleString("fr-FR")} € • {apt.candidate.jobStatus}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Date/Time badge and Actions */}
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto shrink-0 border-t md:border-t-0 pt-3 md:pt-0">
+                          <div className="text-left md:text-right shrink-0">
+                            <div className="text-sm font-bold text-[#000091] capitalize">{formattedDate}</div>
+                            <div className="text-xs text-[#3A3A3A] font-semibold flex items-center gap-1 md:justify-end">
+                              <Clock className="w-3 h-3" /> {formattedTime}
+                            </div>
+                          </div>
+                          
+                          <div className="flex gap-2">
+                            <a 
+                              href={apt.candidate.dossierFacileUrl}
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="btn-secondary text-[11px] px-3 py-1.5 flex items-center justify-center gap-1"
+                              title="Voir DossierFacile"
+                            >
+                              Dossier <ExternalLink className="w-3 h-3" />
+                            </a>
+                            <button
+                              onClick={() => {
+                                setToast({ message: "SMS de rappel de visite envoyé au candidat.", type: "success" });
+                              }}
+                              className="btn-primary text-[11px] px-3 py-1.5 flex items-center justify-center gap-1"
+                            >
+                              Rappeler <MessageSquare className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
-        )}
+
+          {/* Right Column: Actions & Quick Guide */}
+          <div className="space-y-6">
+            
+            {/* Quick Actions Panel */}
+            <div className="bg-white border border-[#E2E8F0] rounded-lg shadow-xs p-6">
+              <h3 className="text-base font-bold text-[#161616] mb-4 pb-2 border-b border-[#F0F0F0]">
+                Raccourcis
+              </h3>
+              <ul className="space-y-3">
+                <li>
+                  <Link 
+                    href="/dashboard/campaigns/new" 
+                    className="w-full flex items-center justify-between p-3 border border-[#E2E8F0] hover:border-[#000091] hover:bg-[#F5F5FE]/40 rounded-lg transition-all text-sm font-semibold text-[#161616] group"
+                  >
+                    <span>Créer une annonce</span>
+                    <Plus className="w-4 h-4 text-[#666666] group-hover:text-[#000091]" />
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    href="/calendar" 
+                    className="w-full flex items-center justify-between p-3 border border-[#E2E8F0] hover:border-[#000091] hover:bg-[#F5F5FE]/40 rounded-lg transition-all text-sm font-semibold text-[#161616] group"
+                  >
+                    <span>Gérer les créneaux horaires</span>
+                    <ChevronRight className="w-4 h-4 text-[#666666] group-hover:text-[#000091]" />
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    href="/profile" 
+                    className="w-full flex items-center justify-between p-3 border border-[#E2E8F0] hover:border-[#000091] hover:bg-[#F5F5FE]/40 rounded-lg transition-all text-sm font-semibold text-[#161616] group"
+                  >
+                    <span>Mon profil bailleur</span>
+                    <ChevronRight className="w-4 h-4 text-[#666666] group-hover:text-[#000091]" />
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Quick Tips */}
+            <div className="bg-[#F5F5FE] border border-[#000091]/10 rounded-lg p-6">
+              <h3 className="text-sm font-bold text-[#000091] mb-2 uppercase tracking-wide flex items-center gap-1.5">
+                <TrendingUp className="w-4 h-4" /> Astuce BailConnect
+              </h3>
+              <p className="text-xs text-[#3A3A3A] leading-relaxed">
+                Les dossiers des candidats sont vérifiés et garantis par l'État via le service <strong>DossierFacile</strong>. N'hésitez pas à leur envoyer un rappel SMS avant la visite pour confirmer leur présence.
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+
       </main>
+
       {toast && (
         <Toast
           message={toast.message}

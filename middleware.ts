@@ -5,7 +5,9 @@ import {
 } from "@convex-dev/auth/nextjs/server";
 
 const isSignInPage = createRouteMatcher(["/signin"]);
-const isProtectedRoute = createRouteMatcher(["/dashboard(.*)"]);
+const isProtectedRoute = createRouteMatcher(["/dashboard(.*)", "/profile(.*)"]);
+const isCalendarRoute = createRouteMatcher(["/calendar(.*)"]);
+const isBookRoute = createRouteMatcher(["/calendar/book(.*)"]);
 
 export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
   const isAuthenticated = await convexAuth.isAuthenticated();
@@ -17,6 +19,10 @@ export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
 
   // Redirect unauthenticated users to sign-in for protected dashboard routes
   if (isProtectedRoute(request) && !isAuthenticated) {
+    return nextjsMiddlewareRedirect(request, "/signin");
+  }
+
+  if (isCalendarRoute(request) && !isBookRoute(request) && !isAuthenticated) {
     return nextjsMiddlewareRedirect(request, "/signin");
   }
 });

@@ -55,4 +55,21 @@ export default defineSchema({
     nameTrigram: v.string(), // First 3 letters of full name, or custom trigram
     createdAt: v.number(),
   }).index("by_campaignId", ["campaignId"]),
+
+  slots: defineTable({
+    campaignId: v.id("campaigns"),
+    startTime: v.number(),
+    endTime: v.number(),
+    maxCapacity: v.number(),
+    bookedCount: v.number(),
+  }).index("by_campaignId", ["campaignId"]),
+
+  appointments: defineTable({
+    slotId: v.id("slots"),
+    candidateId: v.id("candidates"),
+    campaignId: v.id("campaigns"),
+    createdAt: v.number(),
+  }).index("by_slotId", ["slotId"])
+    .index("by_candidateId", ["candidateId"])
+    .index("by_campaignId", ["campaignId"]),
 });

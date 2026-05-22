@@ -225,7 +225,7 @@ export default function Home() {
             <div className="text-center mb-8 reveal">
               <span className="gov-badge mb-3">La comparaison</span>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-[#161616] mb-4 tracking-tight">
-                Pourquoi BailConnect remplace le tri manuel de dossiers locataires
+                Arretez de passer vos soirées à trier des dossiers de locataires
               </h2>
               <p className="text-base text-[#3A3A3A] max-w-2xl mx-auto">
                 Découvrez comment notre solution élimine les complexités du tri manuel pour vous faire gagner un temps précieux et sécuriser vos locations.
