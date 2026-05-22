@@ -8,6 +8,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Id, Doc } from "@/convex/_generated/dataModel";
+import { CreditCard, CheckCircle2, Loader2 } from "lucide-react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -15,6 +16,7 @@ import {
   ColumnDef,
   flexRender,
   SortingState,
+  Row,
 } from "@tanstack/react-table";
 import Toast, { ToastType } from "@/components/Toast";
 
@@ -91,6 +93,77 @@ export default function CampaignDetail() {
   const campaign = useQuery(api.campaigns.get, isAuthenticated && campaignId ? { id: campaignId } : "skip");
   const candidates = useQuery(api.candidates.getByCampaign, isAuthenticated && campaignId ? { campaignId } : "skip");
   const updateStatus = useMutation(api.candidates.updateStatus);
+  const user = useQuery(api.users.current);
+  const upgradeCampaign = useMutation(api.campaigns.upgradeToPass);
+
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [modalCardNumber, setModalCardNumber] = useState("4242 4242 4242 4242");
+  const [modalCardExpiry, setModalCardExpiry] = useState("12/28");
+  const [modalCardCvv, setModalCardCvv] = useState("123");
+  const [modalCardName, setModalCardName] = useState("JEAN DUPONT");
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalSuccess, setModalSuccess] = useState(false);
+
+  const isPremium = campaign?.adType === "pass" || user?.tier === "pro";
+
+  const unlockedCandidateIds = useMemo(() => {
+    if (!candidates) return new Set<string>();
+    const sorted = [...candidates].sort((a, b) => a.createdAt - b.createdAt);
+    return new Set(sorted.slice(0, 10).map((c) => c._id));
+  }, [candidates]);
+
+  const handleModalCardNumberChange = (value: string) => {
+    const clean = value.replace(/\D/g, "").slice(0, 16);
+    const matches = clean.match(/\d{1,4}/g);
+    if (matches) {
+      setModalCardNumber(matches.join(" "));
+    } else {
+      setModalCardNumber("");
+    }
+  };
+
+  const handleModalCardExpiryChange = (value: string) => {
+    const clean = value.replace(/\D/g, "").slice(0, 4);
+    if (clean.length > 2) {
+      setModalCardExpiry(`${clean.slice(0, 2)}/${clean.slice(2)}`);
+    } else {
+      setModalCardExpiry(clean);
+    }
+  };
+
+  const handleModalCardCvvChange = (value: string) => {
+    const clean = value.replace(/\D/g, "").slice(0, 3);
+    setModalCardCvv(clean);
+  };
+
+  const handleModalPaymentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setModalLoading(true);
+
+    setTimeout(async () => {
+      setModalSuccess(true);
+      if (campaignId) {
+        try {
+          await upgradeCampaign({ id: campaignId });
+          setToast({
+            message: "Votre annonce a été mise à niveau en Premium !",
+            type: "success",
+          });
+        } catch (err: any) {
+          console.error(err);
+          setToast({
+            message: err.message || "Erreur de mise à niveau de l'annonce.",
+            type: "error",
+          });
+        }
+      }
+      setTimeout(() => {
+        setUpgradeOpen(false);
+        setModalLoading(false);
+        setModalSuccess(false);
+      }, 1500);
+    }, 1500);
+  };
 
   const [sorting, setSorting] = useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -203,26 +276,67 @@ export default function CampaignDetail() {
   const sortField = sorting[0]?.id || "createdAt";
   const sortOrder = sorting[0]?.desc ? "desc" : "asc";
 
+  const makeLockedBottomSortingFn = useCallback(<T,>(
+    getValue: (row: Row<Doc<"candidates">>) => T,
+    compare: (a: T, b: T) => number
+  ) => {
+    return (rowA: Row<Doc<"candidates">>, rowB: Row<Doc<"candidates">>, columnId: string) => {
+      const isALocked = !isPremium && !unlockedCandidateIds.has(rowA.original._id);
+      const isBLocked = !isPremium && !unlockedCandidateIds.has(rowB.original._id);
+
+      if (isALocked !== isBLocked) {
+        const isDesc = sorting.find((s) => s.id === columnId)?.desc ?? false;
+        if (isALocked) return isDesc ? -1 : 1;
+        return isDesc ? 1 : -1;
+      }
+
+      return compare(getValue(rowA), getValue(rowB));
+    };
+  }, [isPremium, unlockedCandidateIds, sorting]);
+
   const columns = useMemo<ColumnDef<Doc<"candidates">>[]>(() => [
     {
       id: "candidateInfo",
       header: "Candidat",
-      cell: ({ row }) => (
-        <div>
-          <div className="font-semibold text-[#0F172A]">
-            {row.original.firstName} {row.original.lastName}
+      cell: ({ row }) => {
+        const isLocked = !isPremium && !unlockedCandidateIds.has(row.original._id);
+        if (isLocked) {
+          return (
+            <div>
+              <div className="font-semibold text-[#64748B] italic">
+                Candidat masqué
+              </div>
+              <div className="text-xs text-[#94A3B8]">
+                Détails masqués (Offre Gratuite)
+              </div>
+            </div>
+          );
+        }
+        return (
+          <div>
+            <div className="font-semibold text-[#0F172A]">
+              {row.original.firstName} {row.original.lastName}
+            </div>
+            <div className="text-xs text-[#64748B]">
+              {row.original.email} • {row.original.phone}
+            </div>
           </div>
-          <div className="text-xs text-[#64748B]">
-            {row.original.email} • {row.original.phone}
-          </div>
-        </div>
-      ),
+        );
+      },
       enableSorting: false,
     },
     {
       accessorKey: "jobStatus",
       header: "Statut",
       cell: ({ row }) => {
+        const isLocked = !isPremium && !unlockedCandidateIds.has(row.original._id);
+        if (isLocked) {
+          return (
+            <span className="bg-[#F1F5F9] text-[#94A3B8] border border-[#E2E8F0] px-2.5 py-0.5 text-xs font-semibold rounded-md select-none">
+              Masqué
+            </span>
+          );
+        }
         const jobStatus = row.original.jobStatus;
         const style = JOB_STATUS_STYLES[jobStatus] || JOB_STATUS_STYLES.Other;
         return (
@@ -231,11 +345,19 @@ export default function CampaignDetail() {
           </span>
         );
       },
+      sortingFn: makeLockedBottomSortingFn(
+        (row) => row.original.jobStatus,
+        (a, b) => a.localeCompare(b)
+      ),
     },
     {
       accessorKey: "monthlyIncome",
       header: "Revenus Mensuels",
       cell: ({ row }) => {
+        const isLocked = !isPremium && !unlockedCandidateIds.has(row.original._id);
+        if (isLocked) {
+          return <span className="text-[#94A3B8] font-mono select-none">•••• €</span>;
+        }
         const income = row.original.monthlyIncome;
         return (
           <div className="font-semibold text-[#0F172A]">
@@ -251,52 +373,88 @@ export default function CampaignDetail() {
           </div>
         );
       },
+      sortingFn: makeLockedBottomSortingFn(
+        (row) => row.original.monthlyIncome,
+        (a, b) => a - b
+      ),
     },
     {
       accessorKey: "hasGuarantor",
       header: "Garant",
-      cell: ({ row }) => (
-        <span className={row.original.hasGuarantor 
-          ? "bg-[#E6F3EA] text-[#18753C] border border-[#B9DFC5] px-2 py-0.5 text-xs font-semibold rounded-md inline-block" 
-          : "bg-[#F8FAFC] text-[#64748B] border border-[#E2E8F0] px-2 py-0.5 text-xs font-semibold rounded-md inline-block"
-        }>
-          {row.original.hasGuarantor ? "Oui" : "Non"}
-        </span>
+      cell: ({ row }) => {
+        const isLocked = !isPremium && !unlockedCandidateIds.has(row.original._id);
+        if (isLocked) {
+          return <span className="text-[#94A3B8] font-mono select-none">••</span>;
+        }
+        return (
+          <span className={row.original.hasGuarantor 
+            ? "bg-[#E6F3EA] text-[#18753C] border border-[#B9DFC5] px-2 py-0.5 text-xs font-semibold rounded-md inline-block" 
+            : "bg-[#F8FAFC] text-[#64748B] border border-[#E2E8F0] px-2 py-0.5 text-xs font-semibold rounded-md inline-block"
+          }>
+            {row.original.hasGuarantor ? "Oui" : "Non"}
+          </span>
+        );
+      },
+      sortingFn: makeLockedBottomSortingFn(
+        (row) => row.original.hasGuarantor,
+        (a, b) => Number(a) - Number(b)
       ),
     },
     {
       accessorKey: "dossierFacileUrl",
       header: "Dossier",
-      cell: ({ row }) => (
-        <a
-          href={row.original.dossierFacileUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[#000091] hover:text-[#0b0b7d] text-xs font-bold inline-flex items-center gap-1 transition-colors"
-        >
-          <span>Ouvrir</span>
-          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-          </svg>
-        </a>
-      ),
+      cell: ({ row }) => {
+        const isLocked = !isPremium && !unlockedCandidateIds.has(row.original._id);
+        if (isLocked) {
+          return <span className="text-[#94A3B8] text-xs select-none">Masqué</span>;
+        }
+        return (
+          <a
+            href={row.original.dossierFacileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#000091] hover:text-[#0b0b7d] text-xs font-bold inline-flex items-center gap-1 transition-colors"
+          >
+            <span>Ouvrir</span>
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+        );
+      },
       enableSorting: false,
     },
     {
       accessorKey: "nameTrigram",
       header: "Trigramme",
-      cell: ({ row }) => (
-        <TrigramCell
-          trigram={row.original.nameTrigram}
-          onCopy={(message, type) => setToast({ message, type })}
-        />
-      ),
+      cell: ({ row }) => {
+        const isLocked = !isPremium && !unlockedCandidateIds.has(row.original._id);
+        if (isLocked) {
+          return <span className="text-[#94A3B8] font-mono select-none">•••</span>;
+        }
+        return (
+          <TrigramCell
+            trigram={row.original.nameTrigram}
+            onCopy={(message, type) => setToast({ message, type })}
+          />
+        );
+      },
       enableSorting: false,
     },
     {
       accessorKey: "status",
       header: "État",
       cell: ({ row }) => {
+        const isLocked = !isPremium && !unlockedCandidateIds.has(row.original._id);
+        if (isLocked) {
+          return (
+            <div className="flex justify-center">
+              <span className="bg-[#F1F5F9] text-[#94A3B8] border border-[#E2E8F0] px-2.5 py-0.5 text-xs font-semibold rounded-md select-none">
+                Masqué
+              </span>
+            </div>
+          );
+        }
         const status = row.original.status;
         return (
           <div className="flex justify-center">
@@ -318,11 +476,28 @@ export default function CampaignDetail() {
           </div>
         );
       },
+      sortingFn: makeLockedBottomSortingFn(
+        (row) => row.original.status,
+        (a, b) => a.localeCompare(b)
+      ),
     },
     {
       id: "actions",
       header: "Actions",
       cell: ({ row }) => {
+        const isLocked = !isPremium && !unlockedCandidateIds.has(row.original._id);
+        if (isLocked) {
+          return (
+            <div className="flex justify-end">
+              <button
+                onClick={() => setUpgradeOpen(true)}
+                className="bg-[#000091] text-white text-xs font-semibold py-1.5 px-3 rounded-lg hover:bg-[#0b0b7d] cursor-pointer transition-all duration-150 shadow-xs flex items-center gap-1"
+              >
+                <span>Débloquer</span>
+              </button>
+            </div>
+          );
+        }
         const candidate = row.original;
         return (
           <div className="flex gap-2 justify-end">
@@ -360,8 +535,12 @@ export default function CampaignDetail() {
     },
     {
       accessorKey: "createdAt",
+      sortingFn: makeLockedBottomSortingFn(
+        (row) => row.original.createdAt,
+        (a, b) => a - b
+      ),
     },
-  ], [campaign, actionLoadingId, handleStatusChange]);
+  ], [campaign, actionLoadingId, handleStatusChange, isPremium, unlockedCandidateIds, makeLockedBottomSortingFn]);
 
   const table = useReactTable({
     data: filteredCandidates,
@@ -457,6 +636,29 @@ export default function CampaignDetail() {
             </button>
           </div>
         </div>
+
+        {/* Upgrade Banner for Free Campaign */}
+        {!isPremium && candidates && candidates.length > 10 && (
+          <div className="bg-[#FFF9E6] border border-[#FFD700]/40 p-4 rounded-xl mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <span className="text-xs font-bold text-[#8A6D00] uppercase tracking-wider block mb-0.5 font-sans">
+                Ne passez pas à côté du locataire idéal
+              </span>
+              <p className="text-sm text-[#3A3A3A] font-semibold">
+                Vous avez reçu {candidates.length} candidatures, mais seules les 10 premières sont visibles.
+              </p>
+              <p className="text-xs text-[#666666] mt-0.5">
+                Ne risquez pas de passer à côté du <b>candidat idéal</b> parmi les {candidates.length - 10} dossiers encore masqués.
+              </p>
+            </div>
+            <button
+              onClick={() => setUpgradeOpen(true)}
+              className="btn-primary text-xs shrink-0 cursor-pointer shadow-md bg-[#000091] text-white py-2 px-4 rounded hover:bg-[#0b0b7d] transition-colors"
+            >
+              Débloquer toutes les candidatures (19 €)
+            </button>
+          </div>
+        )}
 
         {/* Filter controls */}
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between mb-4">
@@ -717,6 +919,175 @@ export default function CampaignDetail() {
           type={toast.type}
           onClose={() => setToast(null)}
         />
+      )}
+
+      {/* Upgrade Modal */}
+      {upgradeOpen && (
+        <div className="fixed inset-0 bg-[#161616]/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl border border-[#E2E8F0] shadow-2xl max-w-md w-full overflow-hidden">
+            {/* Modal Header */}
+            <div className="p-4 border-b border-[#E2E8F0] flex justify-between items-center bg-[#F8FAFC]">
+              <div className="flex items-center gap-2">
+                <span className="bg-[#E3E3FD] text-[#000091] text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-sm">
+                  Optionnel
+                </span>
+                <h3 className="font-bold text-[#161616] text-sm">Activer le Pass Annonce</h3>
+              </div>
+              <button
+                onClick={() => {
+                  if (!modalLoading) {
+                    setUpgradeOpen(false);
+                    setModalSuccess(false);
+                  }
+                }}
+                disabled={modalLoading}
+                className="text-[#666666] hover:text-[#161616] text-lg font-semibold w-6 h-6 flex items-center justify-center rounded-full hover:bg-[#EEEEEE] transition-colors disabled:opacity-50 cursor-pointer"
+              >
+                &times;
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              {modalSuccess ? (
+                <div className="flex flex-col items-center justify-center py-6 space-y-3">
+                  <CheckCircle2 className="w-12 h-12 text-[#18753C] animate-bounce" />
+                  <h4 className="text-base font-bold text-[#161616]">Abonnement activé !</h4>
+                  <p className="text-xs text-[#666666] text-center">
+                    Toutes les candidatures de cette annonce sont désormais débloquées et visibles.
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleModalPaymentSubmit} className="space-y-4">
+                  <div className="text-xs text-[#666666] space-y-1.5 pb-3 border-b border-[#EEEEEE]">
+                    <p className="font-semibold text-[#161616]">
+                      En débloquant cette annonce pour 19 €, vous profitez de :
+                    </p>
+                    <ul className="list-disc pl-4 space-y-0.5">
+                      <li>Candidatures illimitées (plus aucune limite de visibilité)</li>
+                      <li>Rappels automatiques envoyés aux candidats</li>
+                      <li>Planification automatique des visites en ligne</li>
+                    </ul>
+                  </div>
+
+                  <div className="space-y-3">
+                    {/* Live Card Preview */}
+                    <div className="w-full max-w-[240px] h-[140px] mx-auto rounded-xl bg-gradient-to-br from-[#000091] via-[#1212a5] to-[#2626e2] p-3.5 text-white relative shadow-md overflow-hidden flex flex-col justify-between select-none">
+                      <div className="absolute -top-12 -right-12 w-20 h-20 bg-[#4242e8]/20 rounded-full blur-xl"></div>
+                      <div className="absolute -bottom-12 -left-12 w-16 h-16 bg-[#18753C]/20 rounded-full blur-xl"></div>
+
+                      <div className="flex justify-between items-start">
+                        <span className="text-[7px] font-bold tracking-widest uppercase opacity-80">BailConnect Premium</span>
+                        <CreditCard className="w-4 h-4 opacity-90" />
+                      </div>
+
+                      <div className="w-6 h-4.5 bg-gradient-to-r from-[#e6c15c] to-[#f4d682] rounded-xs relative flex items-center justify-center shadow-inner mt-1">
+                        <div className="w-4 h-2.5 border border-[#b38f2d]/30 rounded-xs"></div>
+                      </div>
+
+                      <div className="text-sm font-mono tracking-widest text-center mt-1">
+                        {modalCardNumber || "•••• •••• •••• ••••"}
+                      </div>
+
+                      <div className="flex justify-between items-end mt-1">
+                        <div className="flex-1 min-w-0 pr-2">
+                          <span className="text-[6px] uppercase tracking-wider block opacity-60">Titulaire</span>
+                          <span className="text-[9px] font-mono font-bold tracking-wide truncate block">
+                            {modalCardName.toUpperCase() || "NOM DU TITULAIRE"}
+                          </span>
+                        </div>
+                        <div className="flex-shrink-0 text-right">
+                          <span className="text-[6px] uppercase tracking-wider block opacity-60">Expire</span>
+                          <span className="text-[9px] font-mono font-bold tracking-wide">
+                            {modalCardExpiry || "MM/AA"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Inputs */}
+                    <div className="space-y-2">
+                      <div>
+                        <label className="form-label text-[11px] mb-0.5">Nom du titulaire *</label>
+                        <input
+                          type="text"
+                          required
+                          value={modalCardName}
+                          onChange={(e) => setModalCardName(e.target.value)}
+                          className="form-input text-xs py-1 px-2.5"
+                          placeholder="JEAN DUPONT"
+                          disabled={modalLoading}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="form-label text-[11px] mb-0.5">Numéro de carte *</label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            required
+                            value={modalCardNumber}
+                            onChange={(e) => handleModalCardNumberChange(e.target.value)}
+                            className="form-input text-xs py-1 px-2.5 pl-8"
+                            placeholder="4242 4242 4242 4242"
+                            disabled={modalLoading}
+                          />
+                          <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                            <CreditCard className="h-3.5 w-3.5 text-[#666666]" />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="form-label text-[11px] mb-0.5">Date d&apos;expiration *</label>
+                          <input
+                            type="text"
+                            required
+                            value={modalCardExpiry}
+                            onChange={(e) => handleModalCardExpiryChange(e.target.value)}
+                            className="form-input text-xs py-1 px-2.5"
+                            placeholder="12/28"
+                            disabled={modalLoading}
+                          />
+                        </div>
+                        <div>
+                          <label className="form-label text-[11px] mb-0.5">CVV *</label>
+                          <input
+                            type="text"
+                            required
+                            value={modalCardCvv}
+                            onChange={(e) => handleModalCardCvvChange(e.target.value)}
+                            className="form-input text-xs py-1 px-2.5"
+                            placeholder="123"
+                            disabled={modalLoading}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      disabled={modalLoading}
+                      className="btn-primary w-full flex items-center justify-center gap-1.5 py-2 px-4 bg-[#000091] text-white hover:bg-[#0b0b7d] rounded font-bold text-xs"
+                    >
+                      {modalLoading ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Paiement en cours...</span>
+                        </>
+                      ) : (
+                        <span>Payer 19 € &amp; Débloquer</span>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

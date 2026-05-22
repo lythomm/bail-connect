@@ -263,3 +263,58 @@ export const sendNotificationEmail = internalAction({
     }
   },
 });
+
+/**
+ * Seed 20 dummy candidates for testing purposes.
+ */
+export const seedCandidates = mutation({
+  args: { campaignId: v.id("campaigns") },
+  handler: async (ctx, args) => {
+    const firstNames = [
+      "Thomas", "Emma", "Lucas", "Léa", "Hugo", "Chloé", "Enzo", "Manon", "Nathan", "Sarah",
+      "Louis", "Inès", "Arthur", "Camille", "Jules", "Jade", "Mathis", "Lola", "Gabriel", "Clara"
+    ];
+    const lastNames = [
+      "Martin", "Bernard", "Thomas", "Petit", "Robert", "Richard", "Durand", "Dubois", "Moreau", "Laurent",
+      "Simon", "Michel", "Lefebvre", "Leroy", "Roux", "David", "Bertrand", "Morel", "Fournier", "Girard"
+    ];
+    const jobStatuses = ["CDI", "CDD", "Student", "Freelance", "Functionary", "Other"] as const;
+
+    for (let i = 0; i < 20; i++) {
+      const firstName = firstNames[i % firstNames.length];
+      const lastName = lastNames[i % lastNames.length];
+      const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`;
+      const phone = `06${Math.floor(10000000 + Math.random() * 90000000)}`;
+      const jobStatus = jobStatuses[Math.floor(Math.random() * jobStatuses.length)];
+      const hasGuarantor = Math.random() > 0.4;
+      const status = Math.random() > 0.8 ? (Math.random() > 0.5 ? "accepted" : "rejected") : "pending";
+      
+      // Income based on job status
+      let monthlyIncome = 1500 + Math.floor(Math.random() * 2500);
+      if (jobStatus === "Student") {
+        monthlyIncome = 500 + Math.floor(Math.random() * 800);
+      } else if (jobStatus === "CDI" || jobStatus === "Functionary") {
+        monthlyIncome = 2000 + Math.floor(Math.random() * 3000);
+      }
+
+      const nameTrigram = (firstName.slice(0, 1) + lastName.slice(0, 2)).toUpperCase();
+      const dossierFacileUrl = `https://locataire.dossierfacile.logement.gouv.fr/file/dummy-file-id-${i}`;
+
+      await ctx.db.insert("candidates", {
+        campaignId: args.campaignId,
+        firstName,
+        lastName,
+        email,
+        phone,
+        status,
+        monthlyIncome,
+        jobStatus,
+        hasGuarantor,
+        dossierFacileUrl,
+        nameTrigram,
+        createdAt: Date.now() - (20 - i) * 3600000, // staggered over the last 20 hours
+      });
+    }
+  },
+});
+

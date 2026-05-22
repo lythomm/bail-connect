@@ -159,3 +159,30 @@ export const listWithStats = query({
     return results;
   },
 });
+
+/**
+ * Upgrade a campaign's adType to premium "pass" (restricted to landlord owner).
+ */
+export const upgradeToPass = mutation({
+  args: { id: v.id("campaigns") },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Unauthorized");
+    }
+
+    const campaign = await ctx.db.get(args.id);
+    if (!campaign) {
+      throw new Error("Campaign not found");
+    }
+
+    if (campaign.userId !== userId) {
+      throw new Error("Unauthorized");
+    }
+
+    await ctx.db.patch(args.id, { adType: "pass" });
+    return { success: true };
+  },
+});
+
+
