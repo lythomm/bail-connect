@@ -55,7 +55,7 @@ export const sendCandidateInvitation = internalAction({
           Bonjour ${info.candidateFirstName} ${info.candidateLastName},
         </p>
         <p style="font-size: 14px; line-height: 1.5; color: #3A3A3A;">
-          Le propriétaire de l'annonce <strong>${info.campaignTitle}</strong> a accepté votre dossier de candidature. 
+          Le propriétaire de l'annonce <strong>${info.campaignTitle}</strong> a retenu votre dossier de candidature. 
           Vous pouvez dès maintenant choisir un créneau de visite sur son calendrier.
         </p>
         
