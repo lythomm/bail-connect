@@ -159,16 +159,20 @@ export default function Home() {
         </header>
 
         {/* Hero Section */}
-        <section className="bg-gradient-to-b from-[#F5F5FE] to-white border-b border-[#DDDDDD] h-dvh flex items-center">
-          <div className="max-w-6xl mx-auto">
-
+        <section
+          className="bg-cover bg-center border-b border-[#DDDDDD] h-dvh flex items-center relative"
+          style={{
+            backgroundImage: "linear-gradient(to bottom, rgba(0, 0, 0, 0.20), rgba(0, 0, 0, 0.45)), url('/assets/hero-bg.png')"
+          }}
+        >
+          <div className="max-w-6xl mx-auto px-6 md:px-0 w-full">
             {/* Left Hero Column: Copy & CTAs */}
             <div className="flex flex-col items-center text-center">
               <span className="gov-badge mb-4">Solution Bailleurs • Version Gratuite Disponible</span>
-              <h1 className="text-4xl sm:text-7xl font-extrabold text-[#161616] tracking-tight leading-tight mb-6">
+              <h1 className="text-4xl sm:text-7xl font-extrabold text-white tracking-tight leading-tight mb-6">
                 Gérez les candidatures locataires DossierFacile en 10 minutes chrono
               </h1>
-              <p className="text-lg text-[#3A3A3A] mb-8 leading-relaxed">
+              <p className="text-lg text-white mb-8 leading-relaxed max-w-3xl">
                 Ne subissez plus la pollution d'e-mails et les dizaines de pièces jointes PDF en vrac.
                 Générez un lien de candidature unique à insérer dans vos annonces et recevez des profils complets,
                 <strong> pré-vérifiés par l'État via DossierFacile</strong>.
@@ -176,18 +180,18 @@ export default function Home() {
 
               <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                 <Link href="/dashboard" className="btn-primary text-base px-8 h-12 flex items-center justify-center font-bold">
-                  Créer un tunnel de candidature
+                  Commencez gratuitement
                 </Link>
                 <a
                   href="#fonctionnement"
-                  className="btn-secondary text-base px-8 h-12 flex items-center justify-center font-semibold"
+                  className="btn-secondary !bg-white text-base px-8 h-12 flex items-center justify-center font-semibold"
                 >
                   Découvrir la méthode ↗
                 </a>
               </div>
 
-              <div className="mt-8 flex items-center gap-3 text-sm text-[#666666]">
-                <ShieldCheck className="w-5 h-5 text-[#18753C] flex-shrink-0" />
+              <div className="mt-8 flex items-center gap-3 text-sm text-white/90 drop-shadow-sm">
+                <ShieldCheck className="w-5 h-5 text-[#22c55e] flex-shrink-0" />
                 <span>Conforme RGPD : aucun stockage local de documents d'identité</span>
               </div>
             </div>
@@ -195,7 +199,7 @@ export default function Home() {
         </section>
 
         {/* Metrics Section */}
-        <section className="bg-white border-b border-[#DDDDDD] py-12 max-w-6xl mx-auto">
+        <section className="bg-white border-b border-[#DDDDDD] py-12 max-w-6xl mx-auto px-6 md:px-0">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div className="p-4">
               <h4 className="text-4xl sm:text-5xl font-black text-[#000091] mb-2">10 minutes</h4>
@@ -342,7 +346,7 @@ export default function Home() {
             </div>
 
             {/* Horizontal 3-Step Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10 px-6 md:px-0">
 
               {/* Step 1 */}
               <div className="bg-white border border-[#E2E8F0] rounded-2xl p-8 flex flex-col items-start hover:shadow-md hover:-translate-y-1 transition-all duration-300 group">
@@ -371,7 +375,7 @@ export default function Home() {
                 <div className="bg-[#F8FAFC] p-4 border border-dashed border-[#E2E8F0] rounded-2xl w-full mt-auto">
                   <span className="block text-xs font-bold text-[#000091] uppercase tracking-wider mb-2">Exemple de mention :</span>
                   <p className="text-[11px] font-mono text-[#3A3A3A] leading-relaxed">
-                    "Pour postuler à cet appartement, merci de soumettre votre dossier certifié sur : <strong className="text-[#000091] font-semibold break-all">bailconnect.fr/apply/studio-lyon-3</strong>"
+                    "Pour postuler à cet appartement, merci de soumettre votre dossier certifié sur :<br /> <strong className="text-[#000091] font-semibold break-all">https://bailconnect.fr/apply/studio-lyon-3</strong>"
                   </p>
                 </div>
               </div>
@@ -525,8 +529,7 @@ export default function Home() {
                   <h3 className="text-2xl font-bold text-[#161616] mt-2">Découverte</h3>
                   <p className="text-sm text-[#666666] mt-1">Idéal pour tester ou pour un besoin unique très simple.</p>
                   <div className="mt-6 flex items-baseline">
-                    <span className="text-4xl font-black text-[#161616]">0€</span>
-                    <span className="text-sm text-[#666666] ml-2">sans engagement</span>
+                    <span className="text-4xl font-black text-[#161616]">GRATUIT</span>
                   </div>
 
                   <ul className="mt-8 space-y-4">
@@ -548,7 +551,7 @@ export default function Home() {
                     </li>
                     <li className="flex items-start gap-3 text-sm text-gray-400">
                       <X className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                      <span>Pas de relances automatiques</span>
+                      <span>Limité à 1 annonce gratuite</span>
                     </li>
                   </ul>
                 </div>
@@ -562,7 +565,7 @@ export default function Home() {
               {/* Plan 2: Pass Annonce (Highlighted) */}
               <div className="bg-white border-2 border-[#000091] rounded-2xl p-8 flex flex-col justify-between shadow-lg relative transform md:-translate-y-4 hover:shadow-xl transition-all duration-300">
                 <div className="absolute top-0 right-1/2 translate-x-1/2 -translate-y-1/2 bg-[#000091] text-white text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full whitespace-nowrap">
-                  Recommandé
+                  Populaire
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold text-[#161616] mt-2">Pass Annonce</h3>
@@ -579,15 +582,15 @@ export default function Home() {
                     </li>
                     <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
                       <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
-                      <span>Refus automatisés par SMS</span>
+                      <span>Notifications candidats automatisées</span>
+                    </li>
+                    <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
+                      <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
+                      <span>Import LeBonCoin / SeLoger</span>
                     </li>
                     <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
                       <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
                       <span>Planificateur de visites intégré</span>
-                    </li>
-                    <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
-                      <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
-                      <span>1 lot sous gestion</span>
                     </li>
                     <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
                       <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
@@ -597,7 +600,7 @@ export default function Home() {
                 </div>
                 <div className="mt-8">
                   <Link href="/dashboard?plan=pass" className="btn-primary w-full text-center py-3 block font-bold rounded-2xl">
-                    Choisir ce plan
+                    Créer mon annonce
                   </Link>
                 </div>
               </div>
@@ -606,7 +609,7 @@ export default function Home() {
               <div className="bg-white border border-[#E2E8F0] rounded-2xl p-8 flex flex-col justify-between hover:shadow-md transition-all duration-300">
                 <div>
                   <h3 className="text-2xl font-bold text-[#161616] mt-2">Abonnement Pro</h3>
-                  <p className="text-sm text-[#666666] mt-1">Pour les bailleurs multi-biens et professionnels de l'immobilier.</p>
+                  <p className="text-sm text-[#666666] mt-1">Pour les bailleurs multi-biens et / ou professionnels de l'immobilier.</p>
                   <div className="mt-6 flex items-baseline">
                     <span className="text-4xl font-black text-[#161616]">39€</span>
                     <span className="text-sm text-[#666666] ml-2">/ mois, sans engagement</span>

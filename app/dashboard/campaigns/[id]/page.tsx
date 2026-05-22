@@ -89,8 +89,8 @@ export default function CampaignDetail() {
   const router = useRouter();
   const campaignId = params.id as Id<"campaigns"> | undefined;
 
-  const campaign = useQuery(api.campaigns.get, campaignId ? { id: campaignId } : "skip");
-  const candidates = useQuery(api.candidates.getByCampaign, campaignId ? { campaignId } : "skip");
+  const campaign = useQuery(api.campaigns.get, isAuthenticated && campaignId ? { id: campaignId } : "skip");
+  const candidates = useQuery(api.candidates.getByCampaign, isAuthenticated && campaignId ? { campaignId } : "skip");
   const updateStatus = useMutation(api.candidates.updateStatus);
 
   const [sorting, setSorting] = useState<SortingState>([
@@ -106,7 +106,7 @@ export default function CampaignDetail() {
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.replace("/signin");
+      router.replace("/");
     }
   }, [authLoading, isAuthenticated, router]);
 
