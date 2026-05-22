@@ -81,15 +81,13 @@ export default function NewCampaign() {
       if (validateStep2()) {
         setCurrentStep(3);
       }
+    } else if (currentStep === 3) {
+      setCurrentStep(4);
     }
   };
 
   const handlePrev = () => {
     setError(null);
-    if (showPaymentForm) {
-      setShowPaymentForm(false);
-      return;
-    }
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
@@ -226,17 +224,19 @@ export default function NewCampaign() {
             {/* Stepper progress indicator */}
             <div className="mb-8 select-none">
               <div className="flex justify-between items-center text-xs font-semibold text-[#666666] mb-3">
-                <span>Étape {currentStep} sur 3</span>
+                <span>Étape {currentStep} sur 4</span>
                 <span className="text-[#000091]">
                   {currentStep === 1 && "Informations de base"}
                   {currentStep === 2 && "Loyer & Description"}
                   {currentStep === 3 && "Choix de la formule"}
+                  {currentStep === 4 && "Récapitulatif"}
                 </span>
               </div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-4 gap-2">
                 <div className={`h-2 transition-all duration-300 ${currentStep >= 1 ? "bg-[#000091]" : "bg-[#EEEEEE]"}`}></div>
                 <div className={`h-2 transition-all duration-300 ${currentStep >= 2 ? "bg-[#000091]" : "bg-[#EEEEEE]"}`}></div>
                 <div className={`h-2 transition-all duration-300 ${currentStep >= 3 ? "bg-[#000091]" : "bg-[#EEEEEE]"}`}></div>
+                <div className={`h-2 transition-all duration-300 ${currentStep >= 4 ? "bg-[#000091]" : "bg-[#EEEEEE]"}`}></div>
               </div>
             </div>
 
@@ -254,7 +254,9 @@ export default function NewCampaign() {
                 } else if (currentStep === 2) {
                   handleNext();
                 } else if (currentStep === 3) {
-                  if (showPaymentForm) {
+                  handleNext();
+                } else if (currentStep === 4) {
+                  if (adType === "pass" && user?.tier !== "pro") {
                     handlePaymentSubmit(e);
                   } else {
                     handleSubmit(e);
@@ -372,12 +374,122 @@ export default function NewCampaign() {
                           Félicitations ! Vous disposez de l&apos;<b>Abonnement Pro</b>.
                         </p>
                         <p className="text-xs text-[#666666] mt-1">
-                          Cette annonce est automatiquement créée au format Premium (candidats illimités, planification) sans frais supplémentaires.
+                          Cette annonce est automatiquement créée au format Premium sans frais supplémentaires.
                         </p>
                       </div>
                     </div>
-                  ) : showPaymentForm ? (
-                    <div className="space-y-6">
+                  ) : (
+                    <div>
+                      <label className="form-label mb-3">Choisissez le type d&apos;annonce *</label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Free Tier card */}
+                        <div
+                          onClick={() => setAdType("free")}
+                          className={`border rounded-xl p-4 cursor-pointer transition-all flex flex-col justify-between h-full select-none ${
+                            adType === "free"
+                              ? "border-[#000091] bg-[#F5F5FE]/40 ring-1 ring-[#000091]"
+                              : "border-[#DDDDDD] hover:border-[#000091]"
+                          }`}
+                        >
+                          <div>
+                            <div className="flex justify-between items-start mb-2">
+                              <span className="font-bold text-sm text-[#161616]">Annonce Gratuite</span>
+                              <span className="font-bold text-sm text-[#666666]">Gratuit</span>
+                            </div>
+                            <p className="text-[11px] text-[#666666] leading-relaxed">
+                              Idéal pour débuter. Limité à un <b>maximum de 10 candidatures</b> pour cette annonce.
+                            </p>
+                          </div>
+                          {adType === "free" && (
+                            <div className="text-xs font-bold text-[#000091] mt-4 flex items-center gap-1">
+                              ✓ Formule sélectionnée
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Premium Tier card */}
+                        <div
+                          onClick={() => setAdType("pass")}
+                          className={`border rounded-xl p-4 cursor-pointer transition-all flex flex-col justify-between h-full select-none ${
+                            adType === "pass"
+                              ? "border-[#000091] bg-[#F5F5FE]/40 ring-1 ring-[#000091]"
+                              : "border-[#DDDDDD] hover:border-[#000091]"
+                          }`}
+                        >
+                          <div>
+                            <div className="flex justify-between items-start mb-2">
+                              <span className="font-bold text-sm text-[#161616]">Pass Annonce</span>
+                              <span className="font-bold text-sm text-[#000091]">19 €</span>
+                            </div>
+                            <p className="text-[11px] text-[#666666] leading-relaxed">
+                              <b>Candidats illimités</b> pour l&apos;annonce, <b>rappels automatiques</b> et <b>planification des visites</b>.
+                            </p>
+                          </div>
+                          {adType === "pass" && (
+                            <div className="text-xs font-bold text-[#000091] mt-4 flex items-center gap-1">
+                              ✓ Formule sélectionnée
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="pt-4 border-t border-[#DDDDDD] flex justify-between items-center gap-4">
+                    <button
+                      type="button"
+                      onClick={handlePrev}
+                      className="btn-secondary flex-1"
+                    >
+                      Retour
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleNext}
+                      className="btn-primary flex-1"
+                    >
+                      Suivant
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {currentStep === 4 && (
+                <div className="space-y-6">
+                  <div className="border border-[#E3E3FD] bg-[#F5F5FE] p-5 rounded-lg">
+                    <h3 className="text-sm font-bold text-[#000091] mb-3 uppercase tracking-wider border-b border-[#E3E3FD] pb-2">
+                      Récapitulatif du logement
+                    </h3>
+                    <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm text-[#3A3A3A]">
+                      <div>
+                        <dt className="text-xs text-[#666666] font-semibold">Titre :</dt>
+                        <dd className="font-medium text-[#161616]">{title}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs text-[#666666] font-semibold">Loyer mensuel :</dt>
+                        <dd className="font-medium text-[#161616]">{rentAmount} €</dd>
+                      </div>
+                      {description.trim() && (
+                        <div className="sm:col-span-2">
+                          <dt className="text-xs text-[#666666] font-semibold">Description :</dt>
+                          <dd className="font-medium text-[#161616] whitespace-pre-wrap">{description}</dd>
+                        </div>
+                      )}
+                      <div className="sm:col-span-2">
+                        <dt className="text-xs text-[#666666] font-semibold">Formule choisie :</dt>
+                        <dd className="font-medium text-[#161616]">
+                          {user?.tier === "pro"
+                            ? "Pass Annonce (Inclus avec l'Abonnement Pro)"
+                            : adType === "free"
+                            ? "Annonce Gratuite"
+                            : "Pass Annonce (19 €)"}
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+
+                  {adType === "pass" && user?.tier !== "pro" && (
+                    <div className="space-y-6 border-t border-[#DDDDDD] pt-6 mt-6">
                       <div className="flex items-center gap-2 pb-2 border-b border-[#DDDDDD]">
                         <Lock className="w-4 h-4 text-[#18753C]" />
                         <h3 className="text-sm font-bold text-[#161616] uppercase tracking-wider">
@@ -505,96 +617,6 @@ export default function NewCampaign() {
                         </div>
                       )}
                     </div>
-                  ) : (
-                    <div>
-                      <label className="form-label mb-3">Choisissez le type d&apos;annonce *</label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {/* Free Tier card */}
-                        <div
-                          onClick={() => setAdType("free")}
-                          className={`border rounded-xl p-4 cursor-pointer transition-all flex flex-col justify-between h-full select-none ${
-                            adType === "free"
-                              ? "border-[#000091] bg-[#F5F5FE]/40 ring-1 ring-[#000091]"
-                              : "border-[#DDDDDD] hover:border-[#000091]"
-                          }`}
-                        >
-                          <div>
-                            <div className="flex justify-between items-start mb-2">
-                              <span className="font-bold text-sm text-[#161616]">Annonce Gratuite</span>
-                              <span className="font-bold text-sm text-[#666666]">Gratuit</span>
-                            </div>
-                            <p className="text-[11px] text-[#666666] leading-relaxed">
-                              Idéal pour débuter. Limité à un <b>maximum de 10 candidatures</b> pour cette annonce.
-                            </p>
-                          </div>
-                          {adType === "free" && (
-                            <div className="text-xs font-bold text-[#000091] mt-4 flex items-center gap-1">
-                              ✓ Formule sélectionnée
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Premium Tier card */}
-                        <div
-                          onClick={() => setAdType("pass")}
-                          className={`border rounded-xl p-4 cursor-pointer transition-all flex flex-col justify-between h-full select-none ${
-                            adType === "pass"
-                              ? "border-[#000091] bg-[#F5F5FE]/40 ring-1 ring-[#000091]"
-                              : "border-[#DDDDDD] hover:border-[#000091]"
-                          }`}
-                        >
-                          <div>
-                            <div className="flex justify-between items-start mb-2">
-                              <span className="font-bold text-sm text-[#161616]">Pass Annonce</span>
-                              <span className="font-bold text-sm text-[#000091]">19 €</span>
-                            </div>
-                            <p className="text-[11px] text-[#666666] leading-relaxed">
-                              <b>Candidats illimités</b> pour l&apos;annonce, <b>rappels automatiques</b> et <b>planification des visites</b>.
-                            </p>
-                          </div>
-                          {adType === "pass" && (
-                            <div className="text-xs font-bold text-[#000091] mt-4 flex items-center gap-1">
-                              ✓ Formule sélectionnée
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Recap Box (Hidden if currently loading/success during payment to save space) */}
-                  {(!showPaymentForm || (!paymentLoading && !paymentSuccess)) && (
-                    <div className="border border-[#E3E3FD] bg-[#F5F5FE] p-5 rounded-lg">
-                      <h3 className="text-sm font-bold text-[#000091] mb-3 uppercase tracking-wider border-b border-[#E3E3FD] pb-2">
-                        Récapitulatif du logement
-                      </h3>
-                      <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm text-[#3A3A3A]">
-                        <div>
-                          <dt className="text-xs text-[#666666] font-semibold">Titre :</dt>
-                          <dd className="font-medium text-[#161616]">{title}</dd>
-                        </div>
-                        <div>
-                          <dt className="text-xs text-[#666666] font-semibold">Loyer mensuel :</dt>
-                          <dd className="font-medium text-[#161616]">{rentAmount} €</dd>
-                        </div>
-                        {description.trim() && (
-                          <div className="sm:col-span-2">
-                            <dt className="text-xs text-[#666666] font-semibold">Description :</dt>
-                            <dd className="font-medium text-[#161616] whitespace-pre-wrap">{description}</dd>
-                          </div>
-                        )}
-                        <div className="sm:col-span-2">
-                          <dt className="text-xs text-[#666666] font-semibold">Formule choisie :</dt>
-                          <dd className="font-medium text-[#161616]">
-                            {user?.tier === "pro"
-                              ? "Pass Annonce (Inclus avec l'Abonnement Pro)"
-                              : adType === "free"
-                              ? "Annonce Gratuite"
-                              : "Pass Annonce (19 €)"}
-                          </dd>
-                        </div>
-                      </dl>
-                    </div>
                   )}
 
                   <div className="pt-4 border-t border-[#DDDDDD] flex justify-between items-center gap-4">
@@ -606,7 +628,7 @@ export default function NewCampaign() {
                     >
                       Retour
                     </button>
-                    {showPaymentForm && user?.tier !== "pro" ? (
+                    {adType === "pass" && user?.tier !== "pro" ? (
                       !paymentSuccess && (
                         <button
                           type="submit"
@@ -629,7 +651,7 @@ export default function NewCampaign() {
                         disabled={loading}
                         className="btn-primary flex-1"
                       >
-                        {loading ? "Création..." : (adType === "pass" && user?.tier !== "pro") ? "Continuer vers le paiement" : "Créer"}
+                        {loading ? "Création..." : "Créer"}
                       </button>
                     )}
                   </div>

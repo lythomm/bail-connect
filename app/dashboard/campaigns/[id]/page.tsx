@@ -314,9 +314,13 @@ export default function CampaignDetail() {
         }
         return (
           <div>
-            <div className="font-semibold text-[#0F172A]">
-              {row.original.firstName} {row.original.lastName}
-              {row.original.age !== undefined && ` (${row.original.age} ans)`}
+            <div className="font-semibold text-[#0F172A] flex items-baseline gap-2">
+              <span>{row.original.firstName} {row.original.lastName}</span>
+              {row.original.age !== undefined && (
+                <span className="text-xs font-normal text-[#64748B]">
+                  {row.original.age} ans
+                </span>
+              )}
             </div>
             <div className="text-xs text-[#64748B]">
               {row.original.email} • {row.original.phone}
