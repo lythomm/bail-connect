@@ -123,41 +123,6 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }}
       />
       <div className="flex-1 flex flex-col min-h-screen bg-white">
-        {/* Header */}
-        <header className="bg-white border-b border-[#DDDDDD] h-16 flex items-center justify-between px-6 sticky top-0 z-50">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 bg-[#000091] text-white flex items-center justify-center font-bold text-sm select-none rounded-2xl">
-              BC
-            </div>
-            <span className="font-bold text-[#161616] text-lg tracking-tight">BailConnect</span>
-          </div>
-
-          {/* Navigation - Hidden on mobile */}
-          <nav className="hidden md:flex items-center gap-1">
-            <a href="#comparatif" className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors">
-              Pourquoi nous ?
-            </a>
-            <a href="#fonctionnement" className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors">
-              Comment ça marche
-            </a>
-            <a href="#dossier-facile" className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors">
-              Partenaire DossierFacile
-            </a>
-            <a href="#tarifs" className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors">
-              Tarifs
-            </a>
-            <a href="#faq" className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors">
-              FAQ
-            </a>
-          </nav>
-
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="btn-secondary text-sm h-9 flex items-center">
-              Espace Propriétaire
-            </Link>
-          </div>
-        </header>
-
         {/* Hero Section */}
         <section
           className="bg-cover bg-center border-b border-[#DDDDDD] h-dvh flex items-center relative"
