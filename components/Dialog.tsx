@@ -60,7 +60,7 @@ export default function Dialog({
   return (
     <div
       onClick={handleOverlayClick}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#161616]/50 backdrop-blur-xs p-4 transition-opacity duration-300 animate-fade-in"
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-[#161616]/50 backdrop-blur-xs p-4 transition-opacity duration-300 animate-fade-in"
       role="dialog"
       aria-modal="true"
       aria-labelledby={title ? "dialog-title" : undefined}

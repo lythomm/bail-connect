@@ -398,14 +398,14 @@ export default function CalendarPage() {
                 <div className="bg-white border border-[#E2E8F0] rounded-lg shadow-xs p-6 space-y-6">
 
                   {/* Selected Date Header */}
-                  <div className="flex justify-between items-start gap-4 pb-4 border-b border-[#F0F0F0]">
+                  <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 pb-4 border-b border-[#F0F0F0]">
                     <div>
                       <span className="text-[10px] font-bold text-[#000091] uppercase tracking-wider">Jour sélectionné</span>
                       <h3 className="text-base font-bold text-[#161616] capitalize mt-1">{formattedSelectedDayLabel}</h3>
                     </div>
                     <button
                       onClick={() => setIsAddSlotOpen(true)}
-                      className="btn-primary text-xs flex items-center gap-1 px-3 py-1.5 cursor-pointer h-auto shrink-0 animate-fade-in"
+                      className="btn-primary text-xs flex items-center justify-center gap-1 px-3 py-1.5 cursor-pointer h-auto shrink-0 animate-fade-in w-full lg:w-auto"
                     >
                       <Plus className="w-3.5 h-3.5" /> Ajouter un créneau
                     </button>

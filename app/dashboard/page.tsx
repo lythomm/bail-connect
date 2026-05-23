@@ -78,57 +78,57 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="grid grid-cols-3 gap-2 sm:gap-6">
           <Link 
             href="/annonces" 
-            className="bg-white border border-[#E2E8F0] hover:border-[#000091] rounded-lg p-6 shadow-xs transition-all duration-200 group flex flex-col justify-between"
+            className="bg-white border border-[#E2E8F0] hover:border-[#000091] rounded-lg p-3 sm:p-6 shadow-xs transition-all duration-200 group flex flex-col justify-between"
           >
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-[#666666]">Logements Actifs</span>
-              <div className="p-2 bg-[#F5F5FE] text-[#000091] rounded-lg group-hover:bg-[#000091] group-hover:text-white transition-colors">
+            <div className="flex items-start sm:items-center justify-between gap-1">
+              <span className="text-[10px] sm:text-sm font-bold text-[#666666] leading-tight">Logements Actifs</span>
+              <div className="hidden sm:block p-2 bg-[#F5F5FE] text-[#000091] rounded-lg group-hover:bg-[#000091] group-hover:text-white transition-colors shrink-0">
                 <Home className="w-5 h-5" />
               </div>
             </div>
-            <div className="mt-4 flex items-end justify-between">
-              <span className="text-3xl font-bold text-[#161616]">{totalCampaigns}</span>
-              <span className="text-xs font-semibold text-[#000091] flex items-center gap-1">
-                Gérer <ChevronRight className="w-3 h-3" />
+            <div className="mt-2 sm:mt-4 flex items-end justify-between">
+              <span className="text-xl sm:text-3xl font-bold text-[#161616]">{totalCampaigns}</span>
+              <span className="text-[10px] sm:text-xs font-semibold text-[#000091] flex items-center gap-0.5">
+                Gérer <ChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
               </span>
             </div>
           </Link>
 
           <Link 
             href="/calendar" 
-            className="bg-white border border-[#E2E8F0] hover:border-[#000091] rounded-lg p-6 shadow-xs transition-all duration-200 group flex flex-col justify-between"
+            className="bg-white border border-[#E2E8F0] hover:border-[#000091] rounded-lg p-3 sm:p-6 shadow-xs transition-all duration-200 group flex flex-col justify-between"
           >
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-[#666666]">Visites Planifiées</span>
-              <div className="p-2 bg-[#E8F6EE] text-[#18753C] rounded-lg group-hover:bg-[#18753C] group-hover:text-white transition-colors">
+            <div className="flex items-start sm:items-center justify-between gap-1">
+              <span className="text-[10px] sm:text-sm font-bold text-[#666666] leading-tight">Visites Planifiées</span>
+              <div className="hidden sm:block p-2 bg-[#E8F6EE] text-[#18753C] rounded-lg group-hover:bg-[#18753C] group-hover:text-white transition-colors shrink-0">
                 <CalendarIcon className="w-5 h-5" />
               </div>
             </div>
-            <div className="mt-4 flex items-end justify-between">
-              <span className="text-3xl font-bold text-[#161616]">{totalUpcomingVisits}</span>
-              <span className="text-xs font-semibold text-[#18753C] flex items-center gap-1">
-                Calendrier <ChevronRight className="w-3 h-3" />
+            <div className="mt-2 sm:mt-4 flex items-end justify-between">
+              <span className="text-xl sm:text-3xl font-bold text-[#161616]">{totalUpcomingVisits}</span>
+              <span className="text-[10px] sm:text-xs font-semibold text-[#18753C] flex items-center gap-0.5">
+                Calendrier <ChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
               </span>
             </div>
           </Link>
 
           <Link 
             href="/annonces" 
-            className="bg-white border border-[#E2E8F0] hover:border-[#000091] rounded-lg p-6 shadow-xs transition-all duration-200 group flex flex-col justify-between"
+            className="bg-white border border-[#E2E8F0] hover:border-[#000091] rounded-lg p-3 sm:p-6 shadow-xs transition-all duration-200 group flex flex-col justify-between"
           >
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-[#666666]">Candidatures en attente</span>
-              <div className="p-2 bg-[#FFEFE0] text-[#B35C00] rounded-lg group-hover:bg-[#B35C00] group-hover:text-white transition-colors">
+            <div className="flex items-start sm:items-center justify-between gap-1">
+              <span className="text-[10px] sm:text-sm font-bold text-[#666666] leading-tight">Candidatures en attente</span>
+              <div className="hidden sm:block p-2 bg-[#FFEFE0] text-[#B35C00] rounded-lg group-hover:bg-[#B35C00] group-hover:text-white transition-colors shrink-0">
                 <User className="w-5 h-5" />
               </div>
             </div>
-            <div className="mt-4 flex items-end justify-between">
-              <span className="text-3xl font-bold text-[#161616]">{totalPendingCandidates}</span>
-              <span className="text-xs font-semibold text-[#B35C00] flex items-center gap-1">
-                Analyser <ChevronRight className="w-3 h-3" />
+            <div className="mt-2 sm:mt-4 flex items-end justify-between">
+              <span className="text-xl sm:text-3xl font-bold text-[#161616]">{totalPendingCandidates}</span>
+              <span className="text-[10px] sm:text-xs font-semibold text-[#B35C00] flex items-center gap-0.5">
+                Analyser <ChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
               </span>
             </div>
           </Link>
