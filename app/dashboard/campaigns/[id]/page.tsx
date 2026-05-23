@@ -2,10 +2,10 @@
 
 export const dynamic = "force-dynamic";
 
-import { useQuery, useMutation, useConvexAuth } from "convex/react";
+import { useQuery, useMutation, useConvexAuth, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useParams, useRouter } from "next/navigation";
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { Id, Doc } from "@/convex/_generated/dataModel";
 import { CreditCard, CheckCircle2, Loader2 } from "lucide-react";
@@ -88,6 +88,7 @@ export default function CampaignDetail() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const campaignId = params.id as Id<"campaigns"> | undefined;
 
   const campaign = useQuery(api.campaigns.get, isAuthenticated && campaignId ? { id: campaignId } : "skip");
@@ -95,60 +96,37 @@ export default function CampaignDetail() {
   const updateStatus = useMutation(api.candidates.updateStatus);
   const user = useQuery(api.users.current);
   const upgradeCampaign = useMutation(api.campaigns.upgradeToPass);
+  
+  const createCheckoutSession = useAction(api.stripe.createCheckoutSession);
+  const verifySession = useAction(api.stripe.verifySession);
 
   const [upgradeOpen, setUpgradeOpen] = useState(false);
-  const [modalCardNumber, setModalCardNumber] = useState("4242 4242 4242 4242");
-  const [modalCardExpiry, setModalCardExpiry] = useState("12/28");
-  const [modalCardCvv, setModalCardCvv] = useState("123");
-  const [modalCardName, setModalCardName] = useState("JEAN DUPONT");
   const [modalLoading, setModalLoading] = useState(false);
-  const [modalSuccess, setModalSuccess] = useState(false);
 
   const isPremium = campaign?.adType === "pass" || user?.tier === "pro";
 
-  const unlockedCandidateIds = useMemo(() => {
-    if (!candidates) return new Set<string>();
-    const sorted = [...candidates].sort((a, b) => a.createdAt - b.createdAt);
-    return new Set(sorted.slice(0, 10).map((c) => c._id));
-  }, [candidates]);
+  const sessionId = searchParams.get("session_id");
+  const isVerifyingRef = useRef(false);
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
-  const handleModalCardNumberChange = (value: string) => {
-    const clean = value.replace(/\D/g, "").slice(0, 16);
-    const matches = clean.match(/\d{1,4}/g);
-    if (matches) {
-      setModalCardNumber(matches.join(" "));
-    } else {
-      setModalCardNumber("");
-    }
-  };
-
-  const handleModalCardExpiryChange = (value: string) => {
-    const clean = value.replace(/\D/g, "").slice(0, 4);
-    if (clean.length > 2) {
-      setModalCardExpiry(`${clean.slice(0, 2)}/${clean.slice(2)}`);
-    } else {
-      setModalCardExpiry(clean);
-    }
-  };
-
-  const handleModalCardCvvChange = (value: string) => {
-    const clean = value.replace(/\D/g, "").slice(0, 3);
-    setModalCardCvv(clean);
-  };
-
-  const handleModalPaymentSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setModalLoading(true);
-
-    setTimeout(async () => {
-      setModalSuccess(true);
-      if (campaignId) {
+  useEffect(() => {
+    if (sessionId && campaignId && !isVerifyingRef.current) {
+      isVerifyingRef.current = true;
+      const verify = async () => {
         try {
-          await upgradeCampaign({ id: campaignId });
-          setToast({
-            message: "Votre annonce a été mise à niveau en Premium !",
-            type: "success",
-          });
+          const result = await verifySession({ sessionId });
+          if (result.success) {
+            setToast({
+              message: "Félicitations, votre annonce est désormais premium !",
+              type: "success",
+            });
+            router.replace(`/dashboard/campaigns/${campaignId}`);
+          } else {
+            setToast({
+              message: result.error || "Le paiement n'a pas pu être vérifié.",
+              type: "error",
+            });
+          }
         } catch (err: any) {
           console.error(err);
           setToast({
@@ -156,13 +134,40 @@ export default function CampaignDetail() {
             type: "error",
           });
         }
+      };
+      verify();
+    }
+  }, [sessionId, verifySession, campaignId, router]);
+
+  const unlockedCandidateIds = useMemo(() => {
+    if (!candidates) return new Set<string>();
+    const sorted = [...candidates].sort((a, b) => a.createdAt - b.createdAt);
+    return new Set(sorted.slice(0, 10).map((c) => c._id));
+  }, [candidates]);
+
+  const handleModalPaymentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!campaignId) return;
+    setModalLoading(true);
+
+    try {
+      const { url } = await createCheckoutSession({
+        type: "upgrade_campaign",
+        campaignId: campaignId,
+      });
+      if (url) {
+        window.location.href = url;
+      } else {
+        throw new Error("Impossible de générer le lien de paiement.");
       }
-      setTimeout(() => {
-        setUpgradeOpen(false);
-        setModalLoading(false);
-        setModalSuccess(false);
-      }, 1500);
-    }, 1500);
+    } catch (err: any) {
+      console.error(err);
+      setToast({
+        message: err.message || "Une erreur est survenue lors de la redirection vers Stripe.",
+        type: "error",
+      });
+      setModalLoading(false);
+    }
   };
 
   const [sorting, setSorting] = useState<SortingState>([
@@ -174,7 +179,6 @@ export default function CampaignDetail() {
   const [activeDropdown, setActiveDropdown] = useState<"jobStatus" | "guarantor" | "status" | null>(null);
 
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -942,7 +946,6 @@ export default function CampaignDetail() {
                 onClick={() => {
                   if (!modalLoading) {
                     setUpgradeOpen(false);
-                    setModalSuccess(false);
                   }
                 }}
                 disabled={modalLoading}
@@ -954,142 +957,49 @@ export default function CampaignDetail() {
 
             {/* Modal Body */}
             <div className="p-6">
-              {modalSuccess ? (
-                <div className="flex flex-col items-center justify-center py-6 space-y-3">
-                  <CheckCircle2 className="w-12 h-12 text-[#18753C] animate-bounce" />
-                  <h4 className="text-base font-bold text-[#161616]">Abonnement activé !</h4>
-                  <p className="text-xs text-[#666666] text-center">
-                    Toutes les candidatures de cette annonce sont désormais débloquées et visibles.
+              <form onSubmit={handleModalPaymentSubmit} className="space-y-4">
+                <div className="text-xs text-[#666666] space-y-1.5 pb-3 border-b border-[#EEEEEE]">
+                  <p className="font-semibold text-[#161616]">
+                    En débloquant cette annonce pour 19 €, vous profitez de :
                   </p>
+                  <ul className="list-disc pl-4 space-y-0.5">
+                    <li>Candidatures illimitées (plus aucune limite de visibilité)</li>
+                    <li>Rappels automatiques envoyés aux candidats</li>
+                    <li>Planification automatique des visites en ligne</li>
+                  </ul>
                 </div>
-              ) : (
-                <form onSubmit={handleModalPaymentSubmit} className="space-y-4">
-                  <div className="text-xs text-[#666666] space-y-1.5 pb-3 border-b border-[#EEEEEE]">
-                    <p className="font-semibold text-[#161616]">
-                      En débloquant cette annonce pour 19 €, vous profitez de :
+
+                <div className="bg-[#F5F5FE] border border-[#CBCBFC] p-4 rounded-xl flex items-start gap-3">
+                  <div className="bg-white p-2 rounded-lg border border-[#CBCBFC] shadow-sm flex-shrink-0">
+                    <CreditCard className="w-5 h-5 text-[#000091]" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-[#161616]">
+                      Paiement unique de 19 €
+                    </h4>
+                    <p className="text-[10px] text-[#666666] mt-0.5 leading-relaxed">
+                      Vous allez être redirigé vers le portail de paiement sécurisé de Stripe.
                     </p>
-                    <ul className="list-disc pl-4 space-y-0.5">
-                      <li>Candidatures illimitées (plus aucune limite de visibilité)</li>
-                      <li>Rappels automatiques envoyés aux candidats</li>
-                      <li>Planification automatique des visites en ligne</li>
-                    </ul>
                   </div>
+                </div>
 
-                  <div className="space-y-3">
-                    {/* Live Card Preview */}
-                    <div className="w-full max-w-[240px] h-[140px] mx-auto rounded-xl bg-gradient-to-br from-[#000091] via-[#1212a5] to-[#2626e2] p-3.5 text-white relative shadow-md overflow-hidden flex flex-col justify-between select-none">
-                      <div className="absolute -top-12 -right-12 w-20 h-20 bg-[#4242e8]/20 rounded-full blur-xl"></div>
-                      <div className="absolute -bottom-12 -left-12 w-16 h-16 bg-[#18753C]/20 rounded-full blur-xl"></div>
-
-                      <div className="flex justify-between items-start">
-                        <span className="text-[7px] font-bold tracking-widest uppercase opacity-80">BailConnect Premium</span>
-                        <CreditCard className="w-4 h-4 opacity-90" />
-                      </div>
-
-                      <div className="w-6 h-4.5 bg-gradient-to-r from-[#e6c15c] to-[#f4d682] rounded-xs relative flex items-center justify-center shadow-inner mt-1">
-                        <div className="w-4 h-2.5 border border-[#b38f2d]/30 rounded-xs"></div>
-                      </div>
-
-                      <div className="text-sm font-mono tracking-widest text-center mt-1">
-                        {modalCardNumber || "•••• •••• •••• ••••"}
-                      </div>
-
-                      <div className="flex justify-between items-end mt-1">
-                        <div className="flex-1 min-w-0 pr-2">
-                          <span className="text-[6px] uppercase tracking-wider block opacity-60">Titulaire</span>
-                          <span className="text-[9px] font-mono font-bold tracking-wide truncate block">
-                            {modalCardName.toUpperCase() || "NOM DU TITULAIRE"}
-                          </span>
-                        </div>
-                        <div className="flex-shrink-0 text-right">
-                          <span className="text-[6px] uppercase tracking-wider block opacity-60">Expire</span>
-                          <span className="text-[9px] font-mono font-bold tracking-wide">
-                            {modalCardExpiry || "MM/AA"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Inputs */}
-                    <div className="space-y-2">
-                      <div>
-                        <label className="form-label text-[11px] mb-0.5">Nom du titulaire *</label>
-                        <input
-                          type="text"
-                          required
-                          value={modalCardName}
-                          onChange={(e) => setModalCardName(e.target.value)}
-                          className="form-input text-xs py-1 px-2.5"
-                          placeholder="JEAN DUPONT"
-                          disabled={modalLoading}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="form-label text-[11px] mb-0.5">Numéro de carte *</label>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            required
-                            value={modalCardNumber}
-                            onChange={(e) => handleModalCardNumberChange(e.target.value)}
-                            className="form-input text-xs py-1 px-2.5 pl-8"
-                            placeholder="4242 4242 4242 4242"
-                            disabled={modalLoading}
-                          />
-                          <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                            <CreditCard className="h-3.5 w-3.5 text-[#666666]" />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="form-label text-[11px] mb-0.5">Date d&apos;expiration *</label>
-                          <input
-                            type="text"
-                            required
-                            value={modalCardExpiry}
-                            onChange={(e) => handleModalCardExpiryChange(e.target.value)}
-                            className="form-input text-xs py-1 px-2.5"
-                            placeholder="12/28"
-                            disabled={modalLoading}
-                          />
-                        </div>
-                        <div>
-                          <label className="form-label text-[11px] mb-0.5">CVV *</label>
-                          <input
-                            type="text"
-                            required
-                            value={modalCardCvv}
-                            onChange={(e) => handleModalCardCvvChange(e.target.value)}
-                            className="form-input text-xs py-1 px-2.5"
-                            placeholder="123"
-                            disabled={modalLoading}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-2">
-                    <button
-                      type="submit"
-                      disabled={modalLoading}
-                      className="btn-primary w-full flex items-center justify-center gap-1.5 py-2 px-4 bg-[#000091] text-white hover:bg-[#0b0b7d] rounded font-bold text-xs"
-                    >
-                      {modalLoading ? (
-                        <>
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          <span>Paiement en cours...</span>
-                        </>
-                      ) : (
-                        <span>Payer 19 € &amp; Débloquer</span>
-                      )}
-                    </button>
-                  </div>
-                </form>
-              )}
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={modalLoading}
+                    className="btn-primary w-full flex items-center justify-center gap-1.5 py-2 px-4 bg-[#000091] text-white hover:bg-[#0b0b7d] rounded font-bold text-xs"
+                  >
+                    {modalLoading ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Redirection...</span>
+                      </>
+                    ) : (
+                      <span>Payer</span>
+                    )}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

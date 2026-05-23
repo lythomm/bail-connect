@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useConvexAuth, useQuery } from "convex/react";
+import { useMutation, useConvexAuth, useQuery, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -12,6 +12,7 @@ export default function NewCampaign() {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const user = useQuery(api.users.current);
   const createCampaign = useMutation(api.campaigns.create);
+  const createCheckoutSession = useAction(api.stripe.createCheckoutSession);
   const router = useRouter();
   const campaigns = useQuery(api.campaigns.list, isAuthenticated ? {} : "skip");
   
@@ -30,15 +31,7 @@ export default function NewCampaign() {
   // Status states
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  // Mock Payment states
-  const [showPaymentForm, setShowPaymentForm] = useState(false);
-  const [cardNumber, setCardNumber] = useState("4242 4242 4242 4242");
-  const [cardExpiry, setCardExpiry] = useState("12/28");
-  const [cardCvv, setCardCvv] = useState("123");
-  const [cardName, setCardName] = useState("JEAN DUPONT");
   const [paymentLoading, setPaymentLoading] = useState(false);
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   // Sync adType if user is Pro
   useEffect(() => {
@@ -93,30 +86,6 @@ export default function NewCampaign() {
     }
   };
 
-  const handleCardNumberChange = (value: string) => {
-    const clean = value.replace(/\D/g, "").slice(0, 16);
-    const matches = clean.match(/\d{1,4}/g);
-    if (matches) {
-      setCardNumber(matches.join(" "));
-    } else {
-      setCardNumber("");
-    }
-  };
-
-  const handleCardExpiryChange = (value: string) => {
-    const clean = value.replace(/\D/g, "").slice(0, 4);
-    if (clean.length > 2) {
-      setCardExpiry(`${clean.slice(0, 2)}/${clean.slice(2)}`);
-    } else {
-      setCardExpiry(clean);
-    }
-  };
-
-  const handleCardCvvChange = (value: string) => {
-    const clean = value.replace(/\D/g, "").slice(0, 3);
-    setCardCvv(clean);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -125,33 +94,29 @@ export default function NewCampaign() {
       return;
     }
 
-    if (user?.tier === "pro" || adType === "free") {
-      if (adType === "free" && user?.tier !== "pro" && hasFreeCampaign) {
-        setToast({
-          message: "Vous ne pouvez avoir qu'une seule annonce gratuite active à la fois.",
-          type: "error",
-        });
-        return;
-      }
+    if (adType === "free" && user?.tier !== "pro" && hasFreeCampaign) {
+      setToast({
+        message: "Vous ne pouvez avoir qu'une seule annonce gratuite active à la fois.",
+        type: "error",
+      });
+      return;
+    }
 
-      setLoading(true);
-      const parsedRent = rentAmount ? parseFloat(rentAmount) : undefined;
-      try {
-        await createCampaign({
-          title: title.trim(),
-          description: description.trim() || undefined,
-          rentAmount: parsedRent,
-          adType: adType,
-        });
-        router.push("/annonces");
-      } catch (err: any) {
-        console.error(err);
-        setError(err.message || "Une erreur est survenue lors de la création.");
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      setShowPaymentForm(true);
+    setLoading(true);
+    const parsedRent = rentAmount ? parseFloat(rentAmount) : undefined;
+    try {
+      await createCampaign({
+        title: title.trim(),
+        description: description.trim() || undefined,
+        rentAmount: parsedRent,
+        adType: adType,
+      });
+      router.push("/annonces");
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Une erreur est survenue lors de la création.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -160,26 +125,26 @@ export default function NewCampaign() {
     setError(null);
     setPaymentLoading(true);
 
-    setTimeout(() => {
-      setPaymentSuccess(true);
-      setTimeout(async () => {
-        const parsedRent = rentAmount ? parseFloat(rentAmount) : undefined;
-        try {
-          await createCampaign({
-            title: title.trim(),
-            description: description.trim() || undefined,
-            rentAmount: parsedRent,
-            adType: "pass",
-          });
-          router.push("/dashboard");
-        } catch (err: any) {
-          console.error(err);
-          setError(err.message || "Une erreur est survenue lors de la création.");
-          setPaymentLoading(false);
-          setPaymentSuccess(false);
-        }
-      }, 1200);
-    }, 1500);
+    try {
+      const parsedRent = rentAmount ? parseFloat(rentAmount) : undefined;
+      const { url } = await createCheckoutSession({
+        type: "pass",
+        campaignData: {
+          title: title.trim(),
+          description: description.trim() || undefined,
+          rentAmount: parsedRent,
+        },
+      });
+      if (url) {
+        window.location.href = url;
+      } else {
+        throw new Error("Impossible de générer le lien de paiement.");
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Une erreur est survenue lors de la redirection vers Stripe.");
+      setPaymentLoading(false);
+    }
   };
 
   if (isLoading) {
@@ -493,129 +458,22 @@ export default function NewCampaign() {
                       <div className="flex items-center gap-2 pb-2 border-b border-[#DDDDDD]">
                         <Lock className="w-4 h-4 text-[#18753C]" />
                         <h3 className="text-sm font-bold text-[#161616] uppercase tracking-wider">
-                          Paiement sécurisé — 19 €
+                          Redirection vers Stripe sécurisé
                         </h3>
                       </div>
-
-                      {paymentSuccess ? (
-                        <div className="flex flex-col items-center justify-center py-8 space-y-4 animate-scale-in">
-                          <CheckCircle2 className="w-16 h-16 text-[#18753C] animate-bounce" />
-                          <h4 className="text-lg font-bold text-[#161616]">Paiement validé !</h4>
-                          <p className="text-xs text-[#666666]">Création de votre annonce premium en cours...</p>
+                      <div className="bg-[#F5F5FE] border border-[#CBCBFC] p-5 rounded-xl flex items-start gap-4">
+                        <div className="bg-white p-2.5 rounded-lg border border-[#CBCBFC] shadow-sm flex-shrink-0">
+                          <CreditCard className="w-6 h-6 text-[#000091]" />
                         </div>
-                      ) : (
-                        <div className="space-y-6">
-                          {/* Live Card Preview */}
-                          <div className="w-full max-w-[320px] h-[180px] mx-auto rounded-2xl bg-gradient-to-br from-[#000091] via-[#1212a5] to-[#2626e2] p-5 text-white relative shadow-lg overflow-hidden flex flex-col justify-between select-none transform hover:rotate-1 transition-transform duration-300">
-                            {/* Card Decorative background lights */}
-                            <div className="absolute -top-12 -right-12 w-32 h-32 bg-[#4242e8]/20 rounded-full blur-2xl"></div>
-                            <div className="absolute -bottom-12 -left-12 w-24 h-24 bg-[#18753C]/20 rounded-full blur-2xl"></div>
-
-                            <div className="flex justify-between items-start">
-                              <span className="text-[10px] font-bold tracking-widest uppercase opacity-80">BailConnect Premium</span>
-                              <CreditCard className="w-6 h-6 opacity-90" />
-                            </div>
-
-                            {/* Gold Chip */}
-                            <div className="w-8 h-6 bg-gradient-to-r from-[#e6c15c] to-[#f4d682] rounded-md relative flex items-center justify-center shadow-inner mt-2">
-                              <div className="w-6 h-4 border border-[#b38f2d]/30 rounded-xs"></div>
-                            </div>
-
-                            {/* Card Number */}
-                            <div className="text-lg font-mono tracking-widest text-center mt-3">
-                              {cardNumber || "•••• •••• •••• ••••"}
-                            </div>
-
-                            <div className="flex justify-between items-end mt-2">
-                              <div className="flex-1 min-w-0 pr-4">
-                                <span className="text-[8px] uppercase tracking-wider block opacity-60">Titulaire</span>
-                                <span className="text-xs font-mono font-bold tracking-wide truncate block">
-                                  {cardName.toUpperCase() || "NOM DU TITULAIRE"}
-                                </span>
-                              </div>
-                              <div className="flex-shrink-0 text-right">
-                                <span className="text-[8px] uppercase tracking-wider block opacity-60">Expire</span>
-                                <span className="text-xs font-mono font-bold tracking-wide">
-                                  {cardExpiry || "MM/AA"}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Inputs */}
-                          <div className="space-y-4">
-                            <div>
-                              <label htmlFor="cardName" className="form-label">
-                                Nom du titulaire *
-                              </label>
-                              <input
-                                id="cardName"
-                                type="text"
-                                required
-                                value={cardName}
-                                onChange={(e) => setCardName(e.target.value)}
-                                className="form-input"
-                                placeholder="ex: JEAN DUPONT"
-                                disabled={paymentLoading}
-                              />
-                            </div>
-
-                            <div>
-                              <label htmlFor="cardNumber" className="form-label">
-                                Numéro de carte *
-                              </label>
-                              <div className="relative">
-                                <input
-                                  id="cardNumber"
-                                  type="text"
-                                  required
-                                  value={cardNumber}
-                                  onChange={(e) => handleCardNumberChange(e.target.value)}
-                                  className="form-input pl-10"
-                                  placeholder="0000 0000 0000 0000"
-                                  disabled={paymentLoading}
-                                />
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                  <CreditCard className="h-4 w-4 text-[#666666]" />
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <label htmlFor="cardExpiry" className="form-label">
-                                  Date d&apos;expiration *
-                                </label>
-                                <input
-                                  id="cardExpiry"
-                                  type="text"
-                                  required
-                                  value={cardExpiry}
-                                  onChange={(e) => handleCardExpiryChange(e.target.value)}
-                                  className="form-input"
-                                  placeholder="MM/AA"
-                                  disabled={paymentLoading}
-                                />
-                              </div>
-                              <div>
-                                <label htmlFor="cardCvv" className="form-label">
-                                  Code de sécurité (CVV) *
-                                </label>
-                                <input
-                                  id="cardCvv"
-                                  type="text"
-                                  required
-                                  value={cardCvv}
-                                  onChange={(e) => handleCardCvvChange(e.target.value)}
-                                  className="form-input"
-                                  placeholder="123"
-                                  disabled={paymentLoading}
-                                />
-                              </div>
-                            </div>
-                          </div>
+                        <div>
+                          <h4 className="text-sm font-bold text-[#161616]">
+                            Paiement unique de 19 €
+                          </h4>
+                          <p className="text-xs text-[#666666] mt-1 leading-relaxed">
+                            Vous allez être redirigé vers le portail de paiement Stripe pour finaliser la transaction de manière 100% sécurisée.
+                          </p>
                         </div>
-                      )}
+                      </div>
                     </div>
                   )}
 
@@ -629,22 +487,20 @@ export default function NewCampaign() {
                       Retour
                     </button>
                     {adType === "pass" && user?.tier !== "pro" ? (
-                      !paymentSuccess && (
-                        <button
-                          type="submit"
-                          disabled={paymentLoading}
-                          className="btn-primary flex-1 flex items-center justify-center gap-2"
-                        >
-                          {paymentLoading ? (
-                            <>
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                              <span>Paiement en cours...</span>
-                            </>
-                          ) : (
-                            <span>Payer 19 € et créer l&apos;annonce</span>
-                          )}
-                        </button>
-                      )
+                      <button
+                        type="submit"
+                        disabled={paymentLoading}
+                        className="btn-primary flex-1 flex items-center justify-center gap-2"
+                      >
+                        {paymentLoading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Redirection...</span>
+                          </>
+                        ) : (
+                          <span>Payer</span>
+                        )}
+                      </button>
                     ) : (
                       <button
                         type="submit"

@@ -14,6 +14,8 @@ import type * as campaigns from "../campaigns.js";
 import type * as candidates from "../candidates.js";
 import type * as emails from "../emails.js";
 import type * as http from "../http.js";
+import type * as stripe from "../stripe.js";
+import type * as stripeMutations from "../stripeMutations.js";
 import type * as users from "../users.js";
 
 import type {
@@ -29,6 +31,8 @@ declare const fullApi: ApiFromModules<{
   candidates: typeof candidates;
   emails: typeof emails;
   http: typeof http;
+  stripe: typeof stripe;
+  stripeMutations: typeof stripeMutations;
   users: typeof users;
 }>;
 

@@ -16,6 +16,8 @@ export default defineSchema({
       v.literal("free"),
       v.literal("pro")
     )),
+    stripeSessionId: v.optional(v.string()),
+    stripeSubscriptionId: v.optional(v.string()),
   }).index("email", ["email"])
     .index("phone", ["phone"]),
 
@@ -26,6 +28,7 @@ export default defineSchema({
     description: v.optional(v.string()),
     rentAmount: v.optional(v.number()), // Monthly rent amount CC (in EUR)
     adType: v.optional(v.union(v.literal("free"), v.literal("pass"))),
+    stripeSessionId: v.optional(v.string()),
     createdAt: v.number(),
   }).index("by_slug", ["slug"])
     .index("by_userId", ["userId"]), // INDISPENSABLE pour lister les campagnes d'un proprio connecté,
@@ -73,4 +76,11 @@ export default defineSchema({
   }).index("by_slotId", ["slotId"])
     .index("by_candidateId", ["candidateId"])
     .index("by_campaignId", ["campaignId"]),
+
+  cancellations: defineTable({
+    userId: v.id("users"),
+    reason: v.string(),
+    feedback: v.optional(v.string()),
+    createdAt: v.number(),
+  }).index("by_userId", ["userId"]),
 });
