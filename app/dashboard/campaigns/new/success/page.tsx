@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
@@ -9,18 +9,25 @@ import Link from "next/link";
 
 export default function CheckoutSuccessPage() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const verifySession = useAction(api.stripe.verifySession);
 
   const sessionId = searchParams.get("session_id");
+  const directCampaignId = searchParams.get("campaign_id");
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const [campaignId, setCampaignId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const verifyingRef = useRef(false);
 
   useEffect(() => {
+    if (directCampaignId) {
+      setCampaignId(directCampaignId);
+      setStatus("success");
+      return;
+    }
+
     if (!sessionId) {
       setStatus("error");
-      setErrorMessage("Identifiant de session manquant.");
+      setErrorMessage("Identifiant de session ou de logement manquant.");
       return;
     }
 
@@ -33,10 +40,9 @@ export default function CheckoutSuccessPage() {
         const result = await verifySession({ sessionId });
         if (result.success) {
           setStatus("success");
-          // Redirect to the annonces page after 2 seconds
-          setTimeout(() => {
-            router.push("/annonces");
-          }, 2000);
+          if (result.campaignId) {
+            setCampaignId(result.campaignId);
+          }
         } else {
           setStatus("error");
           setErrorMessage(result.error || "Le paiement n'a pas pu être vérifié.");
@@ -49,7 +55,7 @@ export default function CheckoutSuccessPage() {
     };
 
     performVerification();
-  }, [sessionId, verifySession, router]);
+  }, [sessionId, directCampaignId, verifySession]);
 
   return (
     <div className="flex-1 flex items-center justify-center min-h-screen bg-[#F6F6F6] px-6">
@@ -65,14 +71,31 @@ export default function CheckoutSuccessPage() {
         )}
 
         {status === "success" && (
-          <div className="space-y-4 py-8 flex flex-col items-center animate-scale-in">
+          <div className="space-y-6 py-6 flex flex-col items-center animate-scale-in">
             <div className="w-16 h-16 bg-[#E6F3EA] rounded-full flex items-center justify-center border border-[#B9DFC5]">
               <CheckCircle2 className="w-10 h-10 text-[#18753C]" />
             </div>
-            <h1 className="text-xl font-bold text-[#18753C]">Paiement validé !</h1>
-            <p className="text-sm text-[#666666] max-w-xs">
-              Votre annonce premium a été créée avec succès. Vous allez être redirigé...
-            </p>
+            <div>
+              <h1 className="text-xl font-bold text-[#18753C]">Annonce créée avec succès !</h1>
+              <p className="text-sm text-[#666666] mt-2 max-w-xs mx-auto">
+                Votre annonce est en ligne. Que souhaitez-vous faire maintenant ?
+              </p>
+            </div>
+
+            <div className="pt-4 flex flex-col gap-3 w-full">
+              <Link
+                href="/calendar"
+                className="btn-primary w-full text-center justify-center text-sm py-2.5 rounded-xl flex items-center gap-2"
+              >
+                Configurer mes créneaux de visite
+              </Link>
+              <Link
+                href={campaignId ? `/dashboard/campaigns/${campaignId}` : "/annonces"}
+                className="btn-secondary w-full text-center justify-center text-xs py-2.5 rounded-xl"
+              >
+                Plus tard, voir mon annonce
+              </Link>
+            </div>
           </div>
         )}
 

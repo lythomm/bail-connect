@@ -112,13 +112,13 @@ export default function NewCampaign() {
     setLoading(true);
     const parsedRent = rentAmount ? parseFloat(rentAmount) : undefined;
     try {
-      await createCampaign({
+      const campaignId = await createCampaign({
         title: title.trim(),
         description: description.trim() || undefined,
         rentAmount: parsedRent,
         adType: adType,
       });
-      router.push("/annonces");
+      router.push(`/dashboard/campaigns/new/success?campaign_id=${campaignId}`);
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Une erreur est survenue lors de la création.");
