@@ -114,7 +114,7 @@ export default function CampaignDetail() {
           const result = await verifySession({ sessionId });
           if (result.success) {
             setToast({
-              message: "Félicitations, votre annonce est désormais premium !",
+              message: "Félicitations, PASS Annonce correctement appliqué!",
               type: "success",
             });
             router.replace(`/dashboard/campaigns/${campaignId}`);
@@ -665,7 +665,7 @@ export default function CampaignDetail() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
         {/* Retour button */}
         <button
-          onClick={() => router.back()}
+          onClick={() => router.push("/annonces")}
           className="inline-flex items-center gap-2 text-sm text-[#000091] hover:text-[#0b0b7d] font-medium mb-5 group transition-colors focus:outline-none cursor-pointer"
         >
           <svg

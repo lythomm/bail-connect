@@ -75,6 +75,13 @@ export default function NewCampaign() {
         setCurrentStep(3);
       }
     } else if (currentStep === 3) {
+      if (adType === "free" && user?.tier !== "pro" && hasFreeCampaign) {
+        setToast({
+          message: "Vous ne pouvez avoir qu'une seule annonce gratuite active à la fois.",
+          type: "error",
+        });
+        return;
+      }
       setCurrentStep(4);
     }
   };
