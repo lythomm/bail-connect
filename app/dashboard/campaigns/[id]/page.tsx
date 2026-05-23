@@ -8,7 +8,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { Id, Doc } from "@/convex/_generated/dataModel";
-import { CreditCard, CheckCircle2, Loader2 } from "lucide-react";
+import { CreditCard, CheckCircle2, Loader2, X } from "lucide-react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -198,6 +198,10 @@ export default function CampaignDetail() {
       router.replace("/");
     }
   }, [authLoading, isAuthenticated, router]);
+
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [activeTab]);
 
   const toggleJobStatus = useCallback((status: string) => {
     setSelectedJobStatuses((prev) =>
@@ -625,6 +629,7 @@ export default function CampaignDetail() {
       sorting,
       columnVisibility: {
         createdAt: false,
+        select: activeTab === "pending",
       },
     },
     onSortingChange: setSorting,
@@ -1007,7 +1012,7 @@ export default function CampaignDetail() {
                     <tr
                       key={row.id}
                       onClick={() => {
-                        if (isLocked) return;
+                        if (isLocked || activeTab !== "pending") return;
                         setSelectedIds((prev) => {
                           const next = new Set(prev);
                           if (next.has(row.original._id)) {
@@ -1018,8 +1023,8 @@ export default function CampaignDetail() {
                           return next;
                         });
                       }}
-                      className={`text-sm text-[#334155] transition-colors duration-150 border-l-4 border-transparent ${
-                        isLocked ? "cursor-default opacity-85" : "hover:bg-[#F8FAFC] cursor-pointer"
+                      className={`text-sm text-[#334155] transition-colors duration-150 border-l-4 border-transparent hover:bg-[#F8FAFC] ${
+                        isLocked ? "cursor-default opacity-85" : activeTab === "pending" ? "cursor-pointer" : "cursor-default"
                       }`}
                     >
                       {row.getVisibleCells().map((cell) => {
@@ -1076,14 +1081,15 @@ export default function CampaignDetail() {
               {bulkActionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
               <span>Refuser</span>
             </button>
-            <button
-              onClick={() => setSelectedIds(new Set())}
-              disabled={bulkActionLoading}
-              className="bg-white border border-[#E2E8F0] text-[#334155] text-xs font-semibold py-2 px-3 rounded-lg hover:bg-[#F8FAFC] disabled:opacity-50 cursor-pointer transition-all duration-150"
-            >
-              Annuler
-            </button>
           </div>
+          <button
+            onClick={() => setSelectedIds(new Set())}
+            disabled={bulkActionLoading}
+            title="Annuler la sélection"
+            className="text-[#64748B] hover:text-[#0F172A] p-1.5 rounded-lg hover:bg-[#F1F5F9] transition-colors disabled:opacity-50 cursor-pointer flex items-center justify-center"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
