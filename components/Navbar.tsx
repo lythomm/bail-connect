@@ -5,7 +5,7 @@ import { useConvexAuth } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { LogOut, LayoutDashboard, Building, Calendar, User } from "lucide-react";
 
 export default function Navbar() {
   const { isAuthenticated } = useConvexAuth();
@@ -15,6 +15,12 @@ export default function Navbar() {
   const pathname = usePathname();
   const [shouldSignOut, setShouldSignOut] = useState(false);
 
+  const excludedPaths = ["/signin", "/cgu", "/cgv", "/confidentialite", "/mentions-legales"];
+  const isExcluded =
+    excludedPaths.includes(pathname) ||
+    pathname?.startsWith("/apply/") ||
+    pathname?.startsWith("/calendar/book");
+
   useEffect(() => {
     if (shouldSignOut && pathname === "/") {
       setShouldSignOut(false);
@@ -22,12 +28,21 @@ export default function Navbar() {
     }
   }, [shouldSignOut, pathname, signOut]);
 
-  const excludedPaths = ["/signin", "/cgu", "/cgv", "/confidentialite", "/mentions-legales"];
-  if (
-    excludedPaths.includes(pathname) ||
-    pathname?.startsWith("/apply/") ||
-    pathname?.startsWith("/calendar/book")
-  ) {
+  useEffect(() => {
+    const shouldAddPadding = isAuthenticated && !isExcluded;
+
+    if (shouldAddPadding) {
+      document.body.classList.add("pb-16", "md:pb-0");
+    } else {
+      document.body.classList.remove("pb-16", "md:pb-0");
+    }
+
+    return () => {
+      document.body.classList.remove("pb-16", "md:pb-0");
+    };
+  }, [isAuthenticated, pathname, isExcluded]);
+
+  if (isExcluded) {
     return null;
   }
 
@@ -49,7 +64,8 @@ export default function Navbar() {
 
 
   return (
-    <header className="bg-white border-b border-[#DDDDDD] h-16 flex items-center justify-between px-6 sticky top-0 z-50">
+    <>
+      <header className="bg-white border-b border-[#DDDDDD] h-16 flex items-center justify-between px-6 sticky top-0 z-50">
       {/* Left brand logo */}
       <div className="flex items-center gap-4">
         <Link href={isAuthenticated ? "/dashboard" : "/"} className="flex items-center gap-3 select-none group">
@@ -138,5 +154,50 @@ export default function Navbar() {
         )}
       </div>
     </header>
+
+    {/* Bottom bar for mobile users (authenticated only) */}
+    {isAuthenticated && (
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#DDDDDD] h-16 flex items-center justify-around z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+        <Link
+          href="/dashboard"
+          className={`flex flex-col items-center justify-center gap-1 w-1/4 h-full text-[10px] font-medium transition-colors ${
+            pathname === "/dashboard" ? "text-[#000091]" : "text-[#666666] hover:text-[#000091]"
+          }`}
+        >
+          <LayoutDashboard className="w-5 h-5" />
+          <span>Dashboard</span>
+        </Link>
+        <Link
+          href="/annonces"
+          className={`flex flex-col items-center justify-center gap-1 w-1/4 h-full text-[10px] font-medium transition-colors ${
+            pathname === "/annonces" || pathname?.startsWith("/dashboard/campaigns")
+              ? "text-[#000091]"
+              : "text-[#666666] hover:text-[#000091]"
+          }`}
+        >
+          <Building className="w-5 h-5" />
+          <span>Logements</span>
+        </Link>
+        <Link
+          href="/calendar"
+          className={`flex flex-col items-center justify-center gap-1 w-1/4 h-full text-[10px] font-medium transition-colors ${
+            pathname === "/calendar" ? "text-[#000091]" : "text-[#666666] hover:text-[#000091]"
+          }`}
+        >
+          <Calendar className="w-5 h-5" />
+          <span>Calendrier</span>
+        </Link>
+        <Link
+          href="/profile"
+          className={`flex flex-col items-center justify-center gap-1 w-1/4 h-full text-[10px] font-medium transition-colors ${
+            pathname === "/profile" ? "text-[#000091]" : "text-[#666666] hover:text-[#000091]"
+          }`}
+        >
+          <User className="w-5 h-5" />
+          <span>Mon Profil</span>
+        </Link>
+      </nav>
+    )}
+  </>
   );
 }

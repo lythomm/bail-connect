@@ -53,7 +53,7 @@ export default function AnnoncesPage() {
     <div className="flex-1 flex flex-col bg-[#F6F6F6]">
       {/* Main Content */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-8">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-2xl font-bold text-[#161616]">Vos Logements</h1>
             <p className="text-sm text-[#666666] mt-1">
@@ -61,7 +61,7 @@ export default function AnnoncesPage() {
             </p>
           </div>
           {campaigns && campaigns.length > 0 && (
-            <Link href="/dashboard/campaigns/new" className="btn-primary">
+            <Link href="/dashboard/campaigns/new" className="btn-primary whitespace-nowrap self-start sm:self-auto">
               Créer une annonce
             </Link>
           )}
@@ -84,10 +84,10 @@ export default function AnnoncesPage() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2">
             {campaigns.map((campaign) => (
-              <div key={campaign._id} className="gov-card flex flex-col justify-between h-full mb-0">
-                <div>
-                  <div className="gov-card-header text-lg font-bold flex justify-between items-start gap-4">
-                    <div className="flex flex-col gap-1 min-w-0">
+              <div key={campaign._id} className="gov-card flex flex-col justify-between h-full mb-0 min-w-0">
+                <div className="min-w-0">
+                  <div className="gov-card-header text-lg font-bold flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <div className="flex flex-col gap-1 min-w-0 w-full sm:w-auto">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="truncate">{campaign.title}</span>
                         {campaign.adType === "pass" ? (
@@ -102,7 +102,7 @@ export default function AnnoncesPage() {
                       </div>
                     </div>
                     {campaign.rentAmount !== undefined && (
-                      <span className="text-xs font-semibold bg-[#E3E3FD] text-[#000091] px-2.5 py-1 rounded-sm border border-[#000091]/20 whitespace-nowrap font-sans">
+                      <span className="text-xs font-semibold bg-[#E3E3FD] text-[#000091] px-2.5 py-1 rounded-sm border border-[#000091]/20 whitespace-nowrap font-sans self-start sm:self-auto">
                         Loyer : {campaign.rentAmount} €
                       </span>
                     )}
@@ -126,21 +126,20 @@ export default function AnnoncesPage() {
                     </span>
                   </div>
 
-                  {/* Public Link section */}
-                  <div className="bg-[#F5F5FE] p-3 border border-[#E3E3FD] mb-6">
+                  <div className="bg-[#F5F5FE] p-3 border border-[#E3E3FD] mb-6 min-w-0">
                     <label className="block text-xs font-bold text-[#000091] uppercase tracking-wider mb-1">
                       Lien public de candidature
                     </label>
-                    <div className="flex gap-2 items-center">
+                    <div className="flex gap-2 items-center min-w-0">
                       <input
                         type="text"
                         readOnly
                         value={`${typeof window !== "undefined" ? window.location.origin : ""}/apply/${campaign.slug}`}
-                        className="text-xs text-[#3A3A3A] bg-transparent border-none outline-none select-all flex-1 truncate"
+                        className="text-xs text-[#3A3A3A] bg-transparent border-none outline-none select-all flex-1 truncate min-w-0"
                       />
                       <button
                         onClick={() => copyToClipboard(campaign.slug, campaign._id)}
-                        className="text-xs font-bold text-[#000091] hover:underline whitespace-nowrap cursor-pointer"
+                        className="text-xs font-bold text-[#000091] hover:underline whitespace-nowrap cursor-pointer shrink-0"
                       >
                         {copiedId === campaign._id ? "Copié !" : "Copier"}
                       </button>

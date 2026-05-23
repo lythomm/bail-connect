@@ -31,6 +31,7 @@ export default function CalendarPage() {
   );
   const [isAddSlotOpen, setIsAddSlotOpen] = useState(false);
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -192,7 +193,7 @@ export default function CalendarPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
               {/* Left Column: Big Airbnb Calendar (6 months scrollable) */}
-              <div className="lg:col-span-2">
+              <div className="lg:col-span-2 -mx-6 md:-mx-0">
                 {monthsList.map((monthDate, idx) => {
                   const mYear = monthDate.getFullYear();
                   const mMonth = monthDate.getMonth();
@@ -220,7 +221,7 @@ export default function CalendarPage() {
                       </div>
 
                       {/* Days Grid */}
-                      <div className="grid grid-cols-7 gap-2">
+                      <div className="grid grid-cols-7 gap-1 sm:gap-2">
                         {/* Empty offsets */}
                         {Array.from({ length: mStartDayOffset }).map((_, idx) => (
                           <div key={`offset-${idx}`} className="aspect-square bg-transparent"></div>
@@ -255,9 +256,12 @@ export default function CalendarPage() {
                           return (
                             <button
                               key={`day-${day}`}
-                              onClick={() => setSelectedDateStr(dateStr)}
+                              onClick={() => {
+                                setSelectedDateStr(dateStr);
+                                setIsMobileDrawerOpen(true);
+                              }}
                               disabled={isPast}
-                              className={`aspect-square flex flex-col items-between justify-between p-2 relative rounded-xl border text-xs font-semibold transition-all duration-200 ${isPast
+                              className={`aspect-square flex flex-col items-center justify-between p-1 sm:p-2 relative rounded-xl border text-xs font-semibold transition-all duration-200 ${isPast
                                 ? "bg-[#EEEEEE] border-[#DDDDDD] text-[#888888] cursor-not-allowed opacity-50"
                                 : isSelected
                                   ? "border-[#000091] ring-2 ring-[#000091]/20 bg-[#F5F5FE] cursor-pointer"
@@ -266,18 +270,24 @@ export default function CalendarPage() {
                                     : "bg-white hover:bg-[#F5F5FE] border-[#E2E8F0] text-[#161616] cursor-pointer"
                                 }`}
                             >
-                              <span className={`self-start ${isPast ? 'text-[#888888]' : isToday ? 'text-[#000091] font-extrabold' : 'text-[#161616]'}`}>{day}</span>
+                              <span className={`self-center sm:self-start ${isPast ? 'text-[#888888]' : isToday ? 'text-[#000091] font-extrabold' : 'text-[#161616]'}`}>{day}</span>
 
                               {daySlots.length > 0 && (
-                                <div className="w-full flex flex-col gap-0.5 mt-1">
+                                <div className="w-full flex justify-center mt-1">
                                   {totalBooked > 0 ? (
-                                    <span className="w-full text-center text-[9px] font-extrabold bg-[#E8F6EE] text-[#18753C] py-0.5 rounded-sm truncate">
-                                      {totalBooked} rdv
-                                    </span>
+                                    <>
+                                      <span className="hidden md:inline-block w-full text-center text-[9px] font-extrabold bg-[#E8F6EE] text-[#18753C] py-0.5 rounded-sm truncate">
+                                        {totalBooked} rdv
+                                      </span>
+                                      <span className="md:hidden w-1.5 h-1.5 rounded-full bg-[#18753C] mb-1" />
+                                    </>
                                   ) : (
-                                    <span className="w-full text-center text-[9px] font-extrabold bg-[#F5F5FE] text-[#000091] py-0.5 rounded-sm truncate">
-                                      {daySlots.length} dispo
-                                    </span>
+                                    <>
+                                      <span className="hidden md:inline-block w-full text-center text-[9px] font-extrabold bg-[#F5F5FE] text-[#000091] py-0.5 rounded-sm truncate">
+                                        {daySlots.length} dispo
+                                      </span>
+                                      <span className="md:hidden w-1.5 h-1.5 rounded-full bg-[#000091] mb-1" />
+                                    </>
                                   )}
                                 </div>
                               )}
@@ -290,8 +300,35 @@ export default function CalendarPage() {
                 })}
               </div>
 
-              {/* Right Column: Sticky Side Panel */}
-              <div className="lg:col-span-1 space-y-6 sticky top-20 self-start">
+              {/* Mobile overlay backdrop */}
+              {isMobileDrawerOpen && (
+                <div 
+                  className="fixed inset-0 bg-black/50 z-[60] lg:hidden animate-fade-in"
+                  onClick={() => setIsMobileDrawerOpen(false)}
+                />
+              )}
+
+              {/* Right Column: Sticky Side Panel on Desktop / Bottom Drawer on Mobile */}
+              <div className={`
+                lg:col-span-1 space-y-6
+                fixed bottom-0 left-0 right-0 z-[60] bg-[#F6F6F6] rounded-t-2xl shadow-2xl p-4 border-t border-[#E2E8F0] max-h-[85vh] overflow-y-auto transform transition-transform duration-300
+                lg:static lg:bg-transparent lg:rounded-none lg:shadow-none lg:p-0 lg:border-t-0 lg:max-h-none lg:overflow-visible lg:transform-none lg:z-auto lg:sticky lg:top-20 lg:self-start
+                ${isMobileDrawerOpen ? "translate-y-0" : "translate-y-full lg:translate-y-0"}
+              `}>
+
+                {/* Mobile Drawer Header */}
+                <div className="flex flex-col items-center lg:hidden pb-3 border-b border-[#E2E8F0]">
+                  <div className="w-12 h-1 bg-neutral-300 rounded-full mb-3" />
+                  <div className="flex justify-between items-center w-full">
+                    <span className="text-xs font-extrabold text-[#666666] uppercase tracking-wider">Détails du jour</span>
+                    <button 
+                      onClick={() => setIsMobileDrawerOpen(false)}
+                      className="text-xs font-bold text-[#000091] hover:underline"
+                    >
+                      Fermer
+                    </button>
+                  </div>
+                </div>
 
                 {/* Airbnb-style Filters (Multi-select Dropdown) */}
                 <div className="bg-white border border-[#E2E8F0] rounded-lg p-4 shadow-xs relative multi-select-dropdown">

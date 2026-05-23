@@ -204,7 +204,7 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           
           {/* Left Column: Profile Form */}
-          <div className="md:col-span-2 space-y-6">
+          <div className="md:col-span-2 space-y-6 order-2 md:order-1">
             <div className="bg-white border border-[#E2E8F0] rounded-2xl shadow-xs p-6">
               <h2 className="text-lg font-bold text-[#161616] mb-6 flex items-center gap-2">
                 <User className="w-5 h-5 text-[#000091]" /> Informations personnelles
@@ -303,7 +303,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Right Column: Subscription details */}
-          <div className="md:col-span-1">
+          <div className="md:col-span-1 order-1 md:order-2">
             <div className="bg-white border border-[#E2E8F0] rounded-2xl shadow-xs p-6 space-y-6">
               <div>
                 <h2 className="text-lg font-bold text-[#161616] mb-1 flex items-center gap-2">
