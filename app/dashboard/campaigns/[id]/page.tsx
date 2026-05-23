@@ -94,6 +94,7 @@ export default function CampaignDetail() {
   const campaign = useQuery(api.campaigns.get, isAuthenticated && campaignId ? { id: campaignId } : "skip");
   const candidates = useQuery(api.candidates.getByCampaign, isAuthenticated && campaignId ? { campaignId } : "skip");
   const updateStatus = useMutation(api.candidates.updateStatus);
+  const updateStatuses = useMutation(api.candidates.updateStatuses);
   const user = useQuery(api.users.current);
   const upgradeCampaign = useMutation(api.campaigns.upgradeToPass);
   
@@ -178,6 +179,8 @@ export default function CampaignDetail() {
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [activeDropdown, setActiveDropdown] = useState<"jobStatus" | "guarantor" | "status" | null>(null);
 
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -249,6 +252,30 @@ export default function CampaignDetail() {
     }
   }, [updateStatus]);
 
+  const handleBulkStatusChange = useCallback(async (newStatus: "accepted" | "rejected" | "pending") => {
+    if (selectedIds.size === 0) return;
+    setBulkActionLoading(true);
+    const idsArray = Array.from(selectedIds) as Id<"candidates">[];
+    try {
+      await updateStatuses({ ids: idsArray, status: newStatus });
+      setToast({
+        message: `${selectedIds.size} candidat(s) mis à jour avec succès : ${
+          newStatus === "accepted" ? "Accepté" : newStatus === "rejected" ? "Refusé" : "En attente"
+        }`,
+        type: "success"
+      });
+      setSelectedIds(new Set());
+    } catch (err) {
+      console.error("Failed to update statuses", err);
+      setToast({
+        message: "Une erreur est survenue lors de la mise à jour des statuts.",
+        type: "error"
+      });
+    } finally {
+      setBulkActionLoading(false);
+    }
+  }, [selectedIds, updateStatuses]);
+
   const handleCopyApplyUrl = useCallback(async () => {
     if (typeof window === "undefined" || !campaign?.slug) return;
     const url = `${window.location.origin}/apply/${campaign.slug}`;
@@ -299,6 +326,92 @@ export default function CampaignDetail() {
   }, [isPremium, unlockedCandidateIds, sorting]);
 
   const columns = useMemo<ColumnDef<Doc<"candidates">>[]>(() => [
+    {
+      id: "select",
+      header: () => {
+        const selectableCandidates = filteredCandidates.filter(
+          (c) => isPremium || unlockedCandidateIds.has(c._id)
+        );
+        const allSelected =
+          selectableCandidates.length > 0 &&
+          selectableCandidates.every((c) => selectedIds.has(c._id));
+        const someSelected =
+          selectableCandidates.some((c) => selectedIds.has(c._id)) && !allSelected;
+
+        return (
+          <div className="flex justify-center items-center">
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                if (allSelected) {
+                  setSelectedIds(new Set());
+                } else {
+                  setSelectedIds(new Set(selectableCandidates.map((c) => c._id)));
+                }
+              }}
+              className={`h-4 w-4 rounded-md border flex items-center justify-center cursor-pointer transition-all duration-150 ${
+                allSelected || someSelected
+                  ? "bg-[#000091] border-[#000091] text-white"
+                  : "border-[#CBD5E1] bg-white hover:border-[#94A3B8]"
+              }`}
+            >
+              {allSelected && (
+                <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+              {someSelected && (
+                <div className="w-2 h-0.5 bg-white rounded-xs" />
+              )}
+            </div>
+          </div>
+        );
+      },
+      cell: ({ row }) => {
+        const isLocked = !isPremium && !unlockedCandidateIds.has(row.original._id);
+        if (isLocked) {
+          return (
+            <div className="flex justify-center items-center" title="Dossier verrouillé (Offre Gratuite)">
+              <svg className="w-3.5 h-3.5 text-[#94A3B8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </div>
+          );
+        }
+        const isChecked = selectedIds.has(row.original._id);
+        return (
+          <div className="flex justify-center items-center">
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedIds((prev) => {
+                  const next = new Set(prev);
+                  if (next.has(row.original._id)) {
+                    next.delete(row.original._id);
+                  } else {
+                    next.add(row.original._id);
+                  }
+                  return next;
+                });
+              }}
+              className={`h-4 w-4 rounded-md border flex items-center justify-center cursor-pointer transition-all duration-150 ${
+                isChecked
+                  ? "bg-[#000091] border-[#000091] text-white"
+                  : "border-[#CBD5E1] bg-white hover:border-[#94A3B8]"
+              }`}
+            >
+              {isChecked && (
+                <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </div>
+          </div>
+        );
+      },
+      enableSorting: false,
+    },
     {
       id: "candidateInfo",
       header: "Candidat",
@@ -422,6 +535,7 @@ export default function CampaignDetail() {
             href={row.original.dossierFacileUrl}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
             className="text-[#000091] hover:text-[#0b0b7d] text-xs font-bold inline-flex items-center gap-1 transition-colors"
           >
             <span>Ouvrir</span>
@@ -491,65 +605,13 @@ export default function CampaignDetail() {
       ),
     },
     {
-      id: "actions",
-      header: "Actions",
-      cell: ({ row }) => {
-        const isLocked = !isPremium && !unlockedCandidateIds.has(row.original._id);
-        if (isLocked) {
-          return (
-            <div className="flex justify-end">
-              <button
-                onClick={() => setUpgradeOpen(true)}
-                className="bg-[#000091] text-white text-xs font-semibold py-1.5 px-3 rounded-lg hover:bg-[#0b0b7d] cursor-pointer transition-all duration-150 shadow-xs flex items-center gap-1"
-              >
-                <span>Débloquer</span>
-              </button>
-            </div>
-          );
-        }
-        const candidate = row.original;
-        return (
-          <div className="flex gap-2 justify-end">
-            {candidate.status !== "accepted" && (
-              <button
-                onClick={() => handleStatusChange(candidate._id, "accepted")}
-                disabled={actionLoadingId === candidate._id}
-                className="bg-[#18753C] text-white text-xs font-semibold py-1.5 px-3 rounded-lg hover:bg-[#135c2f] disabled:opacity-50 cursor-pointer transition-all duration-150 shadow-xs"
-              >
-                Accepter
-              </button>
-            )}
-            {candidate.status !== "rejected" && (
-              <button
-                onClick={() => handleStatusChange(candidate._id, "rejected")}
-                disabled={actionLoadingId === candidate._id}
-                className="bg-[#CE0500] text-white text-xs font-semibold py-1.5 px-3 rounded-lg hover:bg-[#a60400] disabled:opacity-50 cursor-pointer transition-all duration-150 shadow-xs"
-              >
-                Refuser
-              </button>
-            )}
-            {candidate.status !== "pending" && (
-              <button
-                onClick={() => handleStatusChange(candidate._id, "pending")}
-                disabled={actionLoadingId === candidate._id}
-                className="bg-white border border-[#E2E8F0] text-[#334155] text-xs font-semibold py-1.5 px-3 rounded-lg hover:bg-[#F8FAFC] hover:border-[#CBD5E1] disabled:opacity-50 cursor-pointer transition-all duration-150"
-              >
-                Réinitialiser
-              </button>
-            )}
-          </div>
-        );
-      },
-      enableSorting: false,
-    },
-    {
       accessorKey: "createdAt",
       sortingFn: makeLockedBottomSortingFn(
         (row) => row.original.createdAt,
         (a, b) => a - b
       ),
     },
-  ], [campaign, actionLoadingId, handleStatusChange, isPremium, unlockedCandidateIds, makeLockedBottomSortingFn]);
+  ], [campaign, actionLoadingId, handleStatusChange, isPremium, unlockedCandidateIds, makeLockedBottomSortingFn, selectedIds, filteredCandidates]);
 
   const table = useReactTable({
     data: filteredCandidates,
@@ -824,12 +886,13 @@ export default function CampaignDetail() {
               <table className="w-full text-left border-collapse">
               <thead>
                 {table.getHeaderGroups().map((headerGroup) => (
-                  <tr key={headerGroup.id} className="bg-[#F8FAFC] border-b border-[#E2E8F0]">
+                  <tr key={headerGroup.id} className="bg-[#F8FAFC] border-b border-[#E2E8F0] border-l-4 border-transparent">
                     {headerGroup.headers.map((header) => {
                       let alignmentClass = "text-left";
-                      if (header.column.id === "monthlyIncome" || header.column.id === "actions") {
+                      if (header.column.id === "monthlyIncome") {
                         alignmentClass = "text-right";
                       } else if (
+                        header.column.id === "select" ||
                         header.column.id === "hasGuarantor" ||
                         header.column.id === "dossierFacileUrl" ||
                         header.column.id === "status"
@@ -888,37 +951,93 @@ export default function CampaignDetail() {
                 ))}
               </thead>
               <tbody className="divide-y divide-[#E2E8F0]">
-                {table.getRowModel().rows.map((row) => (
-                  <tr key={row.id} className="hover:bg-[#F8FAFC] text-sm text-[#334155] transition-colors duration-150">
-                    {row.getVisibleCells().map((cell) => {
-                      let alignmentClass = "text-left";
-                      if (cell.column.id === "monthlyIncome" || cell.column.id === "actions") {
-                        alignmentClass = "text-right";
-                      } else if (
-                        cell.column.id === "hasGuarantor" ||
-                        cell.column.id === "dossierFacileUrl" ||
-                        cell.column.id === "status"
-                      ) {
-                        alignmentClass = "text-center";
-                      }
+                {table.getRowModel().rows.map((row) => {
+                  const isLocked = !isPremium && !unlockedCandidateIds.has(row.original._id);
+                  const isSelected = selectedIds.has(row.original._id);
+                  return (
+                    <tr
+                      key={row.id}
+                      onClick={() => {
+                        if (isLocked) return;
+                        setSelectedIds((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(row.original._id)) {
+                            next.delete(row.original._id);
+                          } else {
+                            next.add(row.original._id);
+                          }
+                          return next;
+                        });
+                      }}
+                      className={`text-sm text-[#334155] transition-colors duration-150 border-l-4 border-transparent ${
+                        isLocked ? "cursor-default opacity-85" : "hover:bg-[#F8FAFC] cursor-pointer"
+                      }`}
+                    >
+                      {row.getVisibleCells().map((cell) => {
+                        let alignmentClass = "text-left";
+                        if (cell.column.id === "monthlyIncome") {
+                          alignmentClass = "text-right";
+                        } else if (
+                          cell.column.id === "select" ||
+                          cell.column.id === "hasGuarantor" ||
+                          cell.column.id === "dossierFacileUrl" ||
+                          cell.column.id === "status"
+                        ) {
+                          alignmentClass = "text-center";
+                        }
 
-                      return (
-                        <td key={cell.id} className={`p-4 ${alignmentClass}`}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
+                        return (
+                          <td key={cell.id} className={`p-4 ${alignmentClass}`}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
           </div>
         </div>
       </main>
+
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-6 right-6 z-40 bg-white/90 backdrop-blur-md border border-[#E2E8F0] px-6 py-4 rounded-xl shadow-xl flex items-center gap-4 transition-all duration-300 animate-in fade-in slide-in-from-bottom-5">
+          <div className="text-xs font-semibold text-[#0F172A]">
+            {selectedIds.size} candidat(s) sélectionné(s)
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleBulkStatusChange("accepted")}
+              disabled={bulkActionLoading}
+              className="bg-[#18753C] text-white text-xs font-bold py-2 px-4 rounded-lg hover:bg-[#135c2f] disabled:opacity-50 cursor-pointer transition-all duration-150 flex items-center gap-1.5 shadow-sm"
+            >
+              {bulkActionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+              <span>Accepter</span>
+            </button>
+            <button
+              onClick={() => handleBulkStatusChange("rejected")}
+              disabled={bulkActionLoading}
+              className="bg-[#CE0500] text-white text-xs font-bold py-2 px-4 rounded-lg hover:bg-[#a60400] disabled:opacity-50 cursor-pointer transition-all duration-150 flex items-center gap-1.5 shadow-sm"
+            >
+              {bulkActionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+              <span>Refuser</span>
+            </button>
+            <button
+              onClick={() => setSelectedIds(new Set())}
+              disabled={bulkActionLoading}
+              className="bg-white border border-[#E2E8F0] text-[#334155] text-xs font-semibold py-2 px-3 rounded-lg hover:bg-[#F8FAFC] disabled:opacity-50 cursor-pointer transition-all duration-150"
+            >
+              Annuler
+            </button>
+          </div>
+        </div>
+      )}
+
       {activeDropdown && (
         <div className="fixed inset-0 z-20 cursor-default" onClick={() => setActiveDropdown(null)} />
       )}

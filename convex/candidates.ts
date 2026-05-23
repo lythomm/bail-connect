@@ -144,6 +144,53 @@ export const updateStatus = mutation({
 });
 
 /**
+ * Update status for multiple candidates.
+ * Restricted to the owner of the campaign.
+ */
+export const updateStatuses = mutation({
+  args: {
+    ids: v.array(v.id("candidates")),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("accepted"),
+      v.literal("rejected")
+    ),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Unauthorized");
+    }
+
+    for (const id of args.ids) {
+      const candidate = await ctx.db.get(id);
+      if (!candidate) {
+        continue;
+      }
+
+      const campaign = await ctx.db.get(candidate.campaignId);
+      if (!campaign || campaign.userId !== userId) {
+        throw new Error("Unauthorized access");
+      }
+
+      await ctx.db.patch(id, { status: args.status });
+
+      if (args.status === "accepted") {
+        await ctx.scheduler.runAfter(0, internal.emails.sendCandidateInvitation, {
+          candidateId: id,
+        });
+      } else if (args.status === "rejected") {
+        await ctx.scheduler.runAfter(0, internal.emails.sendCandidateRejection, {
+          candidateId: id,
+        });
+      }
+    }
+
+    return args.status;
+  },
+});
+
+/**
  * Internal query to fetch landlord email and campaign title.
  */
 export const getLandlordInfo = internalQuery({
