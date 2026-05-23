@@ -78,11 +78,7 @@ const GUARANTOR_OPTIONS = [
   { value: "no", label: "Sans garant" },
 ];
 
-const STATUS_OPTIONS = [
-  { value: "pending", label: "En attente" },
-  { value: "accepted", label: "Accepté" },
-  { value: "rejected", label: "Refusé" },
-];
+
 
 export default function CampaignDetail() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
@@ -176,12 +172,26 @@ export default function CampaignDetail() {
   ]);
   const [selectedJobStatuses, setSelectedJobStatuses] = useState<string[]>([]);
   const [selectedGuarantors, setSelectedGuarantors] = useState<string[]>([]);
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
-  const [activeDropdown, setActiveDropdown] = useState<"jobStatus" | "guarantor" | "status" | null>(null);
+  const [activeTab, setActiveTab] = useState<"all" | "pending" | "accepted" | "rejected">("pending");
+  const [activeDropdown, setActiveDropdown] = useState<"jobStatus" | "guarantor" | null>(null);
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+
+  const counts = useMemo(() => {
+    if (!candidates) return { all: 0, pending: 0, accepted: 0, rejected: 0 };
+    return candidates.reduce(
+      (acc, c) => {
+        acc.all++;
+        if (c.status === "pending") acc.pending++;
+        else if (c.status === "accepted") acc.accepted++;
+        else if (c.status === "rejected") acc.rejected++;
+        return acc;
+      },
+      { all: 0, pending: 0, accepted: 0, rejected: 0 }
+    );
+  }, [candidates]);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -201,16 +211,10 @@ export default function CampaignDetail() {
     );
   }, []);
 
-  const toggleStatus = useCallback((status: string) => {
-    setSelectedStatuses((prev) =>
-      prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]
-    );
-  }, []);
-
   const clearFilters = useCallback(() => {
     setSelectedJobStatuses([]);
     setSelectedGuarantors([]);
-    setSelectedStatuses([]);
+    setActiveTab("pending");
   }, []);
 
   const filteredCandidates = useMemo(() => {
@@ -225,12 +229,12 @@ export default function CampaignDetail() {
           return false;
         }
       }
-      if (selectedStatuses.length > 0 && !selectedStatuses.includes(c.status)) {
+      if (activeTab !== "all" && c.status !== activeTab) {
         return false;
       }
       return true;
     });
-  }, [candidates, selectedJobStatuses, selectedGuarantors, selectedStatuses]);
+  }, [candidates, selectedJobStatuses, selectedGuarantors, activeTab]);
 
   const handleStatusChange = useCallback(async (candidateId: Id<"candidates">, newStatus: "accepted" | "rejected" | "pending") => {
     setActionLoadingId(candidateId);
@@ -294,13 +298,13 @@ export default function CampaignDetail() {
     }
   }, [campaign?.slug]);
 
-  const toggleSort = (field: "monthlyIncome" | "createdAt") => {
+  const toggleSort = (field: "monthlyIncome" | "createdAt" | "lastName") => {
     setSorting((prev) => {
       const existing = prev.find((s) => s.id === field);
       if (existing) {
         return [{ id: field, desc: !existing.desc }];
       }
-      return [{ id: field, desc: true }];
+      return [{ id: field, desc: field === "lastName" ? false : true }];
     });
   };
 
@@ -414,6 +418,7 @@ export default function CampaignDetail() {
     },
     {
       id: "candidateInfo",
+      accessorKey: "lastName",
       header: "Candidat",
       cell: ({ row }) => {
         const isLocked = !isPremium && !unlockedCandidateIds.has(row.original._id);
@@ -445,7 +450,10 @@ export default function CampaignDetail() {
           </div>
         );
       },
-      enableSorting: false,
+      sortingFn: makeLockedBottomSortingFn(
+        (row) => row.original.lastName,
+        (a, b) => a.localeCompare(b)
+      ),
     },
     {
       accessorKey: "jobStatus",
@@ -599,10 +607,7 @@ export default function CampaignDetail() {
           </div>
         );
       },
-      sortingFn: makeLockedBottomSortingFn(
-        (row) => row.original.status,
-        (a, b) => a.localeCompare(b)
-      ),
+      enableSorting: false,
     },
     {
       accessorKey: "createdAt",
@@ -672,7 +677,7 @@ export default function CampaignDetail() {
 
         {/* Campaign Info */}
         <div className="bg-white border border-[#E2E8F0] p-6 mb-8 rounded-xl shadow-xs transition-all duration-200">
-          <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
             <div className="space-y-1.5">
               <h1 className="text-2xl font-bold text-[#161616] flex flex-wrap items-center gap-3">
                 <span>{campaign.title}</span>
@@ -687,24 +692,18 @@ export default function CampaignDetail() {
               )}
             </div>
             <div className="shrink-0 self-start">
-              <span className="text-xs font-bold text-[#475569] bg-[#F8FAFC] py-1.5 px-3 border border-[#E2E8F0] rounded-full inline-block">
-                {candidates.length} candidat(s) au total
-              </span>
+              <button
+                onClick={handleCopyApplyUrl}
+                title="Copier le lien de candidature"
+                className="text-xs font-bold text-[#000091] hover:text-[#0b0b7d] bg-[#E3E3FD]/60 hover:bg-[#E3E3FD] py-2 px-4 border border-[#E3E3FD] rounded-full cursor-pointer transition-all duration-150 flex items-center gap-1.5 focus:outline-none"
+              >
+                <span>Copier le lien de candidature</span>
+                <svg className="w-3.5 h-3.5 text-[#000091]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <rect x="9" y="9" width="13" height="13" rx="1.5" ry="1.5" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+              </button>
             </div>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-[#64748B] pt-4 border-t border-[#F1F5F9]">
-            <span>Lien de candidature : </span>
-            <button
-              onClick={handleCopyApplyUrl}
-              title="Copier le lien de candidature"
-              className="text-[#000091] hover:text-[#0b0b7d] font-medium cursor-pointer focus:outline-none inline-flex items-center gap-1.5 group transition-colors"
-            >
-              <span>{typeof window !== "undefined" ? window.location.origin : ""}/apply/{campaign.slug}</span>
-              <svg className="w-4 h-4 text-[#000091] opacity-70 group-hover:opacity-100 transition-opacity flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <rect x="9" y="9" width="13" height="13" rx="1.5" ry="1.5" />
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-              </svg>
-            </button>
           </div>
         </div>
 
@@ -730,6 +729,82 @@ export default function CampaignDetail() {
             </button>
           </div>
         )}
+
+        {/* Status Tabs */}
+        <div className="flex border-b border-[#E2E8F0] mb-6 gap-2 overflow-x-auto select-none">
+          <button
+            onClick={() => setActiveTab("pending")}
+            className={`pb-3 px-4 text-sm font-semibold transition-all relative cursor-pointer flex items-center shrink-0 ${
+              activeTab === "pending"
+                ? "text-[#000091]"
+                : "text-[#64748B] hover:text-[#0F172A]"
+            }`}
+          >
+            <span>En attente de réponse</span>
+            <span className={`ml-1.5 text-xs font-bold px-2 py-0.5 rounded-full ${
+              activeTab === "pending" ? "bg-[#B35C00] text-white" : "bg-[#FFF4EC] text-[#B35C00]"
+            }`}>
+              {counts.pending}
+            </span>
+            {activeTab === "pending" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#000091] rounded-full" />
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab("accepted")}
+            className={`pb-3 px-4 text-sm font-semibold transition-all relative cursor-pointer flex items-center shrink-0 ${
+              activeTab === "accepted"
+                ? "text-[#000091]"
+                : "text-[#64748B] hover:text-[#0F172A]"
+            }`}
+          >
+            <span>Acceptés</span>
+            <span className={`ml-1.5 text-xs font-bold px-2 py-0.5 rounded-full ${
+              activeTab === "accepted" ? "bg-[#18753C] text-white" : "bg-[#E6F3EA] text-[#18753C]"
+            }`}>
+              {counts.accepted}
+            </span>
+            {activeTab === "accepted" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#000091] rounded-full" />
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab("rejected")}
+            className={`pb-3 px-4 text-sm font-semibold transition-all relative cursor-pointer flex items-center shrink-0 ${
+              activeTab === "rejected"
+                ? "text-[#000091]"
+                : "text-[#64748B] hover:text-[#0F172A]"
+            }`}
+          >
+            <span>Refusés</span>
+            <span className={`ml-1.5 text-xs font-bold px-2 py-0.5 rounded-full ${
+              activeTab === "rejected" ? "bg-[#CE0500] text-white" : "bg-[#FCE8E6] text-[#CE0500]"
+            }`}>
+              {counts.rejected}
+            </span>
+            {activeTab === "rejected" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#000091] rounded-full" />
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab("all")}
+            className={`pb-3 px-4 text-sm font-semibold transition-all relative cursor-pointer flex items-center shrink-0 ${
+              activeTab === "all"
+                ? "text-[#000091]"
+                : "text-[#64748B] hover:text-[#0F172A]"
+            }`}
+          >
+            <span>Toutes</span>
+            <span className={`ml-1.5 text-xs font-bold px-2 py-0.5 rounded-full ${
+              activeTab === "all" ? "bg-[#000091] text-white" : "bg-[#F1F5F9] text-[#64748B]"
+            }`}>
+              {counts.all}
+            </span>
+            {activeTab === "all" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#000091] rounded-full" />
+            )}
+          </button>
+        </div>
 
         {/* Filter controls */}
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between mb-4">
@@ -806,43 +881,8 @@ export default function CampaignDetail() {
               )}
             </div>
 
-            {/* Application State Dropdown */}
-            <div className={`relative ${activeDropdown === "status" ? "z-30" : ""}`}>
-              <button
-                type="button"
-                onClick={() => setActiveDropdown(activeDropdown === "status" ? null : "status")}
-                className={`h-8 px-3 border text-xs font-medium flex items-center gap-1.5 rounded-lg focus:outline-none cursor-pointer transition-all duration-150 ${selectedStatuses.length > 0
-                  ? "bg-[#E3E3FD] text-[#000091] border-[#000091] shadow-xs"
-                  : "bg-white text-[#334155] border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]"
-                  }`}
-              >
-                <span>État {selectedStatuses.length > 0 ? `(${selectedStatuses.length})` : ""}</span>
-                <svg className={`w-3.5 h-3.5 text-[#64748B] transition-transform duration-200 ${activeDropdown === "status" ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              {activeDropdown === "status" && (
-                <div className="absolute left-0 mt-1.5 w-48 bg-white border border-[#E2E8F0] shadow-md z-30 py-2 rounded-lg">
-                  {STATUS_OPTIONS.map((opt) => (
-                    <label
-                      key={opt.value}
-                      className="flex items-center px-4 py-2 text-xs text-[#334155] hover:bg-[#F8FAFC] cursor-pointer select-none"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedStatuses.includes(opt.value)}
-                        onChange={() => toggleStatus(opt.value)}
-                        className="mr-2.5 h-3.5 w-3.5 border-[#E2E8F0] text-[#000091] focus:ring-[#000091] rounded-sm cursor-pointer"
-                      />
-                      <span>{opt.label}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-
             {/* Clear filters button */}
-            {(selectedJobStatuses.length > 0 || selectedGuarantors.length > 0 || selectedStatuses.length > 0) && (
+            {(selectedJobStatuses.length > 0 || selectedGuarantors.length > 0 || activeTab !== "pending") && (
               <button
                 type="button"
                 onClick={clearFilters}
@@ -854,6 +894,15 @@ export default function CampaignDetail() {
           </div>
 
           <div className="flex gap-2 w-full md:w-auto justify-end">
+            <button
+              onClick={() => toggleSort("lastName")}
+              className={`text-xs font-bold px-3 py-1.5 border cursor-pointer rounded-lg transition-all duration-150 ${sortField === "lastName"
+                ? "bg-[#000091] text-white border-[#000091] shadow-xs"
+                : "bg-white text-[#334155] border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]"
+                }`}
+            >
+              Trier par Nom {sortField === "lastName" && (sortOrder === "desc" ? " ↓" : " ↑")}
+            </button>
             <button
               onClick={() => toggleSort("monthlyIncome")}
               className={`text-xs font-bold px-3 py-1.5 border cursor-pointer rounded-lg transition-all duration-150 ${sortField === "monthlyIncome"
