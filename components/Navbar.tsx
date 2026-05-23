@@ -24,8 +24,8 @@ export default function Navbar() {
 
   const excludedPaths = ["/signin", "/cgu", "/cgv", "/confidentialite", "/mentions-legales"];
   if (
-    excludedPaths.includes(pathname) || 
-    pathname?.startsWith("/apply/") || 
+    excludedPaths.includes(pathname) ||
+    pathname?.startsWith("/apply/") ||
     pathname?.startsWith("/calendar/book")
   ) {
     return null;
@@ -65,36 +65,36 @@ export default function Navbar() {
       {/* Middle: Landing page links (NOT authenticated) */}
       {!isAuthenticated && (
         <nav className="hidden md:flex items-center gap-1">
-          <Link 
-            href="/#comparatif" 
+          <Link
+            href="/#comparatif"
             onClick={(e) => handleScroll(e, "comparatif")}
             className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors"
           >
             Pourquoi nous ?
           </Link>
-          <Link 
-            href="/#fonctionnement" 
+          <Link
+            href="/#fonctionnement"
             onClick={(e) => handleScroll(e, "fonctionnement")}
             className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors"
           >
             Comment ça marche
           </Link>
-          <Link 
-            href="/#dossier-facile" 
+          <Link
+            href="/#dossier-facile"
             onClick={(e) => handleScroll(e, "dossier-facile")}
             className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors"
           >
             DossierFacile
           </Link>
-          <Link 
-            href="/#tarifs" 
+          <Link
+            href="/#tarifs"
             onClick={(e) => handleScroll(e, "tarifs")}
             className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors"
           >
             Tarifs
           </Link>
-          <Link 
-            href="/#faq" 
+          <Link
+            href="/#faq"
             onClick={(e) => handleScroll(e, "faq")}
             className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors"
           >
@@ -113,7 +113,7 @@ export default function Navbar() {
             Mes logements
           </Link>
           <Link href="/calendar" className={`text-sm font-medium px-4 py-2 transition-colors ${pathname === "/calendar" ? "text-[#000091] underline underline-offset-8" : "text-[#3A3A3A] hover:text-[#000091]"}`}>
-            Mes rendez-vous
+            Calendrier
           </Link>
           <Link href="/profile" className={`text-sm font-medium px-4 py-2 transition-colors ${pathname === "/profile" ? "text-[#000091] underline underline-offset-8" : "text-[#3A3A3A] hover:text-[#000091]"}`}>
             Mon Profil

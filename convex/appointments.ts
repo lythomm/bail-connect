@@ -291,3 +291,57 @@ export const getAllUpcomingAppointments = query({
   },
 });
 
+/**
+ * Get all slots and candidate bookings across all campaigns of the landlord.
+ */
+export const getAllCampaignSlots = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Unauthorized");
+    }
+
+    const campaigns = await ctx.db
+      .query("campaigns")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .collect();
+
+    const results = [];
+    for (const campaign of campaigns) {
+      const slots = await ctx.db
+        .query("slots")
+        .withIndex("by_campaignId", (q) => q.eq("campaignId", campaign._id))
+        .collect();
+
+      for (const slot of slots) {
+        const appointments = await ctx.db
+          .query("appointments")
+          .withIndex("by_slotId", (q) => q.eq("slotId", slot._id))
+          .collect();
+
+        const candidates = [];
+        for (const appt of appointments) {
+          const candidate = await ctx.db.get(appt.candidateId);
+          if (candidate) {
+            candidates.push({
+              appointmentId: appt._id,
+              ...candidate,
+            });
+          }
+        }
+
+        results.push({
+          ...slot,
+          campaignId: campaign._id,
+          campaignTitle: campaign.title,
+          candidates,
+        });
+      }
+    }
+
+    return results;
+  },
+});
+
+
