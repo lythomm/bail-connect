@@ -50,6 +50,10 @@ export const createCheckoutSession = action({
       if (!args.campaignId) {
         throw new Error("Missing campaignId for upgrade");
       }
+      const campaign = await ctx.runQuery(api.campaigns.get, { id: args.campaignId as any });
+      if (!campaign) {
+        throw new Error("Campaign not found or unauthorized");
+      }
       priceId = PASS_PRICE_ID;
       mode = "payment";
       successUrl = `${siteUrl}/dashboard/campaigns/${args.campaignId}?success=true&session_id={CHECKOUT_SESSION_ID}`;
@@ -172,6 +176,29 @@ export const verifySession = action({
       return { success: true, type: "upgrade_campaign", campaignId };
     } else if (type === "pro") {
       const subscriptionId = session.subscription || undefined;
+      if (!subscriptionId) {
+        return { success: false, error: "No subscription found on session" };
+      }
+
+      // Verify subscription is still active to prevent replay of canceled subscription
+      const subResponse = await fetch(`https://api.stripe.com/v1/subscriptions/${subscriptionId}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${STRIPE_SECRET_KEY}`,
+        },
+      });
+
+      if (!subResponse.ok) {
+        const errText = await subResponse.text();
+        console.error("Stripe subscription fetch error:", errText);
+        throw new Error(`Failed to verify subscription status: ${subResponse.statusText}`);
+      }
+
+      const subscription = await subResponse.json();
+      if (subscription.status !== "active" && subscription.status !== "trialing") {
+        return { success: false, error: "L'abonnement n'est plus actif." };
+      }
+
       await ctx.runMutation((internal as any).stripeMutations.markUserAsPro, {
         userId,
         stripeSessionId: args.sessionId,
