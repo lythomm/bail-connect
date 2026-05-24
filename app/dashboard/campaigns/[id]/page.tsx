@@ -8,7 +8,21 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { Id, Doc } from "@/convex/_generated/dataModel";
-import { CreditCard, CheckCircle2, Loader2, X } from "lucide-react";
+import {
+  CreditCard,
+  CheckCircle2,
+  Loader2,
+  X,
+  Calendar as CalendarIcon,
+  Clock,
+  Plus,
+  Trash2,
+  ExternalLink,
+  CalendarRange,
+  Check,
+  Filter
+} from "lucide-react";
+import Dialog from "@/components/Dialog";
 import {
   useReactTable,
   getCoreRowModel,
@@ -94,13 +108,30 @@ export default function CampaignDetail() {
   const user = useQuery(api.users.current);
   const upgradeCampaign = useMutation(api.campaigns.upgradeToPass);
   
+  const allSlots = useQuery(api.appointments.getAllCampaignSlots) || [];
+  const createSlotMutation = useMutation(api.appointments.createSlot);
+  const deleteSlotMutation = useMutation(api.appointments.deleteSlot);
+
   const createCheckoutSession = useAction(api.stripe.createCheckoutSession);
   const verifySession = useAction(api.stripe.verifySession);
 
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
 
+  const [isAddSlotOpen, setIsAddSlotOpen] = useState(false);
+  const [newSlotDate, setNewSlotDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+  const [newSlotStart, setNewSlotStart] = useState("10:00");
+  const [newSlotEnd, setNewSlotEnd] = useState("10:30");
+  const [newSlotCapacity, setNewSlotCapacity] = useState(1);
+
   const isPremium = campaign?.adType === "pass" || user?.tier === "pro";
+
+  const campaignSlots = useMemo(() => {
+    if (!campaignId) return [];
+    return allSlots.filter((slot) => slot.campaignId === campaignId);
+  }, [allSlots, campaignId]);
 
   const sessionId = searchParams.get("session_id");
   const isVerifyingRef = useRef(false);
@@ -172,8 +203,9 @@ export default function CampaignDetail() {
   ]);
   const [selectedJobStatuses, setSelectedJobStatuses] = useState<string[]>([]);
   const [selectedGuarantors, setSelectedGuarantors] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState<"all" | "pending" | "accepted" | "rejected">("pending");
-  const [activeDropdown, setActiveDropdown] = useState<"jobStatus" | "guarantor" | null>(null);
+  const [activeTab, setActiveTab] = useState<"all" | "pending" | "accepted" | "rejected" | "visits">("pending");
+  const [activeDropdown, setActiveDropdown] = useState<"jobStatus" | "guarantor" | "filters" | null>(null);
+  const activeFiltersCount = selectedJobStatuses.length + selectedGuarantors.length;
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
@@ -213,12 +245,6 @@ export default function CampaignDetail() {
     setSelectedGuarantors((prev) =>
       prev.includes(val) ? prev.filter((v) => v !== val) : [...prev, val]
     );
-  }, []);
-
-  const clearFilters = useCallback(() => {
-    setSelectedJobStatuses([]);
-    setSelectedGuarantors([]);
-    setActiveTab("pending");
   }, []);
 
   const filteredCandidates = useMemo(() => {
@@ -301,6 +327,66 @@ export default function CampaignDetail() {
       });
     }
   }, [campaign?.slug]);
+
+  const handleDeleteSlot = async (slotId: string) => {
+    if (!confirm("Voulez-vous vraiment supprimer ce créneau et annuler les rendez-vous associés ?")) {
+      return;
+    }
+    try {
+      await deleteSlotMutation({ slotId: slotId as any });
+      setToast({ message: "Créneau retiré.", type: "success" });
+    } catch (err: any) {
+      setToast({ message: err.message || "Erreur lors de la suppression.", type: "error" });
+    }
+  };
+
+  const handleAddSlot = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!campaignId) return;
+
+    try {
+      const start = new Date(`${newSlotDate}T${newSlotStart}`);
+      const end = new Date(`${newSlotDate}T${newSlotEnd}`);
+
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        setToast({ message: "Veuillez entrer des heures valides.", type: "error" });
+        return;
+      }
+
+      if (end.getTime() <= start.getTime()) {
+        setToast({ message: "L'heure de fin doit être après l'heure de début.", type: "error" });
+        return;
+      }
+
+      await createSlotMutation({
+        campaignId: campaignId,
+        startTime: start.getTime(),
+        endTime: end.getTime(),
+        maxCapacity: newSlotCapacity,
+      });
+
+      setToast({ message: "Créneau ajouté avec succès !", type: "success" });
+      setIsAddSlotOpen(false);
+    } catch (err: any) {
+      setToast({ message: err.message || "Erreur lors de la création.", type: "error" });
+    }
+  };
+
+  const sortedCampaignSlots = useMemo(() => {
+    return [...campaignSlots].sort((a, b) => a.startTime - b.startTime);
+  }, [campaignSlots]);
+
+  const groupedSlots = useMemo(() => {
+    const groups: Record<string, typeof campaignSlots> = {};
+    sortedCampaignSlots.forEach((slot) => {
+      const dateStr = new Date(slot.startTime).toISOString().split("T")[0];
+      if (!groups[dateStr]) {
+        groups[dateStr] = [];
+      }
+      groups[dateStr].push(slot);
+    });
+    return groups;
+  }, [sortedCampaignSlots]);
 
   const toggleSort = (field: "monthlyIncome" | "createdAt" | "lastName") => {
     setSorting((prev) => {
@@ -735,328 +821,466 @@ export default function CampaignDetail() {
           </div>
         )}
 
-        {/* Status Tabs */}
-        <div className="flex border-b border-[#E2E8F0] mb-6 gap-2 overflow-x-auto select-none">
+        {/* High-level navigation section tabs */}
+        <div className="flex border-b border-[#E2E8F0] mb-6 gap-6 select-none">
           <button
             onClick={() => setActiveTab("pending")}
-            className={`pb-3 px-4 text-sm font-semibold transition-all relative cursor-pointer flex items-center shrink-0 ${
-              activeTab === "pending"
+            className={`pb-3 px-1 text-base font-bold transition-all relative cursor-pointer flex items-center ${
+              activeTab !== "visits"
                 ? "text-[#000091]"
                 : "text-[#64748B] hover:text-[#0F172A]"
             }`}
           >
-            <span>En attente de réponse</span>
-            <span className={`ml-1.5 text-xs font-bold px-2 py-0.5 rounded-full ${
-              activeTab === "pending" ? "bg-[#B35C00] text-white" : "bg-[#FFF4EC] text-[#B35C00]"
-            }`}>
-              {counts.pending}
-            </span>
-            {activeTab === "pending" && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#000091] rounded-full" />
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab("accepted")}
-            className={`pb-3 px-4 text-sm font-semibold transition-all relative cursor-pointer flex items-center shrink-0 ${
-              activeTab === "accepted"
-                ? "text-[#000091]"
-                : "text-[#64748B] hover:text-[#0F172A]"
-            }`}
-          >
-            <span>Acceptés</span>
-            <span className={`ml-1.5 text-xs font-bold px-2 py-0.5 rounded-full ${
-              activeTab === "accepted" ? "bg-[#18753C] text-white" : "bg-[#E6F3EA] text-[#18753C]"
-            }`}>
-              {counts.accepted}
-            </span>
-            {activeTab === "accepted" && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#000091] rounded-full" />
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab("rejected")}
-            className={`pb-3 px-4 text-sm font-semibold transition-all relative cursor-pointer flex items-center shrink-0 ${
-              activeTab === "rejected"
-                ? "text-[#000091]"
-                : "text-[#64748B] hover:text-[#0F172A]"
-            }`}
-          >
-            <span>Refusés</span>
-            <span className={`ml-1.5 text-xs font-bold px-2 py-0.5 rounded-full ${
-              activeTab === "rejected" ? "bg-[#CE0500] text-white" : "bg-[#FCE8E6] text-[#CE0500]"
-            }`}>
-              {counts.rejected}
-            </span>
-            {activeTab === "rejected" && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#000091] rounded-full" />
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab("all")}
-            className={`pb-3 px-4 text-sm font-semibold transition-all relative cursor-pointer flex items-center shrink-0 ${
-              activeTab === "all"
-                ? "text-[#000091]"
-                : "text-[#64748B] hover:text-[#0F172A]"
-            }`}
-          >
-            <span>Toutes</span>
-            <span className={`ml-1.5 text-xs font-bold px-2 py-0.5 rounded-full ${
-              activeTab === "all" ? "bg-[#000091] text-white" : "bg-[#F1F5F9] text-[#64748B]"
+            <span>Candidatures</span>
+            <span className={`ml-1.5 text-xs font-semibold px-2 py-0.5 rounded-full ${
+              activeTab !== "visits" ? "bg-[#000091] text-white" : "bg-[#F1F5F9] text-[#64748B]"
             }`}>
               {counts.all}
             </span>
-            {activeTab === "all" && (
+            {activeTab !== "visits" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#000091] rounded-full" />
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab("visits")}
+            className={`pb-3 px-1 text-base font-bold transition-all relative cursor-pointer flex items-center ${
+              activeTab === "visits"
+                ? "text-[#000091]"
+                : "text-[#64748B] hover:text-[#0F172A]"
+            }`}
+          >
+            <CalendarRange className="w-4 h-4 mr-2" />
+            <span>Visites & Créneaux</span>
+            <span className={`ml-1.5 text-xs font-semibold px-2 py-0.5 rounded-full ${
+              activeTab === "visits" ? "bg-[#000091] text-white" : "bg-[#F1F5F9] text-[#64748B]"
+            }`}>
+              {campaignSlots.length}
+            </span>
+            {activeTab === "visits" && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#000091] rounded-full" />
             )}
           </button>
         </div>
 
-        {/* Filter controls */}
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between mb-4">
-          <div className="flex flex-wrap gap-2 items-center w-full md:w-auto">
-            <span className="text-xs font-bold text-[#0F172A] mr-2">Filtrer par :</span>
-
-            {/* Professional Status Dropdown */}
-            <div className={`relative ${activeDropdown === "jobStatus" ? "z-30" : ""}`}>
+        {/* Section actions & filters bar */}
+        {activeTab === "visits" ? (
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-lg font-bold text-[#161616]">Créneaux de visites planifiés</h2>
+              <p className="text-xs text-[#64748B]">Gérez vos créneaux et visualisez les candidats positionnés.</p>
+            </div>
+            <button
+              onClick={() => setIsAddSlotOpen(true)}
+              className="bg-[#000091] text-white hover:bg-[#0b0b7d] text-xs font-bold py-2.5 px-4 rounded-lg flex items-center gap-1.5 shadow-sm transition-all duration-150 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Ajouter un créneau</span>
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+            {/* Sub-filter segment bar */}
+            <div className="flex border border-[#E2E8F0] gap-1.5 overflow-x-auto select-none bg-[#F8FAFC] p-1.5 rounded-xl max-w-max">
               <button
-                type="button"
-                onClick={() => setActiveDropdown(activeDropdown === "jobStatus" ? null : "jobStatus")}
-                className={`h-8 px-3 border text-xs font-medium flex items-center gap-1.5 rounded-lg focus:outline-none cursor-pointer transition-all duration-150 ${selectedJobStatuses.length > 0
-                  ? "bg-[#E3E3FD] text-[#000091] border-[#000091] shadow-xs"
+                onClick={() => setActiveTab("pending")}
+                className={`py-2 px-4 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center shrink-0 border border-transparent ${
+                  activeTab === "pending"
+                    ? "bg-white text-[#B35C00] shadow-xs border-[#FFE0C2]/60"
+                    : "text-[#64748B] hover:text-[#0F172A] hover:bg-white/50"
+                }`}
+              >
+                <span>En attente de réponse</span>
+                <span className={`ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                  activeTab === "pending" ? "bg-[#B35C00] text-white" : "bg-[#FFF4EC] text-[#B35C00]"
+                }`}>
+                  {counts.pending}
+                </span>
+              </button>
+              <button
+                onClick={() => setActiveTab("accepted")}
+                className={`py-2 px-4 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center shrink-0 border border-transparent ${
+                  activeTab === "accepted"
+                    ? "bg-white text-[#18753C] shadow-xs border-[#B9DFC5]/60"
+                    : "text-[#64748B] hover:text-[#0F172A] hover:bg-white/50"
+                }`}
+              >
+                <span>Acceptés</span>
+                <span className={`ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                  activeTab === "accepted" ? "bg-[#18753C] text-white" : "bg-[#E6F3EA] text-[#18753C]"
+                }`}>
+                  {counts.accepted}
+                </span>
+              </button>
+              <button
+                onClick={() => setActiveTab("rejected")}
+                className={`py-2 px-4 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center shrink-0 border border-transparent ${
+                  activeTab === "rejected"
+                    ? "bg-white text-[#CE0500] shadow-xs border-[#F8C0BC]/60"
+                    : "text-[#64748B] hover:text-[#0F172A] hover:bg-white/50"
+                }`}
+              >
+                <span>Refusés</span>
+                <span className={`ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                  activeTab === "rejected" ? "bg-[#CE0500] text-white" : "bg-[#FCE8E6] text-[#CE0500]"
+                }`}>
+                  {counts.rejected}
+                </span>
+              </button>
+              <button
+                onClick={() => setActiveTab("all")}
+                className={`py-2 px-4 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center shrink-0 border border-transparent ${
+                  activeTab === "all"
+                    ? "bg-white text-[#000091] shadow-xs border-[#CBD5E1]/60"
+                    : "text-[#64748B] hover:text-[#0F172A] hover:bg-white/50"
+                }`}
+              >
+                <span>Toutes</span>
+                <span className={`ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                  activeTab === "all" ? "bg-[#000091] text-white" : "bg-[#F1F5F9] text-[#64748B]"
+                }`}>
+                  {counts.all}
+                </span>
+              </button>
+            </div>
+
+            {/* Sorting & Filter buttons */}
+            <div className="flex flex-wrap gap-2 w-full lg:w-auto justify-end items-center">
+              <button
+                onClick={() => toggleSort("lastName")}
+                className={`hidden md:inline-block text-xs font-bold px-3 py-1.5 border cursor-pointer rounded-lg transition-all duration-150 ${sortField === "lastName"
+                  ? "bg-[#000091] text-white border-[#000091] shadow-xs"
                   : "bg-white text-[#334155] border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]"
                   }`}
               >
-                <span>Statut {selectedJobStatuses.length > 0 ? `(${selectedJobStatuses.length})` : ""}</span>
-                <svg className={`w-3.5 h-3.5 text-[#64748B] transition-transform duration-200 ${activeDropdown === "jobStatus" ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
+                Trier par Nom {sortField === "lastName" && (sortOrder === "desc" ? " ↓" : " ↑")}
               </button>
-              {activeDropdown === "jobStatus" && (
-                <div className="absolute left-0 mt-1.5 w-56 bg-white border border-[#E2E8F0] shadow-md z-30 py-2 rounded-lg">
-                  {JOB_STATUS_OPTIONS.map((opt) => (
-                    <label
-                      key={opt.value}
-                      className="flex items-center px-4 py-2 text-xs text-[#334155] hover:bg-[#F8FAFC] cursor-pointer select-none"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedJobStatuses.includes(opt.value)}
-                        onChange={() => toggleJobStatus(opt.value)}
-                        className="mr-2.5 h-3.5 w-3.5 border-[#E2E8F0] text-[#000091] focus:ring-[#000091] rounded-sm cursor-pointer"
-                      />
-                      <span>{opt.label}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Guarantor Dropdown */}
-            <div className={`relative ${activeDropdown === "guarantor" ? "z-30" : ""}`}>
               <button
-                type="button"
-                onClick={() => setActiveDropdown(activeDropdown === "guarantor" ? null : "guarantor")}
-                className={`h-8 px-3 border text-xs font-medium flex items-center gap-1.5 rounded-lg focus:outline-none cursor-pointer transition-all duration-150 ${selectedGuarantors.length > 0
-                  ? "bg-[#E3E3FD] text-[#000091] border-[#000091] shadow-xs"
+                onClick={() => toggleSort("monthlyIncome")}
+                className={`hidden md:inline-block text-xs font-bold px-3 py-1.5 border cursor-pointer rounded-lg transition-all duration-150 ${sortField === "monthlyIncome"
+                  ? "bg-[#000091] text-white border-[#000091] shadow-xs"
                   : "bg-white text-[#334155] border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]"
                   }`}
               >
-                <span>Garant {selectedGuarantors.length > 0 ? `(${selectedGuarantors.length})` : ""}</span>
-                <svg className={`w-3.5 h-3.5 text-[#64748B] transition-transform duration-200 ${activeDropdown === "guarantor" ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
+                Trier par Revenu {sortField === "monthlyIncome" && (sortOrder === "desc" ? " ↓" : " ↑")}
               </button>
-              {activeDropdown === "guarantor" && (
-                <div className="absolute left-0 mt-1.5 w-48 bg-white border border-[#E2E8F0] shadow-md z-30 py-2 rounded-lg">
-                  {GUARANTOR_OPTIONS.map((opt) => (
-                    <label
-                      key={opt.value}
-                      className="flex items-center px-4 py-2 text-xs text-[#334155] hover:bg-[#F8FAFC] cursor-pointer select-none"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedGuarantors.includes(opt.value)}
-                        onChange={() => toggleGuarantor(opt.value)}
-                        className="mr-2.5 h-3.5 w-3.5 border-[#E2E8F0] text-[#000091] focus:ring-[#000091] rounded-sm cursor-pointer"
-                      />
-                      <span>{opt.label}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Clear filters button */}
-            {(selectedJobStatuses.length > 0 || selectedGuarantors.length > 0 || activeTab !== "pending") && (
               <button
-                type="button"
-                onClick={clearFilters}
-                className="h-8 px-3 text-xs font-bold text-[#CE0500] hover:bg-[#FFE9E9] border border-[#CE0500]/20 rounded-lg focus:outline-none cursor-pointer transition-colors"
+                onClick={() => toggleSort("createdAt")}
+                className={`hidden md:inline-block text-xs font-bold px-3 py-1.5 border cursor-pointer rounded-lg transition-all duration-150 ${sortField === "createdAt"
+                  ? "bg-[#000091] text-white border-[#000091] shadow-xs"
+                  : "bg-white text-[#334155] border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]"
+                  }`}
               >
-                Réinitialiser
+                Trier par Date {sortField === "createdAt" && (sortOrder === "desc" ? " ↓" : " ↑")}
               </button>
-            )}
-          </div>
 
-          <div className="flex gap-2 w-full md:w-auto justify-end">
-            <button
-              onClick={() => toggleSort("lastName")}
-              className={`text-xs font-bold px-3 py-1.5 border cursor-pointer rounded-lg transition-all duration-150 ${sortField === "lastName"
-                ? "bg-[#000091] text-white border-[#000091] shadow-xs"
-                : "bg-white text-[#334155] border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]"
-                }`}
-            >
-              Trier par Nom {sortField === "lastName" && (sortOrder === "desc" ? " ↓" : " ↑")}
-            </button>
-            <button
-              onClick={() => toggleSort("monthlyIncome")}
-              className={`text-xs font-bold px-3 py-1.5 border cursor-pointer rounded-lg transition-all duration-150 ${sortField === "monthlyIncome"
-                ? "bg-[#000091] text-white border-[#000091] shadow-xs"
-                : "bg-white text-[#334155] border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]"
-                }`}
-            >
-              Trier par Revenu {sortField === "monthlyIncome" && (sortOrder === "desc" ? " ↓" : " ↑")}
-            </button>
-            <button
-              onClick={() => toggleSort("createdAt")}
-              className={`text-xs font-bold px-3 py-1.5 border cursor-pointer rounded-lg transition-all duration-150 ${sortField === "createdAt"
-                ? "bg-[#000091] text-white border-[#000091] shadow-xs"
-                : "bg-white text-[#334155] border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]"
-                }`}
-            >
-              Trier par Date {sortField === "createdAt" && (sortOrder === "desc" ? " ↓" : " ↑")}
-            </button>
-          </div>
-        </div>
+              {/* Unique Filter Button */}
+              <div className={`relative ${activeDropdown === "filters" ? "z-30" : ""}`}>
+                <button
+                  type="button"
+                  onClick={() => setActiveDropdown(activeDropdown === "filters" ? null : "filters")}
+                  className={`h-8 flex items-center justify-center gap-1.5 border rounded-lg focus:outline-none cursor-pointer transition-all duration-150 ${
+                    activeFiltersCount > 0
+                      ? "bg-[#E3E3FD] text-[#000091] border-[#000091] shadow-xs px-2.5"
+                      : "bg-white text-[#334155] border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-[#F8FAFC] w-8"
+                  }`}
+                  title="Filtrer les candidats"
+                >
+                  <Filter className="w-4 h-4" />
+                  {activeFiltersCount > 0 && (
+                    <span className="text-[10px] font-bold bg-[#000091] text-white px-1.5 py-0.5 rounded-full min-w-[16px] text-center">
+                      {activeFiltersCount}
+                    </span>
+                  )}
+                </button>
+                {activeDropdown === "filters" && (
+                  <div className="absolute right-0 mt-1.5 w-64 bg-white border border-[#E2E8F0] shadow-md z-30 py-3 rounded-lg divide-y divide-[#E2E8F0] max-h-[80vh] overflow-y-auto">
+                    {/* Statut Professionnel Category */}
+                    <div className="pb-3 px-4 text-left">
+                      <span className="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-2">Statut professionnel</span>
+                      <div className="space-y-1.5">
+                        {JOB_STATUS_OPTIONS.map((opt) => (
+                          <label
+                            key={opt.value}
+                            className="flex items-center text-xs text-[#334155] hover:bg-[#F8FAFC] cursor-pointer select-none py-1 rounded"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedJobStatuses.includes(opt.value)}
+                              onChange={() => toggleJobStatus(opt.value)}
+                              className="mr-2.5 h-3.5 w-3.5 border-[#E2E8F0] text-[#000091] focus:ring-[#000091] rounded-sm cursor-pointer"
+                            />
+                            <span>{opt.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
 
-        {/* Candidates Table */}
-        <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
-            {table.getRowModel().rows.length === 0 ? (
-              <div className="text-center py-12 px-4">
-                <p className="text-sm text-[#64748B]">Aucun candidat trouvé pour cette sélection.</p>
+                    {/* Garant Category */}
+                    <div className="pt-3 px-4 text-left">
+                      <span className="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-2">Garant</span>
+                      <div className="space-y-1.5">
+                        {GUARANTOR_OPTIONS.map((opt) => (
+                          <label
+                            key={opt.value}
+                            className="flex items-center text-xs text-[#334155] hover:bg-[#F8FAFC] cursor-pointer select-none py-1 rounded"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedGuarantors.includes(opt.value)}
+                              onChange={() => toggleGuarantor(opt.value)}
+                              className="mr-2.5 h-3.5 w-3.5 border-[#E2E8F0] text-[#000091] focus:ring-[#000091] rounded-sm cursor-pointer"
+                            />
+                            <span>{opt.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Candidates Table or Visits Slots */}
+        {activeTab === "visits" ? (
+          <div className="space-y-6">
+            {campaignSlots.length === 0 ? (
+              <div className="bg-white border border-[#E2E8F0] rounded-xl p-12 text-center shadow-xs">
+                <CalendarRange className="w-12 h-12 text-[#64748B] mx-auto mb-4 opacity-50" />
+                <h3 className="text-base font-bold text-[#0F172A] mb-1">Aucun créneau configuré</h3>
+                <p className="text-sm text-[#64748B] max-w-sm mx-auto mb-5">
+                  Proposez des créneaux horaires pour que les candidats puissent réserver une visite de votre logement.
+                </p>
+                <button
+                  onClick={() => setIsAddSlotOpen(true)}
+                  className="bg-[#000091] text-white hover:bg-[#0b0b7d] text-xs font-bold py-2.5 px-4 rounded-lg inline-flex items-center gap-1.5 shadow-xs cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Ajouter mon premier créneau</span>
+                </button>
               </div>
             ) : (
-              <table className="w-full text-left border-collapse">
-              <thead>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <tr key={headerGroup.id} className="bg-[#F8FAFC] border-b border-[#E2E8F0] border-l-4 border-transparent">
-                    {headerGroup.headers.map((header) => {
-                      let alignmentClass = "text-left";
-                      if (header.column.id === "monthlyIncome") {
-                        alignmentClass = "text-right";
-                      } else if (
-                        header.column.id === "select" ||
-                        header.column.id === "hasGuarantor" ||
-                        header.column.id === "dossierFacileUrl" ||
-                        header.column.id === "status"
-                      ) {
-                        alignmentClass = "text-center";
-                      }
+              <div className="space-y-6">
+                {Object.entries(groupedSlots).sort(([a], [b]) => a.localeCompare(b)).map(([dateStr, slots]) => {
+                  const dateObj = new Date(dateStr);
+                  const formattedDate = dateObj.toLocaleDateString("fr-FR", {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                  });
+                  const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 
-                      const canSort = header.column.getCanSort();
-                      const isSorted = header.column.getIsSorted();
-
-                      return (
-                        <th
-                          key={header.id}
-                          onClick={
-                            canSort
-                              ? () => {
-                                if (!isSorted) {
-                                  header.column.toggleSorting(false, false);
-                                } else {
-                                  header.column.toggleSorting(isSorted === "asc", false);
-                                }
-                              }
-                              : undefined
-                          }
-                          className={`p-4 text-xs font-bold text-[#475569] uppercase tracking-wider ${alignmentClass} ${canSort
-                            ? "cursor-pointer select-none hover:bg-[#F1F5F9] transition-colors"
-                            : ""
-                            }`}
-                        >
-                          {header.isPlaceholder ? null : (
-                            <div
-                              className={`inline-flex items-center gap-1 ${alignmentClass === "text-right"
-                                ? "justify-end w-full"
-                                : alignmentClass === "text-center"
-                                  ? "justify-center w-full"
-                                  : ""
-                                }`}
-                            >
-                              <span>
-                                {flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
-                              </span>
-                              {canSort && (
-                                <span className="text-[#64748B] font-mono text-xs select-none">
-                                  {isSorted === "asc" ? " ↑" : isSorted === "desc" ? " ↓" : " ↕"}
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </th>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </thead>
-              <tbody className="divide-y divide-[#E2E8F0]">
-                {table.getRowModel().rows.map((row) => {
-                  const isLocked = !isPremium && !unlockedCandidateIds.has(row.original._id);
-                  const isSelected = selectedIds.has(row.original._id);
                   return (
-                    <tr
-                      key={row.id}
-                      onClick={() => {
-                        if (isLocked || activeTab !== "pending") return;
-                        setSelectedIds((prev) => {
-                          const next = new Set(prev);
-                          if (next.has(row.original._id)) {
-                            next.delete(row.original._id);
-                          } else {
-                            next.add(row.original._id);
-                          }
-                          return next;
-                        });
-                      }}
-                      className={`text-sm text-[#334155] transition-colors duration-150 border-l-4 border-transparent hover:bg-[#F8FAFC] ${
-                        isLocked ? "cursor-default opacity-85" : activeTab === "pending" ? "cursor-pointer" : "cursor-default"
-                      }`}
-                    >
-                      {row.getVisibleCells().map((cell) => {
-                        let alignmentClass = "text-left";
-                        if (cell.column.id === "monthlyIncome") {
-                          alignmentClass = "text-right";
-                        } else if (
-                          cell.column.id === "select" ||
-                          cell.column.id === "hasGuarantor" ||
-                          cell.column.id === "dossierFacileUrl" ||
-                          cell.column.id === "status"
-                        ) {
-                          alignmentClass = "text-center";
-                        }
+                    <div key={dateStr} className="bg-white border border-[#E2E8F0] rounded-xl shadow-xs overflow-hidden">
+                      <div className="bg-[#F8FAFC] border-b border-[#E2E8F0] px-6 py-4 flex items-center gap-2">
+                        <CalendarIcon className="w-4 h-4 text-[#000091]" />
+                        <h3 className="font-bold text-sm text-[#0F172A]">{capitalizedDate}</h3>
+                      </div>
+                      <div className="divide-y divide-[#E2E8F0]">
+                        {slots.map((slot) => {
+                          const startTimeStr = new Date(slot.startTime).toLocaleTimeString("fr-FR", {
+                            hour: "2-digit",
+                            minute: "2-digit"
+                          });
+                          const endTimeStr = new Date(slot.endTime).toLocaleTimeString("fr-FR", {
+                            hour: "2-digit",
+                            minute: "2-digit"
+                          });
+                          const bookedCount = slot.candidates?.length || 0;
 
-                        return (
-                          <td key={cell.id} className={`p-4 ${alignmentClass}`}>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </td>
-                        );
-                      })}
-                    </tr>
+                          return (
+                            <div key={slot._id} className="p-6 flex flex-col md:flex-row md:items-start justify-between gap-6 hover:bg-[#F8FAFC]/50 transition-colors">
+                              <div className="space-y-4 flex-1">
+                                <div className="flex flex-wrap items-center gap-3">
+                                  <div className="flex items-center gap-1.5 text-sm font-semibold text-[#0F172A] bg-[#F1F5F9] px-2.5 py-1 rounded-md border border-[#E2E8F0]">
+                                    <Clock className="w-3.5 h-3.5 text-[#000091]" />
+                                    <span>{startTimeStr} - {endTimeStr}</span>
+                                  </div>
+                                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${
+                                    bookedCount >= slot.maxCapacity
+                                      ? "bg-[#FCE8E6] text-[#CE0500] border-[#F8C0BC]"
+                                      : bookedCount > 0
+                                        ? "bg-[#FFF4EC] text-[#B35C00] border-[#FFE0C2]"
+                                        : "bg-[#E6F3EA] text-[#18753C] border-[#B9DFC5]"
+                                  }`}>
+                                    {bookedCount} / {slot.maxCapacity} réservé{slot.maxCapacity > 1 ? "s" : ""}
+                                  </span>
+                                </div>
+
+                                {bookedCount > 0 ? (
+                                  <div className="space-y-2 pl-2 border-l-2 border-[#E2E8F0]">
+                                    <h4 className="text-xs font-bold text-[#475569] uppercase tracking-wider">Candidats inscrits</h4>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                      {slot.candidates?.map((candidate) => (
+                                        <div key={candidate._id} className="bg-white border border-[#E2E8F0] p-3 rounded-lg flex items-center justify-between gap-3 shadow-2xs">
+                                          <div className="min-w-0">
+                                            <div className="text-xs font-bold text-[#0F172A] truncate">
+                                              {candidate.firstName} {candidate.lastName}
+                                            </div>
+                                            <div className="text-[10px] text-[#64748B] truncate">
+                                              {candidate.email} • {candidate.phone}
+                                            </div>
+                                          </div>
+                                          {candidate.dossierFacileUrl && (
+                                            <a
+                                              href={candidate.dossierFacileUrl}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-[#000091] hover:text-[#0b0b7d] flex-shrink-0"
+                                              title="Ouvrir le dossier"
+                                            >
+                                              <ExternalLink className="w-3.5 h-3.5" />
+                                            </a>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <p className="text-xs text-[#64748B] italic">Aucune réservation pour ce créneau.</p>
+                                )}
+                              </div>
+
+                              <button
+                                onClick={() => handleDeleteSlot(slot._id)}
+                                className="text-[#CE0500] hover:text-[#a60400] hover:bg-[#FFE9E9] p-2 rounded-lg transition-colors duration-150 self-start border border-transparent hover:border-[#FCE8E6] cursor-pointer"
+                                title="Supprimer ce créneau"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   );
                 })}
-              </tbody>
-            </table>
-          )}
+              </div>
+            )}
           </div>
-        </div>
+        ) : (
+          <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-xs overflow-hidden">
+            <div className="overflow-x-auto">
+              {table.getRowModel().rows.length === 0 ? (
+                <div className="text-center py-12 px-4">
+                  <p className="text-sm text-[#64748B]">Aucun candidat trouvé pour cette sélection.</p>
+                </div>
+              ) : (
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    {table.getHeaderGroups().map((headerGroup) => (
+                      <tr key={headerGroup.id} className="bg-[#F8FAFC] border-b border-[#E2E8F0] border-l-4 border-transparent">
+                        {headerGroup.headers.map((header) => {
+                          let alignmentClass = "text-left";
+                          if (header.column.id === "monthlyIncome") {
+                            alignmentClass = "text-right";
+                          } else if (
+                            header.column.id === "select" ||
+                            header.column.id === "hasGuarantor" ||
+                            header.column.id === "dossierFacileUrl" ||
+                            header.column.id === "status"
+                          ) {
+                            alignmentClass = "text-center";
+                          }
+
+                          const canSort = header.column.getCanSort();
+                          const isSorted = header.column.getIsSorted();
+
+                          return (
+                            <th
+                              key={header.id}
+                              onClick={
+                                canSort
+                                  ? () => {
+                                      if (!isSorted) {
+                                        header.column.toggleSorting(false, false);
+                                      } else {
+                                        header.column.toggleSorting(isSorted === "asc", false);
+                                      }
+                                    }
+                                  : undefined
+                              }
+                              className={`p-4 text-xs font-bold text-[#475569] uppercase tracking-wider ${alignmentClass} ${
+                                canSort ? "cursor-pointer select-none hover:bg-[#F1F5F9] transition-colors" : ""
+                              }`}
+                            >
+                              {header.isPlaceholder ? null : (
+                                <div
+                                  className={`inline-flex items-center gap-1 ${
+                                    alignmentClass === "text-right"
+                                      ? "justify-end w-full"
+                                      : alignmentClass === "text-center"
+                                        ? "justify-center w-full"
+                                        : ""
+                                  }`}
+                                >
+                                  <span>{flexRender(header.column.columnDef.header, header.getContext())}</span>
+                                  {canSort && (
+                                    <span className="text-[#64748B] font-mono text-xs select-none">
+                                      {isSorted === "asc" ? " ↑" : isSorted === "desc" ? " ↓" : " ↕"}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </th>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </thead>
+                  <tbody className="divide-y divide-[#E2E8F0]">
+                    {table.getRowModel().rows.map((row) => {
+                      const isLocked = !isPremium && !unlockedCandidateIds.has(row.original._id);
+                      const isSelected = selectedIds.has(row.original._id);
+                      return (
+                        <tr
+                          key={row.id}
+                          onClick={() => {
+                            if (isLocked || activeTab !== "pending") return;
+                            setSelectedIds((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(row.original._id)) {
+                                next.delete(row.original._id);
+                              } else {
+                                next.add(row.original._id);
+                              }
+                              return next;
+                            });
+                          }}
+                          className={`text-sm text-[#334155] transition-colors duration-150 border-l-4 border-transparent hover:bg-[#F8FAFC] ${
+                            isLocked ? "cursor-default opacity-85" : activeTab === "pending" ? "cursor-pointer" : "cursor-default"
+                          } ${isSelected ? "bg-[#F8FAFC] border-l-[#000091]" : ""}`}
+                        >
+                          {row.getVisibleCells().map((cell) => {
+                            let alignmentClass = "text-left";
+                            if (cell.column.id === "monthlyIncome") {
+                              alignmentClass = "text-right";
+                            } else if (
+                              cell.column.id === "select" ||
+                              cell.column.id === "hasGuarantor" ||
+                              cell.column.id === "dossierFacileUrl" ||
+                              cell.column.id === "status"
+                            ) {
+                              alignmentClass = "text-center";
+                            }
+
+                            return (
+                              <td key={cell.id} className={`p-4 ${alignmentClass}`}>
+                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        )}
       </main>
 
       {selectedIds.size > 0 && (
@@ -1178,6 +1402,77 @@ export default function CampaignDetail() {
           </div>
         </div>
       )}
+      {/* Slot creation Dialog */}
+      <Dialog
+        isOpen={isAddSlotOpen}
+        onClose={() => setIsAddSlotOpen(false)}
+        title="Ajouter un créneau de visite"
+        size="md"
+      >
+        <form onSubmit={handleAddSlot} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-[#3A3A3A] mb-1.5">Date de visite</label>
+            <input
+              type="date"
+              value={newSlotDate}
+              onChange={(e) => setNewSlotDate(e.target.value)}
+              className="w-full text-sm border border-[#CCCCCC] rounded-md px-3 py-2 bg-white focus:outline-none focus:border-[#000091]"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-[#3A3A3A] mb-1.5">Heure début</label>
+              <input
+                type="time"
+                value={newSlotStart}
+                onChange={(e) => setNewSlotStart(e.target.value)}
+                className="w-full text-sm border border-[#CCCCCC] rounded-md px-3 py-2 bg-white focus:outline-none focus:border-[#000091]"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-[#3A3A3A] mb-1.5">Heure fin</label>
+              <input
+                type="time"
+                value={newSlotEnd}
+                onChange={(e) => setNewSlotEnd(e.target.value)}
+                className="w-full text-sm border border-[#CCCCCC] rounded-md px-3 py-2 bg-white focus:outline-none focus:border-[#000091]"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-[#3A3A3A] mb-1.5">Capacité maximale (nombre de visiteurs)</label>
+            <input
+              type="number"
+              min="1"
+              value={newSlotCapacity}
+              onChange={(e) => setNewSlotCapacity(parseInt(e.target.value) || 1)}
+              className="w-full text-sm border border-[#CCCCCC] rounded-md px-3 py-2 bg-white focus:outline-none focus:border-[#000091]"
+              required
+            />
+          </div>
+
+          <div className="pt-4 border-t border-[#F0F0F0] flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => setIsAddSlotOpen(false)}
+              className="btn-secondary text-xs px-4 py-2 cursor-pointer"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              className="btn-primary text-xs px-4 py-2 cursor-pointer bg-[#000091] text-white hover:bg-[#0b0b7d] rounded font-bold"
+            >
+              Créer le créneau
+            </button>
+          </div>
+        </form>
+      </Dialog>
     </div>
   );
 }

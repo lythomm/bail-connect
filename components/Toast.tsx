@@ -52,7 +52,7 @@ export default function Toast({ message, type, onClose, duration = 4000 }: Toast
 
   return (
     <div
-      className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded border shadow-lg max-w-sm transition-all duration-300 animate-slide-in-right ${bgColors[type]}`}
+      className={`fixed bottom-6 right-6 z-[100] flex items-center gap-3 px-4 py-3 rounded border shadow-lg max-w-sm transition-all duration-300 animate-slide-in-right ${bgColors[type]}`}
       role="alert"
     >
       {icons[type]}
