@@ -21,7 +21,8 @@ import {
   CalendarRange,
   Check,
   Filter,
-  MapPin
+  MapPin,
+  Share2
 } from "lucide-react";
 import Dialog from "@/components/Dialog";
 import {
@@ -128,6 +129,8 @@ export default function CampaignDetail() {
   const [newSlotStart, setNewSlotStart] = useState("10:00");
   const [newSlotEnd, setNewSlotEnd] = useState("10:30");
   const [newSlotCapacity, setNewSlotCapacity] = useState(1);
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  const [shareTab, setShareTab] = useState<"desc" | "msg">("desc");
 
   const isPremium = campaign?.adType === "pass" || user?.tier === "pro";
 
@@ -467,8 +470,8 @@ export default function CampaignDetail() {
                 }
               }}
               className={`h-4 w-4 rounded-md border flex items-center justify-center cursor-pointer transition-all duration-150 ${allSelected || someSelected
-                  ? "bg-[#000091] border-[#000091] text-white"
-                  : "border-[#CBD5E1] bg-white hover:border-[#94A3B8]"
+                ? "bg-[#000091] border-[#000091] text-white"
+                : "border-[#CBD5E1] bg-white hover:border-[#94A3B8]"
                 }`}
             >
               {allSelected && (
@@ -512,8 +515,8 @@ export default function CampaignDetail() {
                 });
               }}
               className={`h-4 w-4 rounded-md border flex items-center justify-center cursor-pointer transition-all duration-150 ${isChecked
-                  ? "bg-[#000091] border-[#000091] text-white"
-                  : "border-[#CBD5E1] bg-white hover:border-[#94A3B8]"
+                ? "bg-[#000091] border-[#000091] text-white"
+                : "border-[#CBD5E1] bg-white hover:border-[#94A3B8]"
                 }`}
             >
               {isChecked && (
@@ -811,15 +814,12 @@ export default function CampaignDetail() {
             </div>
             <div className="shrink-0 self-start flex flex-wrap gap-2">
               <button
-                onClick={handleCopyApplyUrl}
-                title="Copier le lien de candidature"
+                onClick={() => setIsShareOpen(true)}
+                title="Partager l'annonce"
                 className="text-xs font-bold text-[#000091] hover:text-[#0b0b7d] bg-[#E3E3FD]/60 hover:bg-[#E3E3FD] py-2 px-4 border border-[#E3E3FD] rounded-full cursor-pointer transition-all duration-150 flex items-center gap-1.5 focus:outline-none"
               >
-                <span>Copier le lien de candidature</span>
-                <svg className="w-3.5 h-3.5 text-[#000091]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <rect x="9" y="9" width="13" height="13" rx="1.5" ry="1.5" />
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                </svg>
+                <Share2 className="w-3.5 h-3.5 text-[#000091]" />
+                <span>Partager l'annonce</span>
               </button>
               <button
                 onClick={() => setIsArchiveConfirmOpen(true)}
@@ -832,6 +832,8 @@ export default function CampaignDetail() {
             </div>
           </div>
         </div>
+
+
 
         {/* Upgrade Banner for Free Campaign */}
         {!isPremium && candidates && candidates.length > 10 && (
@@ -861,8 +863,8 @@ export default function CampaignDetail() {
           <button
             onClick={() => setActiveTab("pending")}
             className={`pb-3 px-1 text-base font-bold transition-all relative cursor-pointer flex items-center ${activeTab !== "visits"
-                ? "text-[#000091]"
-                : "text-[#64748B] hover:text-[#0F172A]"
+              ? "text-[#000091]"
+              : "text-[#64748B] hover:text-[#0F172A]"
               }`}
           >
             <span>Candidatures</span>
@@ -877,8 +879,8 @@ export default function CampaignDetail() {
           <button
             onClick={() => setActiveTab("visits")}
             className={`pb-3 px-1 text-base font-bold transition-all relative cursor-pointer flex items-center ${activeTab === "visits"
-                ? "text-[#000091]"
-                : "text-[#64748B] hover:text-[#0F172A]"
+              ? "text-[#000091]"
+              : "text-[#64748B] hover:text-[#0F172A]"
               }`}
           >
             <CalendarRange className="w-4 h-4 mr-2" />
@@ -915,8 +917,8 @@ export default function CampaignDetail() {
               <button
                 onClick={() => setActiveTab("pending")}
                 className={`py-2 px-4 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center shrink-0 border border-transparent ${activeTab === "pending"
-                    ? "bg-white text-[#B35C00] shadow-xs border-[#FFE0C2]/60"
-                    : "text-[#64748B] hover:text-[#0F172A] hover:bg-white/50"
+                  ? "bg-white text-[#B35C00] shadow-xs border-[#FFE0C2]/60"
+                  : "text-[#64748B] hover:text-[#0F172A] hover:bg-white/50"
                   }`}
               >
                 <span>En attente de réponse</span>
@@ -928,8 +930,8 @@ export default function CampaignDetail() {
               <button
                 onClick={() => setActiveTab("accepted")}
                 className={`py-2 px-4 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center shrink-0 border border-transparent ${activeTab === "accepted"
-                    ? "bg-white text-[#18753C] shadow-xs border-[#B9DFC5]/60"
-                    : "text-[#64748B] hover:text-[#0F172A] hover:bg-white/50"
+                  ? "bg-white text-[#18753C] shadow-xs border-[#B9DFC5]/60"
+                  : "text-[#64748B] hover:text-[#0F172A] hover:bg-white/50"
                   }`}
               >
                 <span>Acceptés</span>
@@ -941,8 +943,8 @@ export default function CampaignDetail() {
               <button
                 onClick={() => setActiveTab("rejected")}
                 className={`py-2 px-4 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center shrink-0 border border-transparent ${activeTab === "rejected"
-                    ? "bg-white text-[#CE0500] shadow-xs border-[#F8C0BC]/60"
-                    : "text-[#64748B] hover:text-[#0F172A] hover:bg-white/50"
+                  ? "bg-white text-[#CE0500] shadow-xs border-[#F8C0BC]/60"
+                  : "text-[#64748B] hover:text-[#0F172A] hover:bg-white/50"
                   }`}
               >
                 <span>Refusés</span>
@@ -954,8 +956,8 @@ export default function CampaignDetail() {
               <button
                 onClick={() => setActiveTab("all")}
                 className={`py-2 px-4 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center shrink-0 border border-transparent ${activeTab === "all"
-                    ? "bg-white text-[#000091] shadow-xs border-[#CBD5E1]/60"
-                    : "text-[#64748B] hover:text-[#0F172A] hover:bg-white/50"
+                  ? "bg-white text-[#000091] shadow-xs border-[#CBD5E1]/60"
+                  : "text-[#64748B] hover:text-[#0F172A] hover:bg-white/50"
                   }`}
               >
                 <span>Toutes</span>
@@ -1002,8 +1004,8 @@ export default function CampaignDetail() {
                   type="button"
                   onClick={() => setActiveDropdown(activeDropdown === "filters" ? null : "filters")}
                   className={`h-8 flex items-center justify-center gap-1.5 border rounded-lg focus:outline-none cursor-pointer transition-all duration-150 ${activeFiltersCount > 0
-                      ? "bg-[#E3E3FD] text-[#000091] border-[#000091] shadow-xs px-2.5"
-                      : "bg-white text-[#334155] border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-[#F8FAFC] w-8"
+                    ? "bg-[#E3E3FD] text-[#000091] border-[#000091] shadow-xs px-2.5"
+                    : "bg-white text-[#334155] border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-[#F8FAFC] w-8"
                     }`}
                   title="Filtrer les candidats"
                 >
@@ -1121,10 +1123,10 @@ export default function CampaignDetail() {
                                     <span>{startTimeStr} - {endTimeStr}</span>
                                   </div>
                                   <span className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${bookedCount >= slot.maxCapacity
-                                      ? "bg-[#FCE8E6] text-[#CE0500] border-[#F8C0BC]"
-                                      : bookedCount > 0
-                                        ? "bg-[#FFF4EC] text-[#B35C00] border-[#FFE0C2]"
-                                        : "bg-[#E6F3EA] text-[#18753C] border-[#B9DFC5]"
+                                    ? "bg-[#FCE8E6] text-[#CE0500] border-[#F8C0BC]"
+                                    : bookedCount > 0
+                                      ? "bg-[#FFF4EC] text-[#B35C00] border-[#FFE0C2]"
+                                      : "bg-[#E6F3EA] text-[#18753C] border-[#B9DFC5]"
                                     }`}>
                                     {bookedCount} / {slot.maxCapacity} réservé{slot.maxCapacity > 1 ? "s" : ""}
                                   </span>
@@ -1229,10 +1231,10 @@ export default function CampaignDetail() {
                               {header.isPlaceholder ? null : (
                                 <div
                                   className={`inline-flex items-center gap-1 ${alignmentClass === "text-right"
-                                      ? "justify-end w-full"
-                                      : alignmentClass === "text-center"
-                                        ? "justify-center w-full"
-                                        : ""
+                                    ? "justify-end w-full"
+                                    : alignmentClass === "text-center"
+                                      ? "justify-center w-full"
+                                      : ""
                                     }`}
                                 >
                                   <span>{flexRender(header.column.columnDef.header, header.getContext())}</span>
@@ -1538,6 +1540,152 @@ export default function CampaignDetail() {
             </button>
           </div>
         </form>
+      </Dialog>
+
+      {/* Share Campaign Dialog */}
+      <Dialog
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        title="Partager l'annonce"
+        size="md"
+      >
+        <div className="space-y-5">
+          {/* Tab Navigation */}
+          <div className="flex border-b border-[#E2E8F0] gap-4 select-none">
+            <button
+              onClick={() => setShareTab("desc")}
+              className={`pb-2.5 px-1 text-xs font-bold transition-all relative cursor-pointer ${shareTab === "desc"
+                  ? "text-[#000091]"
+                  : "text-[#64748B] hover:text-[#0F172A]"
+                }`}
+            >
+              Dans la description
+              {shareTab === "desc" && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#000091] rounded-full" />
+              )}
+            </button>
+            <button
+              onClick={() => setShareTab("msg")}
+              className={`pb-2.5 px-1 text-xs font-bold transition-all relative cursor-pointer ${shareTab === "msg"
+                  ? "text-[#000091]"
+                  : "text-[#64748B] hover:text-[#0F172A]"
+                }`}
+            >
+              En réponse par message
+              {shareTab === "msg" && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#000091] rounded-full" />
+              )}
+            </button>
+          </div>
+
+          {/* Tab Content */}
+          {shareTab === "desc" ? (
+            <div className="space-y-4">
+              {campaign?.code && (
+                <>
+                  <div className="text-center bg-[#F5F5FE] border border-[#E3E3FD] p-5 rounded-xl space-y-2">
+                    <span className="text-[10px] font-bold text-[#000091] uppercase tracking-wider block">
+                      Code Candidature Unique
+                    </span>
+                    <div className="text-3xl font-mono font-bold tracking-widest text-[#000091] bg-white border border-[#E3E3FD] py-2.5 px-6 rounded-lg inline-block select-all">
+                      {campaign.code}
+                    </div>
+                    <p className="text-[11px] text-[#64748B] max-w-sm mx-auto">
+                      Indiquez ce code de 6 chiffres dans la description de votre annonce pour que les candidats postulent directement depuis notre site.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <h5 className="text-xs font-bold text-[#161616]">
+                        Instructions courtes à copier
+                      </h5>
+                      <p className="text-[11px] text-[#666666] mt-1 leading-relaxed">
+                        Les liens dans les descriptions d'annonces sont bloqués sur Leboncoin et SeLoger. Copiez plutôt ce texte explicatif :
+                      </p>
+                    </div>
+                    <div className="bg-[#F8FAFC] border border-[#E2E8F0] p-4 rounded-xl space-y-3">
+                      <div className="text-xs text-[#334155] bg-white border border-[#E2E8F0] p-3 rounded-md font-mono select-all">
+                        Pour postuler, rendez-vous sur bailconnect.fr et saisissez le code : {campaign.code}
+                      </div>
+                      <button
+                        onClick={async () => {
+                          const instructions = `Pour postuler, rendez-vous sur bailconnect.fr et saisissez le code : ${campaign.code}`;
+                          try {
+                            await navigator.clipboard.writeText(instructions);
+                            setToast({ message: "Instructions copiées !", type: "success" });
+                          } catch (err) {
+                            console.error(err);
+                          }
+                        }}
+                        className="text-xs font-bold text-white bg-[#000091] hover:bg-[#0b0b7d] py-2.5 px-4 rounded-lg w-full transition-all duration-150 flex items-center justify-center gap-1.5 focus:outline-none cursor-pointer"
+                      >
+                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <rect x="9" y="9" width="13" height="13" rx="1.5" ry="1.5" />
+                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                        </svg>
+                        <span>Copier les instructions</span>
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="block text-[10px] font-bold text-[#64748B] uppercase tracking-wider">
+                  Lien direct de candidature
+                </label>
+                <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] p-3 rounded-lg">
+                  <span className="text-xs font-semibold text-[#161616] break-all select-all flex-1 font-mono">
+                    {typeof window !== "undefined" && `${window.location.origin}/apply/${campaign?.slug}`}
+                  </span>
+                  <button
+                    onClick={handleCopyApplyUrl}
+                    className="text-xs font-bold text-[#000091] hover:text-[#0b0b7d] hover:bg-[#E3E3FD]/50 px-3 py-1.5 rounded-md border border-[#E3E3FD] bg-white transition-all duration-150 shrink-0 cursor-pointer"
+                  >
+                    Copier
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-3 border-t border-[#E2E8F0] pt-4">
+                <div>
+                  <h5 className="text-xs font-bold text-[#161616]">
+                    Message de réponse automatique
+                  </h5>
+                  <p className="text-[11px] text-[#666666] mt-1.5 leading-relaxed">
+                    Dans la messagerie Leboncoin, SeLoger ou par SMS, les liens sont cliquables. Envoyez ce message contenant votre lien direct pour simplifier la candidature.
+                  </p>
+                </div>
+                <div className="bg-[#F8FAFC] border border-[#E2E8F0] p-4 rounded-xl space-y-3">
+                  <div className="text-xs text-[#334155] bg-white border border-[#E2E8F0] p-3 rounded-md leading-relaxed select-all">
+                    Bonjour, merci pour votre intérêt. Afin que je puisse étudier votre dossier, merci de postuler directement via ce lien : {typeof window !== "undefined" && `${window.location.origin}/apply/${campaign?.slug}`}
+                  </div>
+                  <button
+                    onClick={async () => {
+                      const message = `Bonjour, merci pour votre intérêt. Afin que je puisse étudier votre dossier, merci de postuler directement via ce lien : ${window.location.origin}/apply/${campaign?.slug}`;
+                      try {
+                        await navigator.clipboard.writeText(message);
+                        setToast({ message: "Message de réponse copié !", type: "success" });
+                      } catch (err) {
+                        console.error(err);
+                      }
+                    }}
+                    className="text-xs font-bold text-white bg-[#000091] hover:bg-[#0b0b7d] py-2.5 px-4 rounded-lg w-full transition-all duration-150 flex items-center justify-center gap-1.5 focus:outline-none cursor-pointer"
+                  >
+                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <rect x="9" y="9" width="13" height="13" rx="1.5" ry="1.5" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                    <span>Copier le message de réponse</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </Dialog>
     </div>
   );

@@ -18,7 +18,7 @@ export default function Navbar() {
   const excludedPaths = ["/signin", "/cgu", "/cgv", "/confidentialite", "/mentions-legales"];
   const isExcluded =
     excludedPaths.includes(pathname) ||
-    pathname?.startsWith("/apply/") ||
+    pathname?.startsWith("/apply") ||
     pathname?.startsWith("/calendar/book");
 
   useEffect(() => {

@@ -171,20 +171,22 @@ export default function Home() {
                 Gérez les candidatures locataires DossierFacile en 10 minutes chrono
               </h1>
               <p className="text-lg text-white mb-8 leading-relaxed max-w-3xl animate-fade-in-up animation-delay-200">
-                Dites adieu aux e-mails en vrac, les faux documents et les <strong>appels téléphoniques incessants à toute heure</strong>.
-                Protégez vos coordonnées sur Leboncoin et SeLoger : insérez simplement votre lien de candidature unique et recevez des dossiers certifiés et <strong>pré-vérifiés par l'État via DossierFacile</strong>.
+                Dites adieu aux e-mails en vrac, les faux documents et les <strong>appels téléphoniques incessants à toute heure</strong>.{" "}
+                <span className="hidden md:inline">
+                  Protégez vos coordonnées sur Leboncoin et SeLoger : insérez simplement votre lien de candidature unique et recevez des dossiers certifiés et <strong>pré-vérifiés par l'État via DossierFacile</strong>.
+                </span>
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto animate-fade-in-up animation-delay-300">
-                <Link href="/dashboard" className="btn-primary text-base px-8 h-12 flex items-center justify-center font-bold transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98]">
+                <Link href="/dashboard" className="btn-secondary bg-white! text-base px-8 h-12 flex items-center justify-center font-bold transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98]">
                   Commencez gratuitement
                 </Link>
-                <a
-                  href="#fonctionnement"
-                  className="btn-secondary !bg-white text-base px-8 h-12 flex items-center justify-center font-semibold transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98]"
+                <Link
+                  href="/apply"
+                  className="btn-primary text-base px-8 h-12 flex items-center justify-center font-semibold transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98]"
                 >
-                  Découvrir la méthode ↗
-                </a>
+                  Je suis locataire ↗
+                </Link>
               </div>
 
               <div className="mt-8 flex items-center gap-3 text-sm text-white/90 drop-shadow-sm animate-fade-in-up animation-delay-400">
@@ -350,10 +352,10 @@ export default function Home() {
                   <ClipboardCheck className="w-7 h-7 text-republic-blue" />
                 </div>
                 <h3 className="text-base font-bold text-[#161616] mb-3">
-                  1. Génerez votre lien
+                  1. Génerez votre annonce
                 </h3>
                 <p className="text-xs text-[#3A3A3A] leading-relaxed">
-                  Connectez-vous sur votre espace, nommez votre logement (ex: <em>"Studio Lyon 3e"</em>) et obtenez votre lien unique de candidature.
+                  Connectez-vous sur votre espace, nommez votre logement (ex: <em>"Studio Lyon 3e"</em>) et obtenez votre lien et votre code unique de candidature.
                 </p>
               </div>
 
@@ -363,17 +365,11 @@ export default function Home() {
                   <Users className="w-7 h-7 text-republic-blue" />
                 </div>
                 <h3 className="text-base font-bold text-[#161616] mb-3">
-                  2. Diffusez le lien
+                  2. Diffusez l'annonce
                 </h3>
                 <p className="text-xs text-[#3A3A3A] leading-relaxed mb-4">
-                  Copiez-collez le lien directement dans la description de vos annonces (Leboncoin, PAP, SeLoger, etc.).
+                  Partagez le code dans la description de vos annonces (Leboncoin, PAP, SeLoger, etc.) ou bien envoyez le lien à vos candidats directement par message.
                 </p>
-                <div className="bg-[#F8FAFC] p-3 border border-dashed border-[#E2E8F0] rounded-2xl w-full mt-auto">
-                  <span className="block text-[10px] font-bold text-[#000091] uppercase tracking-wider mb-1">Exemple :</span>
-                  <p className="text-[10px] font-mono text-[#3A3A3A] leading-normal break-all">
-                    "Postulez sur :<br /> <strong className="text-[#000091] font-semibold">bailconnect.fr/apply/studio-lyon-3</strong>"
-                  </p>
-                </div>
               </div>
 
               {/* Step 3 */}
@@ -398,7 +394,7 @@ export default function Home() {
                   4. Planifiez les visites
                 </h3>
                 <p className="text-xs text-[#3A3A3A] leading-relaxed">
-                  Invitez d'un clic les candidats retenus à réserver leur créneau sur votre calendrier. Les rappels sont gérés automatiquement.
+                  Tout les candidats retenus sont automatiquement conviés à réserver leur créneau sur votre calendrier. Les rappels sont gérés <strong>automatiquement</strong>.
                 </p>
               </div>
             </div>

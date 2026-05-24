@@ -28,6 +28,7 @@ export default defineSchema({
     userId: v.id("users"), // Landlord who created the campaign
     title: v.string(), // e.g., "Studio 20m² Paris 11"
     slug: v.string(), // Unique identifier for public application URL
+    code: v.optional(v.string()), // Unique 6-digit candidate code
     description: v.optional(v.string()),
     rentAmount: v.optional(v.number()), // Monthly rent amount CC (in EUR)
     address: v.optional(v.string()),
@@ -36,6 +37,7 @@ export default defineSchema({
     stripeSessionId: v.optional(v.string()),
     createdAt: v.number(),
   }).index("by_slug", ["slug"])
+    .index("by_code", ["code"])
     .index("by_userId", ["userId"]), // INDISPENSABLE pour lister les campagnes d'un proprio connecté,
 
   candidates: defineTable({

@@ -80,6 +80,34 @@ export const getBySlug = query({
       slug: campaign.slug,
       rentAmount: campaign.rentAmount,
       address: campaign.address,
+      code: campaign.code,
+    };
+  },
+});
+
+/**
+ * Get campaign by its unique 6-digit code (public access).
+ */
+export const getByCode = query({
+  args: { code: v.string() },
+  handler: async (ctx, args) => {
+    if (!args.code || args.code.length !== 6) {
+      return null;
+    }
+
+    const campaign = await ctx.db
+      .query("campaigns")
+      .withIndex("by_code", (q) => q.eq("code", args.code))
+      .unique();
+
+    if (!campaign || campaign.status === "archived") {
+      return null;
+    }
+
+    return {
+      _id: campaign._id,
+      title: campaign.title,
+      slug: campaign.slug,
     };
   },
 });
@@ -106,6 +134,26 @@ export const create = mutation({
     const rand = Math.random().toString(36).substring(2, 7);
     const slug = `${baseSlug}-${rand}`;
 
+    // Generate unique 6-digit code
+    let code = "";
+    let isUnique = false;
+    let attempts = 0;
+    while (!isUnique && attempts < 10) {
+      const candidateCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const existing = await ctx.db
+        .query("campaigns")
+        .withIndex("by_code", (q) => q.eq("code", candidateCode))
+        .unique();
+      if (!existing) {
+        code = candidateCode;
+        isUnique = true;
+      }
+      attempts++;
+    }
+    if (!code) {
+      code = Math.floor(100000 + Math.random() * 900000).toString();
+    }
+
     let adType = args.adType || "free";
     if (adType === "pass") {
       const user = await ctx.db.get(userId);
@@ -118,6 +166,7 @@ export const create = mutation({
       userId,
       title: args.title.trim(),
       slug,
+      code,
       description: args.description?.trim(),
       rentAmount: args.rentAmount,
       address: args.address?.trim(),
@@ -200,6 +249,3 @@ export const archive = mutation({
     return { success: true };
   },
 });
-
-
-
