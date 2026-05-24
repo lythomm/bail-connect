@@ -159,3 +159,22 @@ export const markCouponAsUsed = internalMutation({
   },
 });
 
+export const downgradeUserBySubscriptionId = internalMutation({
+  args: {
+    stripeSubscriptionId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_stripeSubscriptionId", (q) => q.eq("stripeSubscriptionId", args.stripeSubscriptionId))
+      .unique();
+
+    if (user) {
+      await ctx.db.patch(user._id, {
+        tier: "free",
+        stripeSubscriptionId: undefined,
+      });
+    }
+  },
+});
+

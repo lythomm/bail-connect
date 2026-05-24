@@ -21,7 +21,8 @@ export default defineSchema({
     stripeCustomerId: v.optional(v.string()),
     usedCoupons: v.optional(v.array(v.string())),
   }).index("email", ["email"])
-    .index("phone", ["phone"]),
+    .index("phone", ["phone"])
+    .index("by_stripeSubscriptionId", ["stripeSubscriptionId"]),
 
   campaigns: defineTable({
     userId: v.id("users"), // Landlord who created the campaign

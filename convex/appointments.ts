@@ -136,7 +136,10 @@ export const getBookingPageData = query({
 
     if (candidate.status !== "accepted") {
       return {
-        candidate,
+        candidate: {
+          firstName: candidate.firstName,
+          lastName: candidate.lastName,
+        },
         campaign: null,
         slots: [],
         currentAppointment: null,
@@ -163,7 +166,10 @@ export const getBookingPageData = query({
       .unique();
 
     return {
-      candidate,
+      candidate: {
+        firstName: candidate.firstName,
+        lastName: candidate.lastName,
+      },
       campaign: {
         _id: campaign._id,
         title: campaign.title,

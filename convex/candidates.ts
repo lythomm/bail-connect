@@ -62,10 +62,10 @@ export const create = mutation({
       );
     }
 
-    // Valider que la campagne existe
+    // Valider que la campagne existe et n'est pas archivée
     const campaign = await ctx.db.get(args.campaignId);
-    if (!campaign) {
-      throw new Error("Campaign not found");
+    if (!campaign || campaign.status === "archived") {
+      throw new Error("Cette campagne n'existe pas ou a été archivée.");
     }
 
     // 2. Insert candidate with default "pending" status
@@ -320,6 +320,7 @@ export const sendNotificationEmail = internalAction({
 /**
  * Seed 20 dummy candidates for testing purposes.
  */
+/*
 export const seedCandidates = mutation({
   args: { campaignId: v.id("campaigns") },
   handler: async (ctx, args) => {
@@ -371,4 +372,5 @@ export const seedCandidates = mutation({
     }
   },
 });
+*/
 

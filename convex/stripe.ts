@@ -1,7 +1,8 @@
-import { action } from "./_generated/server";
+import { action, httpAction } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { api, internal } from "./_generated/api";
+import Stripe from "stripe";
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const PASS_PRICE_ID = "price_1TaBcm3nf3q37Shxy8Jj8ulQ";
@@ -175,6 +176,10 @@ export const verifySession = action({
       throw new Error("Stripe Secret Key is not configured on the server.");
     }
 
+    if (args.sessionId.includes("/") || args.sessionId.includes("?") || args.sessionId.includes("%")) {
+      throw new Error("Invalid session ID format");
+    }
+
     const response = await fetch(`https://api.stripe.com/v1/checkout/sessions/${args.sessionId}?expand%5B%5D=discounts.promotion_code`, {
       method: "GET",
       headers: {
@@ -338,6 +343,69 @@ export const cancelSubscription = action({
 
     return { success: true };
   },
+});
+
+export const stripeWebhook = httpAction(async (ctx, request) => {
+  const signature = request.headers.get("stripe-signature");
+  if (!signature) {
+    return new Response("Missing signature", { status: 400 });
+  }
+
+  const payload = await request.text();
+  const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  if (!stripeSecretKey) {
+    return new Response("Server configuration error", { status: 500 });
+  }
+
+  if (!webhookSecret) {
+    console.error("STRIPE_WEBHOOK_SECRET is not configured on the server.");
+    return new Response("Webhook secret not configured", { status: 500 });
+  }
+
+  const stripe = new Stripe(stripeSecretKey, {
+    apiVersion: "2024-04-10" as any,
+  });
+
+  let event: Stripe.Event;
+  try {
+    event = await stripe.webhooks.constructEventAsync(
+      payload,
+      signature,
+      webhookSecret
+    );
+  } catch (err: any) {
+    console.error("Stripe Webhook Signature Verification Failed:", err.message);
+    return new Response(`Webhook Error: ${err.message}`, { status: 400 });
+  }
+
+  try {
+    switch (event.type) {
+      case "customer.subscription.deleted": {
+        const subscription = event.data.object as Stripe.Subscription;
+        await ctx.runMutation(internal.stripeMutations.downgradeUserBySubscriptionId, {
+          stripeSubscriptionId: subscription.id,
+        });
+        break;
+      }
+      case "invoice.payment_failed": {
+        const invoice = event.data.object as any;
+        const subscriptionId = typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
+        if (subscriptionId) {
+          await ctx.runMutation(internal.stripeMutations.downgradeUserBySubscriptionId, {
+            stripeSubscriptionId: subscriptionId,
+          });
+        }
+        break;
+      }
+    }
+  } catch (err: any) {
+    console.error("Error processing webhook event:", err);
+    return new Response("Error processing event", { status: 500 });
+  }
+
+  return new Response("Success", { status: 200 });
 });
 
 

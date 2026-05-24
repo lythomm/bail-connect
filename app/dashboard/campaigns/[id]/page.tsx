@@ -107,7 +107,6 @@ export default function CampaignDetail() {
   const updateStatus = useMutation(api.candidates.updateStatus);
   const updateStatuses = useMutation(api.candidates.updateStatuses);
   const user = useQuery(api.users.current);
-  const upgradeCampaign = useMutation(api.campaigns.upgradeToPass);
   const archiveCampaign = useMutation(api.campaigns.archive);
 
   const allSlots = useQuery(api.appointments.getAllCampaignSlots) || [];

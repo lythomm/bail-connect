@@ -106,6 +106,14 @@ export const create = mutation({
     const rand = Math.random().toString(36).substring(2, 7);
     const slug = `${baseSlug}-${rand}`;
 
+    let adType = args.adType || "free";
+    if (adType === "pass") {
+      const user = await ctx.db.get(userId);
+      if (user?.tier !== "pro") {
+        throw new Error("Vous devez payer ou être membre Pro pour créer une annonce premium.");
+      }
+    }
+
     const campaignId = await ctx.db.insert("campaigns", {
       userId,
       title: args.title.trim(),
@@ -113,7 +121,7 @@ export const create = mutation({
       description: args.description?.trim(),
       rentAmount: args.rentAmount,
       address: args.address?.trim(),
-      adType: args.adType || "free",
+      adType,
       status: "active",
       createdAt: Date.now(),
     });
@@ -165,31 +173,6 @@ export const listWithStats = query({
     }
 
     return results;
-  },
-});
-
-/**
- * Upgrade a campaign's adType to premium "pass" (restricted to landlord owner).
- */
-export const upgradeToPass = mutation({
-  args: { id: v.id("campaigns") },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Unauthorized");
-    }
-
-    const campaign = await ctx.db.get(args.id);
-    if (!campaign) {
-      throw new Error("Campaign not found");
-    }
-
-    if (campaign.userId !== userId) {
-      throw new Error("Unauthorized");
-    }
-
-    await ctx.db.patch(args.id, { adType: "pass" });
-    return { success: true };
   },
 });
 
