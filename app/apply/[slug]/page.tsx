@@ -7,6 +7,7 @@ import { api } from "@/convex/_generated/api";
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import Dialog from "@/components/Dialog";
+import { MapPin } from "lucide-react";
 
 export default function ApplyPage() {
   const params = useParams();
@@ -287,6 +288,12 @@ export default function ApplyPage() {
             )}
           </div>
           <h1 className="text-2xl font-bold text-[#161616]">{campaign.title}</h1>
+          {campaign.address && (
+            <div className="flex items-center gap-1.5 text-sm text-[#666666] mt-1.5 font-medium">
+              <MapPin className="w-3.5 h-3.5 text-[#000091] shrink-0" />
+              <span>{campaign.address}</span>
+            </div>
+          )}
           {campaign.description && (
             <p className="text-sm text-[#666666] mt-2 bg-white p-4 border border-[#DDDDDD] whitespace-pre-line">
               {campaign.description}

@@ -16,6 +16,7 @@ export const createCheckoutSession = action({
       title: v.string(),
       description: v.optional(v.string()),
       rentAmount: v.optional(v.number()),
+      address: v.optional(v.string()),
     })),
   },
   handler: async (ctx, args): Promise<{ url: string }> => {
@@ -89,6 +90,9 @@ export const createCheckoutSession = action({
       }
       if (args.campaignData?.rentAmount !== undefined) {
         metadata.rentAmount = String(args.campaignData.rentAmount);
+      }
+      if (args.campaignData?.address) {
+        metadata.address = args.campaignData.address;
       }
     } else if (args.type === "upgrade_campaign") {
       if (!args.campaignId) {
@@ -219,12 +223,14 @@ export const verifySession = action({
       const title = metadata.title;
       const description = metadata.description || undefined;
       const rentAmount = metadata.rentAmount ? parseFloat(metadata.rentAmount) : undefined;
+      const address = metadata.address || undefined;
 
       const campaignId = await ctx.runMutation((internal as any).stripeMutations.createPaidCampaign, {
         userId,
         title,
         description,
         rentAmount,
+        address,
         stripeSessionId: args.sessionId,
       });
 

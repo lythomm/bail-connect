@@ -77,6 +77,7 @@ export const getBySlug = query({
       description: campaign.description,
       slug: campaign.slug,
       rentAmount: campaign.rentAmount,
+      address: campaign.address,
     };
   },
 });
@@ -89,6 +90,7 @@ export const create = mutation({
     title: v.string(),
     description: v.optional(v.string()),
     rentAmount: v.optional(v.number()),
+    address: v.optional(v.string()),
     adType: v.optional(v.union(v.literal("free"), v.literal("pass"))),
   },
   handler: async (ctx, args) => {
@@ -108,6 +110,7 @@ export const create = mutation({
       slug,
       description: args.description?.trim(),
       rentAmount: args.rentAmount,
+      address: args.address?.trim(),
       adType: args.adType || "free",
       createdAt: Date.now(),
     });

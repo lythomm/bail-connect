@@ -169,6 +169,7 @@ export const getBookingPageData = query({
         title: campaign.title,
         description: campaign.description,
         rentAmount: campaign.rentAmount,
+        address: campaign.address,
       },
       slots,
       currentAppointment: existingAppointment,

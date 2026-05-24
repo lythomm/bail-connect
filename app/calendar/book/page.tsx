@@ -140,6 +140,15 @@ function BookingContent() {
               <span className="text-sm font-bold text-[#161616]">{campaign?.title}</span>
             </div>
           </div>
+          {campaign?.address && (
+            <div className="flex items-start gap-2.5">
+              <MapPin className="w-4 h-4 text-[#000091] mt-0.5" />
+              <div>
+                <span className="block text-xs text-[#666666] font-semibold">Adresse de la visite</span>
+                <span className="text-sm font-bold text-[#161616]">{campaign.address}</span>
+              </div>
+            </div>
+          )}
           <div className="flex items-start gap-2.5">
             <CalendarIcon className="w-4 h-4 text-[#000091] mt-0.5" />
             <div>
@@ -192,6 +201,12 @@ function BookingContent() {
             <div className="flex items-center gap-1 text-xs text-[#666666]">
               <Euro className="w-3.5 h-3.5" />
               <span>{campaign.rentAmount.toLocaleString("fr-FR")} € / mois CC</span>
+            </div>
+          )}
+          {campaign?.address && (
+            <div className="flex items-center gap-1 text-xs text-[#666666] mt-1">
+              <MapPin className="w-3.5 h-3.5 text-[#000091]" />
+              <span>{campaign.address}</span>
             </div>
           )}
         </div>

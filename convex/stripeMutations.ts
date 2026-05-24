@@ -7,6 +7,7 @@ export const createPaidCampaign = internalMutation({
     title: v.string(),
     description: v.optional(v.string()),
     rentAmount: v.optional(v.number()),
+    address: v.optional(v.string()),
     stripeSessionId: v.string(),
   },
   handler: async (ctx, args) => {
@@ -39,6 +40,7 @@ export const createPaidCampaign = internalMutation({
       slug,
       description: args.description?.trim(),
       rentAmount: args.rentAmount,
+      address: args.address?.trim(),
       adType: "pass",
       stripeSessionId: args.stripeSessionId,
       createdAt: Date.now(),

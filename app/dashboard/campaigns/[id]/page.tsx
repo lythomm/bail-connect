@@ -20,7 +20,8 @@ import {
   ExternalLink,
   CalendarRange,
   Check,
-  Filter
+  Filter,
+  MapPin
 } from "lucide-react";
 import Dialog from "@/components/Dialog";
 import {
@@ -802,6 +803,12 @@ export default function CampaignDetail() {
                   </span>
                 )}
               </h1>
+              {campaign.address && (
+                <div className="flex items-center gap-1.5 text-xs text-[#64748B] font-semibold">
+                  <MapPin className="w-3.5 h-3.5 text-[#000091]" />
+                  <span>{campaign.address}</span>
+                </div>
+              )}
               {campaign.description && (
                 <p className="text-sm text-[#475569] max-w-3xl leading-relaxed">{campaign.description}</p>
               )}

@@ -19,7 +19,7 @@ export const getByCampaign = query({
 
     const campaign = await ctx.db.get(args.campaignId);
     if (!campaign) {
-      throw new Error("Campaign not found");
+      return [];
     }
 
     if (campaign.userId !== userId) {

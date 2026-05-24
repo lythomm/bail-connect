@@ -17,6 +17,7 @@ export const getCandidateInvitationInfo = internalQuery({
       candidateFirstName: candidate.firstName,
       candidateLastName: candidate.lastName,
       campaignTitle: campaign.title,
+      campaignAddress: campaign.address,
     };
   },
 });
@@ -56,6 +57,7 @@ export const sendCandidateInvitation = internalAction({
         </p>
         <p style="font-size: 14px; line-height: 1.5; color: #3A3A3A;">
           Le propriétaire de l'annonce <strong>${info.campaignTitle}</strong> a retenu votre dossier de candidature. 
+          ${info.campaignAddress ? `Le logement est situé à l'adresse suivante : <strong>${info.campaignAddress}</strong>.<br/><br/>` : ""}
           Vous pouvez dès maintenant choisir un créneau de visite sur son calendrier.
         </p>
         

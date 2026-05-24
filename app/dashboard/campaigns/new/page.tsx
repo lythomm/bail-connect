@@ -18,6 +18,7 @@ export default function NewCampaign() {
 
   // Form states
   const [title, setTitle] = useState("");
+  const [address, setAddress] = useState("");
   const [description, setDescription] = useState("");
   const [rentAmount, setRentAmount] = useState("");
   const [adType, setAdType] = useState<"free" | "pass">("free");
@@ -55,7 +56,16 @@ export default function NewCampaign() {
     return true;
   };
 
-  const validateStep2 = (): boolean => {
+  const validateAddressStep = (): boolean => {
+    setError(null);
+    if (!address.trim()) {
+      setError("L'adresse du logement est obligatoire.");
+      return false;
+    }
+    return true;
+  };
+
+  const validateRentStep = (): boolean => {
     setError(null);
     const parsedRent = rentAmount ? parseFloat(rentAmount) : undefined;
     if (parsedRent === undefined || isNaN(parsedRent) || parsedRent <= 0) {
@@ -71,10 +81,14 @@ export default function NewCampaign() {
         setCurrentStep(2);
       }
     } else if (currentStep === 2) {
-      if (validateStep2()) {
+      if (validateAddressStep()) {
         setCurrentStep(3);
       }
     } else if (currentStep === 3) {
+      if (validateRentStep()) {
+        setCurrentStep(4);
+      }
+    } else if (currentStep === 4) {
       if (adType === "free" && user?.tier !== "pro" && hasFreeCampaign) {
         setToast({
           message: "Vous ne pouvez avoir qu'une seule annonce gratuite active à la fois.",
@@ -82,7 +96,7 @@ export default function NewCampaign() {
         });
         return;
       }
-      setCurrentStep(4);
+      setCurrentStep(5);
     }
   };
 
@@ -97,7 +111,7 @@ export default function NewCampaign() {
     e.preventDefault();
     setError(null);
 
-    if (!validateStep1() || !validateStep2()) {
+    if (!validateStep1() || !validateAddressStep() || !validateRentStep()) {
       return;
     }
 
@@ -116,6 +130,7 @@ export default function NewCampaign() {
         title: title.trim(),
         description: description.trim() || undefined,
         rentAmount: parsedRent,
+        address: address.trim(),
         adType: adType,
       });
       router.push(`/dashboard/campaigns/new/success?campaign_id=${campaignId}`);
@@ -140,6 +155,7 @@ export default function NewCampaign() {
           title: title.trim(),
           description: description.trim() || undefined,
           rentAmount: parsedRent,
+          address: address.trim(),
         },
       });
       if (url) {
@@ -196,19 +212,21 @@ export default function NewCampaign() {
             {/* Stepper progress indicator */}
             <div className="mb-8 select-none">
               <div className="flex justify-between items-center text-xs font-semibold text-[#666666] mb-3">
-                <span>Étape {currentStep} sur 4</span>
+                <span>Étape {currentStep} sur 5</span>
                 <span className="text-[#000091]">
                   {currentStep === 1 && "Informations de base"}
-                  {currentStep === 2 && "Loyer & Description"}
-                  {currentStep === 3 && "Choix de la formule"}
-                  {currentStep === 4 && "Récapitulatif"}
+                  {currentStep === 2 && "Adresse du logement"}
+                  {currentStep === 3 && "Loyer & Description"}
+                  {currentStep === 4 && "Choix de la formule"}
+                  {currentStep === 5 && "Récapitulatif"}
                 </span>
               </div>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-5 gap-2">
                 <div className={`h-2 transition-all duration-300 ${currentStep >= 1 ? "bg-[#000091]" : "bg-[#EEEEEE]"}`}></div>
                 <div className={`h-2 transition-all duration-300 ${currentStep >= 2 ? "bg-[#000091]" : "bg-[#EEEEEE]"}`}></div>
                 <div className={`h-2 transition-all duration-300 ${currentStep >= 3 ? "bg-[#000091]" : "bg-[#EEEEEE]"}`}></div>
                 <div className={`h-2 transition-all duration-300 ${currentStep >= 4 ? "bg-[#000091]" : "bg-[#EEEEEE]"}`}></div>
+                <div className={`h-2 transition-all duration-300 ${currentStep >= 5 ? "bg-[#000091]" : "bg-[#EEEEEE]"}`}></div>
               </div>
             </div>
 
@@ -228,6 +246,8 @@ export default function NewCampaign() {
                 } else if (currentStep === 3) {
                   handleNext();
                 } else if (currentStep === 4) {
+                  handleNext();
+                } else if (currentStep === 5) {
                   if (adType === "pass" && user?.tier !== "pro") {
                     handlePaymentSubmit(e);
                   } else {
@@ -276,6 +296,45 @@ export default function NewCampaign() {
               )}
 
               {currentStep === 2 && (
+                <div className="space-y-6">
+                  <div>
+                    <label htmlFor="address" className="form-label">
+                      Adresse du logement *
+                    </label>
+                    <input
+                      id="address"
+                      type="text"
+                      required
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      className="form-input"
+                      placeholder="ex: 12 Rue de Rivoli, 75004 Paris"
+                    />
+                    <span className="text-xs text-[#666666] mt-1 block">
+                      Indiquez l&apos;adresse complète du logement pour les visites.
+                    </span>
+                  </div>
+
+                  <div className="flex gap-4 pt-4 border-t border-[#DDDDDD]">
+                    <button
+                      type="button"
+                      onClick={handlePrev}
+                      className="btn-secondary flex-1"
+                    >
+                      Retour
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleNext}
+                      className="btn-primary flex-1"
+                    >
+                      Suivant
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {currentStep === 3 && (
                 <div className="space-y-6">
                   <div>
                     <label htmlFor="rentAmount" className="form-label">
@@ -334,7 +393,7 @@ export default function NewCampaign() {
                 </div>
               )}
 
-              {currentStep === 3 && (
+              {currentStep === 4 && (
                 <div className="space-y-6">
                   {user?.tier === "pro" ? (
                     <div>
@@ -424,7 +483,7 @@ export default function NewCampaign() {
                 </div>
               )}
 
-              {currentStep === 4 && (
+              {currentStep === 5 && (
                 <div className="space-y-6">
                   <div className="border border-[#E3E3FD] bg-[#F5F5FE] p-5 rounded-lg">
                     <h3 className="text-sm font-bold text-[#000091] mb-3 uppercase tracking-wider border-b border-[#E3E3FD] pb-2">
@@ -438,6 +497,10 @@ export default function NewCampaign() {
                       <div>
                         <dt className="text-xs text-[#666666] font-semibold">Loyer mensuel :</dt>
                         <dd className="font-medium text-[#161616]">{rentAmount} €</dd>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <dt className="text-xs text-[#666666] font-semibold">Adresse :</dt>
+                        <dd className="font-medium text-[#161616]">{address}</dd>
                       </div>
                       {description.trim() && (
                         <div className="sm:col-span-2">
