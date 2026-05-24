@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ShieldCheck, Check, CheckCircle, ClipboardCheck, Users, ChevronDown, X, Clock, LayoutDashboard, Lock, Calendar } from "lucide-react";
+import { ShieldCheck, Check, CheckCircle, ClipboardCheck, Users, ChevronDown, X, Clock, LayoutDashboard, Lock, Calendar, PhoneOff } from "lucide-react";
 
 export default function Home() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -72,6 +72,14 @@ export default function Home() {
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Oui. Copiez-collez le lien généré par BailConnect dans vos annonces sur Leboncoin, PAP, SeLoger, Facebook Marketplace ou tout autre support. Les candidats cliquent sur le lien et soumettent leur dossier certifié en quelques minutes."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Comment éviter de recevoir des appels téléphoniques à toute heure de la part des locataires ?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Avec BailConnect, vous n\u2019avez plus besoin d\u2019afficher votre numéro de téléphone sur Leboncoin ou SeLoger. Les candidats postulent via votre lien de candidature unique, vous évitant le harcèlement téléphonique et les spams."
         }
       }
     ]
@@ -163,9 +171,8 @@ export default function Home() {
                 Gérez les candidatures locataires DossierFacile en 10 minutes chrono
               </h1>
               <p className="text-lg text-white mb-8 leading-relaxed max-w-3xl animate-fade-in-up animation-delay-200">
-                Ne subissez plus la pollution d'e-mails et les dizaines de pièces jointes PDF en vrac.
-                Générez un lien de candidature unique à insérer dans vos annonces et recevez des profils complets,
-                <strong> pré-vérifiés par l'État via DossierFacile</strong>.
+                Dites adieu aux e-mails en vrac, les faux documents et les <strong>appels téléphoniques incessants à toute heure</strong>.
+                Protégez vos coordonnées sur Leboncoin et SeLoger : insérez simplement votre lien de candidature unique et recevez des dossiers certifiés et <strong>pré-vérifiés par l'État via DossierFacile</strong>.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto animate-fade-in-up animation-delay-300">
@@ -275,21 +282,21 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Card 3: Dashboard/Tri express (Medium) */}
+              {/* Card 3: Protection coordonnées / Téléphone (Medium) */}
               <div className="md:col-span-1 bg-white border border-[#DDDDDD] p-8 rounded-2xl shadow-xs relative overflow-hidden flex flex-col justify-between hover:shadow-lg hover:-translate-y-1 transition-all duration-300 reveal reveal-delay-100">
                 <div>
-                  <div className="w-12 h-12 bg-[#E6F4EA] text-[#18753C] rounded-2xl flex items-center justify-center border border-[#C2E7CD] mb-6">
-                    <LayoutDashboard className="w-6 h-6" />
+                  <div className="w-12 h-12 bg-[#FFE9E6] text-[#FF4D3A] rounded-2xl flex items-center justify-center border border-[#FFD2CC] mb-6">
+                    <PhoneOff className="w-6 h-6" />
                   </div>
                   <h3 className="text-xl font-bold text-[#161616] mb-3">
-                    Tri et comparaison en 5 minutes
+                    Zéro harcèlement téléphonique
                   </h3>
                   <p className="text-xs md:text-sm text-[#3A3A3A] leading-relaxed">
-                    Comparez instantanément les revenus, les garanties et la situation de tous les candidats sur un tableau de bord standardisé et clair. Plus besoin d'ouvrir chaque dossier individuellement.
+                    Plus besoin de publier votre numéro de téléphone sur Leboncoin ou SeLoger. Évitez les appels intempestifs et le spam à toute heure. Masquez vos coordonnées en toute sérénité.
                   </p>
                 </div>
-                <div className="mt-6 text-xs text-[#666666] font-semibold flex items-center gap-1.5">
-                  <CheckCircle className="w-4 h-4 text-[#18753C]" /> Synthèse visuelle immédiate
+                <div className="mt-6 text-xs text-[#FF4D3A] font-semibold flex items-center gap-1.5">
+                  <CheckCircle className="w-4 h-4 text-[#FF4D3A]" /> Tranquillité d'esprit garantie
                 </div>
               </div>
 
@@ -330,7 +337,7 @@ export default function Home() {
                 Comment centraliser et organiser vos visites en 4 étapes
               </h2>
               <p className="text-base text-[#3A3A3A] max-w-2xl mx-auto">
-                Une gestion complète de vos locations, <br/>du dépôt de dossier jusqu'au rendez-vous de visite.
+                Une gestion complète de vos locations, <br />du dépôt de dossier jusqu'au rendez-vous de visite.
               </p>
             </div>
 
@@ -621,7 +628,7 @@ export default function Home() {
                       <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
                       <span>Toutes les fonctionnalités automatisées</span>
                     </li>
-                                        <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
+                    <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
                       <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
                       <span>Import LeBonCoin / SeLoger</span>
                     </li>
@@ -763,6 +770,27 @@ export default function Home() {
                   <div className="overflow-hidden">
                     <div className="px-6 pb-6 text-sm text-[#3A3A3A] leading-relaxed border-t border-gray-100 pt-4">
                       Oui. Il vous suffit de copier-coller le lien public généré par BailConnect dans la description de vos annonces sur Leboncoin, PAP, SeLoger, Facebook Marketplace, GensdeConfiance, ou par e-mail direct. Les candidats cliquent simplement sur le lien pour soumettre leur candidature.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* FAQ 6 */}
+              <div className="bg-white border border-[#DDDDDD] rounded-2xl hover:border-[#CBCBFC] hover:shadow-sm transition-all duration-300 reveal reveal-delay-500">
+                <button
+                  type="button"
+                  onClick={() => setOpenFaq(openFaq === 5 ? null : 5)}
+                  className="flex items-center justify-between w-full p-6 font-bold text-[#161616] text-left cursor-pointer focus:outline-none"
+                >
+                  <span>Comment éviter de recevoir des appels téléphoniques à toute heure ?</span>
+                  <span className={`transition-transform duration-500 text-[#000091] ${openFaq === 5 ? "rotate-180" : ""}`}>
+                    <ChevronDown className="w-5 h-5" />
+                  </span>
+                </button>
+                <div className={`grid transition-all duration-500 ease-in-out ${openFaq === 5 ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
+                  <div className="overflow-hidden">
+                    <div className="px-6 pb-6 text-sm text-[#3A3A3A] leading-relaxed border-t border-gray-100 pt-4">
+                      En utilisant BailConnect, vous pouvez masquer ou ne pas publier votre numéro de téléphone sur Leboncoin ou SeLoger. Les candidats postulent via votre lien de candidature unique, ce qui bloque le harcèlement téléphonique et les spams à toute heure du jour et de la nuit.
                     </div>
                   </div>
                 </div>
