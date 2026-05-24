@@ -42,6 +42,7 @@ export const createPaidCampaign = internalMutation({
       rentAmount: args.rentAmount,
       address: args.address?.trim(),
       adType: "pass",
+      status: "active",
       stripeSessionId: args.stripeSessionId,
       createdAt: Date.now(),
     });

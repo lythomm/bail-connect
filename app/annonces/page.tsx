@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Toast, { ToastType } from "@/components/Toast";
-import { Trash2, Loader2 } from "lucide-react";
+import { Trash2, Loader2, CheckCircle2 } from "lucide-react";
 import Dialog from "@/components/Dialog";
 
 export default function AnnoncesPage() {
@@ -14,31 +14,31 @@ export default function AnnoncesPage() {
   const campaigns = useQuery(api.campaigns.listWithStats);
   const user = useQuery(api.users.current);
   const router = useRouter();
-  const deleteCampaign = useMutation(api.campaigns.remove);
-  const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const archiveCampaign = useMutation(api.campaigns.archive);
+  const [archiveLoadingId, setArchiveLoadingId] = useState<string | null>(null);
+  const [archiveConfirmId, setArchiveConfirmId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
-  const campaignToDelete = campaigns?.find(c => c._id === deleteConfirmId);
+  const campaignToArchive = campaigns?.find(c => c._id === archiveConfirmId);
 
-  const handleDeleteCampaign = async (id: any) => {
-    setDeleteLoadingId(id);
+  const handleArchiveCampaign = async (id: any) => {
+    setArchiveLoadingId(id);
     try {
-      await deleteCampaign({ id });
+      await archiveCampaign({ id });
       setToast({
-        message: "L'annonce a été clôturée et supprimée avec succès.",
+        message: "L'annonce a été archivée avec succès.",
         type: "success"
       });
-      setDeleteConfirmId(null);
+      setArchiveConfirmId(null);
     } catch (err: any) {
       console.error(err);
       setToast({
-        message: err.message || "Une erreur est survenue lors de la suppression de l'annonce.",
+        message: err.message || "Une erreur est survenue lors de l'archivage de l'annonce.",
         type: "error"
       });
     } finally {
-      setDeleteLoadingId(null);
+      setArchiveLoadingId(null);
     }
   };
 
@@ -182,12 +182,12 @@ export default function AnnoncesPage() {
                     Voir les candidats
                   </Link>
                   <button
-                    onClick={() => setDeleteConfirmId(campaign._id)}
-                    title="Clôturer et supprimer l'annonce"
-                    className="text-xs font-bold text-[#CE0500] hover:bg-[#FCE8E6] border border-[#F8C0BC] px-3 py-2 rounded-sm cursor-pointer transition-all duration-150 flex items-center gap-1.5 focus:outline-none"
+                    onClick={() => setArchiveConfirmId(campaign._id)}
+                    title="Marquer comme loué"
+                    className="text-xs font-bold text-[#18753C] hover:bg-[#E6F3EA] border border-[#B9DFC5] px-3 py-2 rounded-sm cursor-pointer transition-all duration-150 flex items-center gap-1.5 focus:outline-none"
                   >
-                    <Trash2 className="w-3.5 h-3.5 text-[#CE0500]" />
-                    <span>Clôturer</span>
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#18753C]" />
+                    <span>Loué</span>
                   </button>
                 </div>
               </div>
@@ -218,53 +218,53 @@ export default function AnnoncesPage() {
         />
       )}
 
-      {/* Delete Campaign Confirmation Dialog */}
+      {/* Archive Campaign Confirmation Dialog */}
       <Dialog
-        isOpen={deleteConfirmId !== null}
-        onClose={() => setDeleteConfirmId(null)}
-        title="Clôturer l'annonce définitivement ?"
+        isOpen={archiveConfirmId !== null}
+        onClose={() => setArchiveConfirmId(null)}
+        title="J'ai trouvé mon locataire ?"
         size="md"
       >
         <div className="space-y-4">
           <p className="text-sm text-[#475569] leading-relaxed">
-            Êtes-vous sûr de vouloir clôturer définitivement l'annonce <strong>{campaignToDelete?.title}</strong> ?
+            Félicitations ! Souhaitez-vous marquer l'annonce <strong>{campaignToArchive?.title}</strong> comme louée ?
           </p>
-          <div className="bg-[#FFE9E9] border border-[#F8C0BC] p-4 rounded-xl flex items-start gap-3">
-            <Trash2 className="w-5 h-5 text-[#CE0500] shrink-0 mt-0.5" />
+          <div className="bg-[#E6F3EA] border border-[#B9DFC5] p-4 rounded-xl flex items-start gap-3">
+            <CheckCircle2 className="w-5 h-5 text-[#18753C] shrink-0 mt-0.5" />
             <div>
-              <h4 className="text-xs font-bold text-[#CE0500] uppercase tracking-wider">
-                Action irréversible
+              <h4 className="text-xs font-bold text-[#18753C] uppercase tracking-wider">
+                Archivage de l'annonce
               </h4>
-              <p className="text-xs text-[#7A1C1C] mt-1 leading-relaxed">
-                Cette action supprimera définitivement cette annonce ainsi que toutes les candidatures reçues, les créneaux de visite configurés et les rendez-vous associés.
+              <p className="text-xs text-[#1e5a35] mt-1 leading-relaxed">
+                Cette annonce ne sera plus visible publiquement et les candidatures seront fermées.
               </p>
             </div>
           </div>
           <div className="pt-4 border-t border-[#F0F0F0] flex justify-end gap-3">
             <button
               type="button"
-              onClick={() => setDeleteConfirmId(null)}
+              onClick={() => setArchiveConfirmId(null)}
               className="btn-secondary text-xs px-4 py-2 cursor-pointer"
-              disabled={deleteLoadingId !== null}
+              disabled={archiveLoadingId !== null}
             >
               Annuler
             </button>
             <button
               type="button"
               onClick={() => {
-                if (deleteConfirmId) {
-                  handleDeleteCampaign(deleteConfirmId);
+                if (archiveConfirmId) {
+                  handleArchiveCampaign(archiveConfirmId);
                 }
               }}
-              disabled={deleteLoadingId !== null}
-              className="btn-primary text-xs px-4 py-2 cursor-pointer bg-[#CE0500] text-white hover:bg-[#a60400] rounded font-bold flex items-center gap-1.5"
+              disabled={archiveLoadingId !== null}
+              className="btn-primary text-xs px-4 py-2 cursor-pointer bg-[#18753C] text-white hover:bg-[#135c2f] rounded font-bold flex items-center gap-1.5 border border-[#B9DFC5]"
             >
-              {deleteLoadingId !== null ? (
+              {archiveLoadingId !== null ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
-                <Trash2 className="w-3.5 h-3.5" />
+                <CheckCircle2 className="w-3.5 h-3.5" />
               )}
-              <span>Confirmer la clôture</span>
+              <span>Confirmer</span>
             </button>
           </div>
         </div>

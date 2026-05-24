@@ -31,6 +31,7 @@ export default defineSchema({
     rentAmount: v.optional(v.number()), // Monthly rent amount CC (in EUR)
     address: v.optional(v.string()),
     adType: v.optional(v.union(v.literal("free"), v.literal("pass"))),
+    status: v.optional(v.union(v.literal("active"), v.literal("archived"))),
     stripeSessionId: v.optional(v.string()),
     createdAt: v.number(),
   }).index("by_slug", ["slug"])

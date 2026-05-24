@@ -23,11 +23,13 @@ export const list = query({
       return [];
     }
 
-    return await ctx.db
+    const campaigns = await ctx.db
       .query("campaigns")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
       .order("desc")
       .collect();
+
+    return campaigns.filter((c) => c.status !== "archived");
   },
 });
 
@@ -66,7 +68,7 @@ export const getBySlug = query({
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .unique();
 
-    if (!campaign) {
+    if (!campaign || campaign.status === "archived") {
       return null;
     }
 
@@ -112,6 +114,7 @@ export const create = mutation({
       rentAmount: args.rentAmount,
       address: args.address?.trim(),
       adType: args.adType || "free",
+      status: "active",
       createdAt: Date.now(),
     });
 
@@ -136,8 +139,10 @@ export const listWithStats = query({
       .order("desc")
       .collect();
 
+    const activeCampaigns = campaigns.filter((c) => c.status !== "archived");
+
     const results = [];
-    for (const campaign of campaigns) {
+    for (const campaign of activeCampaigns) {
       const candidates = await ctx.db
         .query("candidates")
         .withIndex("by_campaignId", (q) => q.eq("campaignId", campaign._id))
@@ -189,9 +194,9 @@ export const upgradeToPass = mutation({
 });
 
 /**
- * Delete a campaign and all associated candidates, slots, and appointments.
+ * Archive a campaign (mark status as archived).
  */
-export const remove = mutation({
+export const archive = mutation({
   args: { id: v.id("campaigns") },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -208,36 +213,7 @@ export const remove = mutation({
       throw new Error("Unauthorized");
     }
 
-    // 1. Delete appointments associated with the campaign
-    const appointments = await ctx.db
-      .query("appointments")
-      .withIndex("by_campaignId", (q) => q.eq("campaignId", args.id))
-      .collect();
-    for (const appt of appointments) {
-      await ctx.db.delete(appt._id);
-    }
-
-    // 2. Delete slots associated with the campaign
-    const slots = await ctx.db
-      .query("slots")
-      .withIndex("by_campaignId", (q) => q.eq("campaignId", args.id))
-      .collect();
-    for (const slot of slots) {
-      await ctx.db.delete(slot._id);
-    }
-
-    // 3. Delete candidates associated with the campaign
-    const candidates = await ctx.db
-      .query("candidates")
-      .withIndex("by_campaignId", (q) => q.eq("campaignId", args.id))
-      .collect();
-    for (const candidate of candidates) {
-      await ctx.db.delete(candidate._id);
-    }
-
-    // 4. Delete the campaign itself
-    await ctx.db.delete(args.id);
-
+    await ctx.db.patch(args.id, { status: "archived" });
     return { success: true };
   },
 });

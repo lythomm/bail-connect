@@ -108,8 +108,8 @@ export default function CampaignDetail() {
   const updateStatuses = useMutation(api.candidates.updateStatuses);
   const user = useQuery(api.users.current);
   const upgradeCampaign = useMutation(api.campaigns.upgradeToPass);
-  const deleteCampaign = useMutation(api.campaigns.remove);
-  
+  const archiveCampaign = useMutation(api.campaigns.archive);
+
   const allSlots = useQuery(api.appointments.getAllCampaignSlots) || [];
   const createSlotMutation = useMutation(api.appointments.createSlot);
   const deleteSlotMutation = useMutation(api.appointments.deleteSlot);
@@ -119,8 +119,8 @@ export default function CampaignDetail() {
 
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
-  const [deleteLoading, setDeleteLoading] = useState(false);
-  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [archiveLoading, setArchiveLoading] = useState(false);
+  const [isArchiveConfirmOpen, setIsArchiveConfirmOpen] = useState(false);
 
   const [isAddSlotOpen, setIsAddSlotOpen] = useState(false);
   const [newSlotDate, setNewSlotDate] = useState(
@@ -202,24 +202,24 @@ export default function CampaignDetail() {
     }
   };
 
-  const handleDeleteCampaign = async () => {
+  const handleArchiveCampaign = async () => {
     if (!campaignId) return;
-    setDeleteLoading(true);
+    setArchiveLoading(true);
     try {
-      await deleteCampaign({ id: campaignId });
+      await archiveCampaign({ id: campaignId });
       setToast({
-        message: "L'annonce a été clôturée et supprimée avec succès.",
+        message: "L'annonce a été archivée avec succès.",
         type: "success"
       });
-      setIsDeleteConfirmOpen(false);
+      setIsArchiveConfirmOpen(false);
       router.push("/annonces");
     } catch (err: any) {
       console.error(err);
       setToast({
-        message: err.message || "Une erreur est survenue lors de la suppression de l'annonce.",
+        message: err.message || "Une erreur est survenue lors de l'archivage de l'annonce.",
         type: "error"
       });
-      setDeleteLoading(false);
+      setArchiveLoading(false);
     }
   };
 
@@ -318,9 +318,8 @@ export default function CampaignDetail() {
     try {
       await updateStatuses({ ids: idsArray, status: newStatus });
       setToast({
-        message: `${selectedIds.size} candidat(s) mis à jour avec succès : ${
-          newStatus === "accepted" ? "Accepté" : newStatus === "rejected" ? "Refusé" : "En attente"
-        }`,
+        message: `${selectedIds.size} candidat(s) mis à jour avec succès : ${newStatus === "accepted" ? "Accepté" : newStatus === "rejected" ? "Refusé" : "En attente"
+          }`,
         type: "success"
       });
       setSelectedIds(new Set());
@@ -468,11 +467,10 @@ export default function CampaignDetail() {
                   setSelectedIds(new Set(selectableCandidates.map((c) => c._id)));
                 }
               }}
-              className={`h-4 w-4 rounded-md border flex items-center justify-center cursor-pointer transition-all duration-150 ${
-                allSelected || someSelected
+              className={`h-4 w-4 rounded-md border flex items-center justify-center cursor-pointer transition-all duration-150 ${allSelected || someSelected
                   ? "bg-[#000091] border-[#000091] text-white"
                   : "border-[#CBD5E1] bg-white hover:border-[#94A3B8]"
-              }`}
+                }`}
             >
               {allSelected && (
                 <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
@@ -514,11 +512,10 @@ export default function CampaignDetail() {
                   return next;
                 });
               }}
-              className={`h-4 w-4 rounded-md border flex items-center justify-center cursor-pointer transition-all duration-150 ${
-                isChecked
+              className={`h-4 w-4 rounded-md border flex items-center justify-center cursor-pointer transition-all duration-150 ${isChecked
                   ? "bg-[#000091] border-[#000091] text-white"
                   : "border-[#CBD5E1] bg-white hover:border-[#94A3B8]"
-              }`}
+                }`}
             >
               {isChecked && (
                 <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
@@ -632,8 +629,8 @@ export default function CampaignDetail() {
           return <span className="text-[#94A3B8] font-mono select-none">••</span>;
         }
         return (
-          <span className={row.original.hasGuarantor 
-            ? "bg-[#E6F3EA] text-[#18753C] border border-[#B9DFC5] px-2 py-0.5 text-xs font-semibold rounded-md inline-block" 
+          <span className={row.original.hasGuarantor
+            ? "bg-[#E6F3EA] text-[#18753C] border border-[#B9DFC5] px-2 py-0.5 text-xs font-semibold rounded-md inline-block"
             : "bg-[#F8FAFC] text-[#64748B] border border-[#E2E8F0] px-2 py-0.5 text-xs font-semibold rounded-md inline-block"
           }>
             {row.original.hasGuarantor ? "Oui" : "Non"}
@@ -826,12 +823,12 @@ export default function CampaignDetail() {
                 </svg>
               </button>
               <button
-                onClick={() => setIsDeleteConfirmOpen(true)}
-                title="Clôturer et supprimer l'annonce"
-                className="text-xs font-bold text-[#CE0500] hover:text-[#a60400] bg-[#FCE8E6]/60 hover:bg-[#FCE8E6] py-2 px-4 border border-[#F8C0BC] rounded-full cursor-pointer transition-all duration-150 flex items-center gap-1.5 focus:outline-none"
+                onClick={() => setIsArchiveConfirmOpen(true)}
+                title="Marquer comme loué"
+                className="btn-primary text-xs px-4 py-2 cursor-pointer bg-[#18753C] text-white hover:bg-[#135c2f] rounded-lg font-bold flex items-center gap-1.5 border border-[#B9DFC5]"
               >
-                <Trash2 className="w-3.5 h-3.5 text-[#CE0500]" />
-                <span>Clôturer l'annonce</span>
+                <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                <span>J'ai trouvé mon locataire</span>
               </button>
             </div>
           </div>
@@ -864,16 +861,14 @@ export default function CampaignDetail() {
         <div className="flex border-b border-[#E2E8F0] mb-6 gap-6 select-none">
           <button
             onClick={() => setActiveTab("pending")}
-            className={`pb-3 px-1 text-base font-bold transition-all relative cursor-pointer flex items-center ${
-              activeTab !== "visits"
+            className={`pb-3 px-1 text-base font-bold transition-all relative cursor-pointer flex items-center ${activeTab !== "visits"
                 ? "text-[#000091]"
                 : "text-[#64748B] hover:text-[#0F172A]"
-            }`}
+              }`}
           >
             <span>Candidatures</span>
-            <span className={`ml-1.5 text-xs font-semibold px-2 py-0.5 rounded-full ${
-              activeTab !== "visits" ? "bg-[#000091] text-white" : "bg-[#F1F5F9] text-[#64748B]"
-            }`}>
+            <span className={`ml-1.5 text-xs font-semibold px-2 py-0.5 rounded-full ${activeTab !== "visits" ? "bg-[#000091] text-white" : "bg-[#F1F5F9] text-[#64748B]"
+              }`}>
               {counts.all}
             </span>
             {activeTab !== "visits" && (
@@ -882,17 +877,15 @@ export default function CampaignDetail() {
           </button>
           <button
             onClick={() => setActiveTab("visits")}
-            className={`pb-3 px-1 text-base font-bold transition-all relative cursor-pointer flex items-center ${
-              activeTab === "visits"
+            className={`pb-3 px-1 text-base font-bold transition-all relative cursor-pointer flex items-center ${activeTab === "visits"
                 ? "text-[#000091]"
                 : "text-[#64748B] hover:text-[#0F172A]"
-            }`}
+              }`}
           >
             <CalendarRange className="w-4 h-4 mr-2" />
             <span>Visites & Créneaux</span>
-            <span className={`ml-1.5 text-xs font-semibold px-2 py-0.5 rounded-full ${
-              activeTab === "visits" ? "bg-[#000091] text-white" : "bg-[#F1F5F9] text-[#64748B]"
-            }`}>
+            <span className={`ml-1.5 text-xs font-semibold px-2 py-0.5 rounded-full ${activeTab === "visits" ? "bg-[#000091] text-white" : "bg-[#F1F5F9] text-[#64748B]"
+              }`}>
               {campaignSlots.length}
             </span>
             {activeTab === "visits" && (
@@ -922,61 +915,53 @@ export default function CampaignDetail() {
             <div className="flex border border-[#E2E8F0] gap-1.5 overflow-x-auto select-none bg-[#F8FAFC] p-1.5 rounded-xl max-w-max">
               <button
                 onClick={() => setActiveTab("pending")}
-                className={`py-2 px-4 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center shrink-0 border border-transparent ${
-                  activeTab === "pending"
+                className={`py-2 px-4 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center shrink-0 border border-transparent ${activeTab === "pending"
                     ? "bg-white text-[#B35C00] shadow-xs border-[#FFE0C2]/60"
                     : "text-[#64748B] hover:text-[#0F172A] hover:bg-white/50"
-                }`}
+                  }`}
               >
                 <span>En attente de réponse</span>
-                <span className={`ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                  activeTab === "pending" ? "bg-[#B35C00] text-white" : "bg-[#FFF4EC] text-[#B35C00]"
-                }`}>
+                <span className={`ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${activeTab === "pending" ? "bg-[#B35C00] text-white" : "bg-[#FFF4EC] text-[#B35C00]"
+                  }`}>
                   {counts.pending}
                 </span>
               </button>
               <button
                 onClick={() => setActiveTab("accepted")}
-                className={`py-2 px-4 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center shrink-0 border border-transparent ${
-                  activeTab === "accepted"
+                className={`py-2 px-4 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center shrink-0 border border-transparent ${activeTab === "accepted"
                     ? "bg-white text-[#18753C] shadow-xs border-[#B9DFC5]/60"
                     : "text-[#64748B] hover:text-[#0F172A] hover:bg-white/50"
-                }`}
+                  }`}
               >
                 <span>Acceptés</span>
-                <span className={`ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                  activeTab === "accepted" ? "bg-[#18753C] text-white" : "bg-[#E6F3EA] text-[#18753C]"
-                }`}>
+                <span className={`ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${activeTab === "accepted" ? "bg-[#18753C] text-white" : "bg-[#E6F3EA] text-[#18753C]"
+                  }`}>
                   {counts.accepted}
                 </span>
               </button>
               <button
                 onClick={() => setActiveTab("rejected")}
-                className={`py-2 px-4 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center shrink-0 border border-transparent ${
-                  activeTab === "rejected"
+                className={`py-2 px-4 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center shrink-0 border border-transparent ${activeTab === "rejected"
                     ? "bg-white text-[#CE0500] shadow-xs border-[#F8C0BC]/60"
                     : "text-[#64748B] hover:text-[#0F172A] hover:bg-white/50"
-                }`}
+                  }`}
               >
                 <span>Refusés</span>
-                <span className={`ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                  activeTab === "rejected" ? "bg-[#CE0500] text-white" : "bg-[#FCE8E6] text-[#CE0500]"
-                }`}>
+                <span className={`ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${activeTab === "rejected" ? "bg-[#CE0500] text-white" : "bg-[#FCE8E6] text-[#CE0500]"
+                  }`}>
                   {counts.rejected}
                 </span>
               </button>
               <button
                 onClick={() => setActiveTab("all")}
-                className={`py-2 px-4 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center shrink-0 border border-transparent ${
-                  activeTab === "all"
+                className={`py-2 px-4 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center shrink-0 border border-transparent ${activeTab === "all"
                     ? "bg-white text-[#000091] shadow-xs border-[#CBD5E1]/60"
                     : "text-[#64748B] hover:text-[#0F172A] hover:bg-white/50"
-                }`}
+                  }`}
               >
                 <span>Toutes</span>
-                <span className={`ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                  activeTab === "all" ? "bg-[#000091] text-white" : "bg-[#F1F5F9] text-[#64748B]"
-                }`}>
+                <span className={`ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${activeTab === "all" ? "bg-[#000091] text-white" : "bg-[#F1F5F9] text-[#64748B]"
+                  }`}>
                   {counts.all}
                 </span>
               </button>
@@ -1017,11 +1002,10 @@ export default function CampaignDetail() {
                 <button
                   type="button"
                   onClick={() => setActiveDropdown(activeDropdown === "filters" ? null : "filters")}
-                  className={`h-8 flex items-center justify-center gap-1.5 border rounded-lg focus:outline-none cursor-pointer transition-all duration-150 ${
-                    activeFiltersCount > 0
+                  className={`h-8 flex items-center justify-center gap-1.5 border rounded-lg focus:outline-none cursor-pointer transition-all duration-150 ${activeFiltersCount > 0
                       ? "bg-[#E3E3FD] text-[#000091] border-[#000091] shadow-xs px-2.5"
                       : "bg-white text-[#334155] border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-[#F8FAFC] w-8"
-                  }`}
+                    }`}
                   title="Filtrer les candidats"
                 >
                   <Filter className="w-4 h-4" />
@@ -1137,13 +1121,12 @@ export default function CampaignDetail() {
                                     <Clock className="w-3.5 h-3.5 text-[#000091]" />
                                     <span>{startTimeStr} - {endTimeStr}</span>
                                   </div>
-                                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${
-                                    bookedCount >= slot.maxCapacity
+                                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${bookedCount >= slot.maxCapacity
                                       ? "bg-[#FCE8E6] text-[#CE0500] border-[#F8C0BC]"
                                       : bookedCount > 0
                                         ? "bg-[#FFF4EC] text-[#B35C00] border-[#FFE0C2]"
                                         : "bg-[#E6F3EA] text-[#18753C] border-[#B9DFC5]"
-                                  }`}>
+                                    }`}>
                                     {bookedCount} / {slot.maxCapacity} réservé{slot.maxCapacity > 1 ? "s" : ""}
                                   </span>
                                 </div>
@@ -1233,27 +1216,25 @@ export default function CampaignDetail() {
                               onClick={
                                 canSort
                                   ? () => {
-                                      if (!isSorted) {
-                                        header.column.toggleSorting(false, false);
-                                      } else {
-                                        header.column.toggleSorting(isSorted === "asc", false);
-                                      }
+                                    if (!isSorted) {
+                                      header.column.toggleSorting(false, false);
+                                    } else {
+                                      header.column.toggleSorting(isSorted === "asc", false);
                                     }
+                                  }
                                   : undefined
                               }
-                              className={`p-4 text-xs font-bold text-[#475569] uppercase tracking-wider ${alignmentClass} ${
-                                canSort ? "cursor-pointer select-none hover:bg-[#F1F5F9] transition-colors" : ""
-                              }`}
+                              className={`p-4 text-xs font-bold text-[#475569] uppercase tracking-wider ${alignmentClass} ${canSort ? "cursor-pointer select-none hover:bg-[#F1F5F9] transition-colors" : ""
+                                }`}
                             >
                               {header.isPlaceholder ? null : (
                                 <div
-                                  className={`inline-flex items-center gap-1 ${
-                                    alignmentClass === "text-right"
+                                  className={`inline-flex items-center gap-1 ${alignmentClass === "text-right"
                                       ? "justify-end w-full"
                                       : alignmentClass === "text-center"
                                         ? "justify-center w-full"
                                         : ""
-                                  }`}
+                                    }`}
                                 >
                                   <span>{flexRender(header.column.columnDef.header, header.getContext())}</span>
                                   {canSort && (
@@ -1288,9 +1269,8 @@ export default function CampaignDetail() {
                               return next;
                             });
                           }}
-                          className={`text-sm text-[#334155] transition-colors duration-150 border-l-4 border-transparent hover:bg-[#F8FAFC] ${
-                            isLocked ? "cursor-default opacity-85" : activeTab === "pending" ? "cursor-pointer" : "cursor-default"
-                          } ${isSelected ? "bg-[#F8FAFC] border-l-[#000091]" : ""}`}
+                          className={`text-sm text-[#334155] transition-colors duration-150 border-l-4 border-transparent hover:bg-[#F8FAFC] ${isLocked ? "cursor-default opacity-85" : activeTab === "pending" ? "cursor-pointer" : "cursor-default"
+                            } ${isSelected ? "bg-[#F8FAFC] border-l-[#000091]" : ""}`}
                         >
                           {row.getVisibleCells().map((cell) => {
                             let alignmentClass = "text-left";
@@ -1441,49 +1421,49 @@ export default function CampaignDetail() {
           </div>
         </div>
       )}
-      {/* Delete Campaign Confirmation Dialog */}
+      {/* Archive Campaign Confirmation Dialog */}
       <Dialog
-        isOpen={isDeleteConfirmOpen}
-        onClose={() => setIsDeleteConfirmOpen(false)}
-        title="Clôturer l'annonce définitivement ?"
+        isOpen={isArchiveConfirmOpen}
+        onClose={() => setIsArchiveConfirmOpen(false)}
+        title="J'ai trouvé mon locataire ?"
         size="md"
       >
         <div className="space-y-4">
           <p className="text-sm text-[#475569] leading-relaxed">
-            Êtes-vous sûr de vouloir clôturer définitivement l'annonce <strong>{campaign?.title}</strong> ?
+            Félicitations ! Souhaitez-vous marquer l'annonce <strong>{campaign?.title}</strong> comme louée ?
           </p>
-          <div className="bg-[#FFE9E9] border border-[#F8C0BC] p-4 rounded-xl flex items-start gap-3">
-            <Trash2 className="w-5 h-5 text-[#CE0500] shrink-0 mt-0.5" />
+          <div className="bg-[#E6F3EA] border border-[#B9DFC5] p-4 rounded-xl flex items-start gap-3">
+            <CheckCircle2 className="w-5 h-5 text-[#18753C] shrink-0 mt-0.5" />
             <div>
-              <h4 className="text-xs font-bold text-[#CE0500] uppercase tracking-wider">
-                Action irréversible
+              <h4 className="text-xs font-bold text-[#18753C] uppercase tracking-wider">
+                Archivage de l'annonce
               </h4>
-              <p className="text-xs text-[#7A1C1C] mt-1 leading-relaxed">
-                Cette action supprimera définitivement cette annonce ainsi que toutes les candidatures reçues, les créneaux de visite configurés et les rendez-vous associés.
+              <p className="text-xs text-[#1e5a35] mt-1 leading-relaxed">
+                Cette annonce ne sera plus visible publiquement et les candidatures seront fermées.
               </p>
             </div>
           </div>
           <div className="pt-4 border-t border-[#F0F0F0] flex justify-end gap-3">
             <button
               type="button"
-              onClick={() => setIsDeleteConfirmOpen(false)}
+              onClick={() => setIsArchiveConfirmOpen(false)}
               className="btn-secondary text-xs px-4 py-2 cursor-pointer"
-              disabled={deleteLoading}
+              disabled={archiveLoading}
             >
               Annuler
             </button>
             <button
               type="button"
-              onClick={handleDeleteCampaign}
-              disabled={deleteLoading}
-              className="btn-primary text-xs px-4 py-2 cursor-pointer bg-[#CE0500] text-white hover:bg-[#a60400] rounded font-bold flex items-center gap-1.5"
+              onClick={handleArchiveCampaign}
+              disabled={archiveLoading}
+              className="btn-primary text-xs px-4 py-2 cursor-pointer bg-[#18753C] text-white hover:bg-[#135c2f] rounded font-bold flex items-center gap-1.5 border border-[#B9DFC5]"
             >
-              {deleteLoading ? (
+              {archiveLoading ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
-                <Trash2 className="w-3.5 h-3.5" />
+                <CheckCircle2 className="w-3.5 h-3.5" />
               )}
-              <span>Confirmer la clôture</span>
+              <span>Confirmer</span>
             </button>
           </div>
         </div>

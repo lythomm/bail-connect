@@ -145,7 +145,7 @@ export const getBookingPageData = query({
     }
 
     const campaign = await ctx.db.get(candidate.campaignId);
-    if (!campaign) {
+    if (!campaign || campaign.status === "archived") {
       return null;
     }
 
@@ -193,6 +193,11 @@ export const bookAppointment = mutation({
 
     if (candidate.status !== "accepted") {
       throw new Error("Candidate is not accepted for booking");
+    }
+
+    const campaign = await ctx.db.get(candidate.campaignId);
+    if (!campaign || campaign.status === "archived") {
+      throw new Error("Campaign is archived");
     }
 
     const targetSlot = await ctx.db.get(args.slotId);
