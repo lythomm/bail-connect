@@ -23,6 +23,49 @@ export const createCheckoutSession = action({
       throw new Error("Unauthorized");
     }
 
+    if (!STRIPE_SECRET_KEY) {
+      throw new Error("Stripe Secret Key is not configured on the server.");
+    }
+
+    const user = await ctx.runQuery(api.users.current);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    let stripeCustomerId = (user as any).stripeCustomerId;
+    if (!stripeCustomerId) {
+      const customerParams = new URLSearchParams();
+      if (user.email) {
+        customerParams.append("email", user.email);
+      }
+      if (user.name) {
+        customerParams.append("name", user.name);
+      }
+
+      const customerResponse = await fetch("https://api.stripe.com/v1/customers", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${STRIPE_SECRET_KEY}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: customerParams.toString(),
+      });
+
+      if (!customerResponse.ok) {
+        const errText = await customerResponse.text();
+        console.error("Stripe customer creation error:", errText);
+        throw new Error(`Failed to create Stripe customer: ${customerResponse.statusText}`);
+      }
+
+      const customerData = await customerResponse.json();
+      stripeCustomerId = customerData.id;
+
+      await ctx.runMutation((internal as any).stripeMutations.updateStripeCustomerId, {
+        userId,
+        stripeCustomerId,
+      });
+    }
+
     const siteUrl = process.env.SITE_URL || "http://localhost:3000";
     let successUrl = "";
     let cancelUrl = "";
@@ -66,14 +109,11 @@ export const createCheckoutSession = action({
       cancelUrl = `${siteUrl}/profile?canceled=true`;
     }
 
-    if (!STRIPE_SECRET_KEY) {
-      throw new Error("Stripe Secret Key is not configured on the server.");
-    }
-
     const params = new URLSearchParams();
     params.append("success_url", successUrl);
     params.append("cancel_url", cancelUrl);
     params.append("mode", mode);
+    params.append("customer", stripeCustomerId);
     params.append("line_items[0][price]", priceId);
     params.append("line_items[0][quantity]", "1");
 
@@ -85,6 +125,7 @@ export const createCheckoutSession = action({
       // Exclut MB WAY, Bancontact, Satispay et EPS. Seule la carte autorisée pour abonnement.
       params.append("payment_method_types[0]", "card");
     }
+    params.append("allow_promotion_codes", "true");
     
     for (const [key, value] of Object.entries(metadata)) {
       params.append(`metadata[${key}]`, value);
