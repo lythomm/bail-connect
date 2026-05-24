@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
@@ -9,6 +9,7 @@ import Link from "next/link";
 
 export default function CheckoutSuccessPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const verifySession = useAction(api.stripe.verifySession);
 
   const sessionId = searchParams.get("session_id");
@@ -57,6 +58,12 @@ export default function CheckoutSuccessPage() {
     performVerification();
   }, [sessionId, directCampaignId, verifySession]);
 
+  useEffect(() => {
+    if (status === "success") {
+      router.replace(campaignId ? `/dashboard/campaigns/${campaignId}` : "/annonces");
+    }
+  }, [status, campaignId, router]);
+
   return (
     <div className="flex-1 flex items-center justify-center min-h-screen bg-[#F6F6F6] px-6">
       <div className="max-w-md w-full bg-white border border-[#E2E8F0] shadow-xl rounded-2xl p-8 text-center space-y-6">
@@ -78,23 +85,8 @@ export default function CheckoutSuccessPage() {
             <div>
               <h1 className="text-xl font-bold text-[#18753C]">Annonce créée avec succès !</h1>
               <p className="text-sm text-[#666666] mt-2 max-w-xs mx-auto">
-                Votre annonce est en ligne. Que souhaitez-vous faire maintenant ?
+                Vous allez être redirigé vers votre annonce.
               </p>
-            </div>
-
-            <div className="pt-4 flex flex-col gap-3 w-full">
-              <Link
-                href="/calendar"
-                className="btn-primary w-full text-center justify-center text-sm py-2.5 rounded-xl flex items-center gap-2"
-              >
-                Configurer mes créneaux de visite
-              </Link>
-              <Link
-                href={campaignId ? `/dashboard/campaigns/${campaignId}` : "/annonces"}
-                className="btn-secondary w-full text-center justify-center text-xs py-2.5 rounded-xl"
-              >
-                Plus tard, voir mon annonce
-              </Link>
             </div>
           </div>
         )}
