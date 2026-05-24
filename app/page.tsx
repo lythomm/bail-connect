@@ -406,62 +406,57 @@ export default function Home() {
             </div>
           </div>
         </section>
-        {/* DossierFacile and State integration section */}
-        <section id="dossier-facile" className="bg-[#F5F5FE] border-b border-[#DDDDDD] py-16 px-6">
-          <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
 
-            <div className="md:col-span-8 flex flex-col items-start text-left reveal">
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#161616] leading-tight mb-4">
-                DossierFacile : L'assurance d'un dossier locataire certifié et sécurisé
-              </h2>
-
-              <p className="text-sm sm:text-base text-[#3A3A3A] mb-6 leading-relaxed">
-                <strong>DossierFacile</strong> est le service public officiel de l'État (Ministère du Logement) destiné à simplifier la recherche de location.
-                Des agents de l'État qualifiés ouvrent et vérifient minutieusement chaque pièce justificative déposée par les locataires.
-                Ils s'assurent de la validité de l'avis d'impôt en le croisant avec les bases de la DGFIP, vérifient l'identité et valident la cohérence du contrat de travail.
-              </p>
-
-              <div className="gov-callout gov-callout-info mb-0 w-full text-sm">
-                <h4 className="font-bold text-[#000091] mb-1">Comment BailConnect utilise ce service :</h4>
-                <p className="text-xs text-[#3A3A3A] leading-relaxed">
-                  BailConnect n'est pas un site de stockage de documents d'identité. Notre service extrait de manière sécurisée les indicateurs clefs validés par DossierFacile (nature du contrat de travail, montant des revenus certifiés, garant) et vous fournit le lien officiel de consultation. C'est l'assurance d'une conformité légale totale vis-à-vis du RGPD pour le bailleur.
+        {/* Section Locataire dédiée */}
+        <section id="espace-locataire" className="bg-[#F5F5FE] border-b border-[#DDDDDD] py-20 px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="bg-white border border-[#E3E3FD] rounded-3xl p-8 md:p-12 shadow-xs relative overflow-hidden flex flex-col lg:flex-row items-center gap-8 md:gap-12 reveal">
+              {/* Left Column: Description & Info */}
+              <div className="space-y-6 flex-1 text-left">
+                <span className="inline-flex items-center justify-center bg-[#E3E3FD] border border-[#CBCBFC] text-[#000091] text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                  Espace Locataire / Candidat
+                </span>
+                <h2 className="text-3xl md:text-4xl font-extrabold text-[#161616] tracking-tight leading-tight">
+                  Vous souhaitez candidater pour un logement ?
+                </h2>
+                <p className="text-sm md:text-base text-[#3A3A3A] leading-relaxed">
+                  Si un propriétaire vous a communiqué un <strong>code de candidature à 6 chiffres</strong>, accédez à notre portail de saisie pour déposer votre dossier DossierFacile sécurisé en quelques instants.
                 </p>
-              </div>
-            </div>
 
-            <div className="md:col-span-4 flex justify-center">
-              {/* Elegant visual box representing official credentials */}
-              <div className="bg-white border border-[#E3E3FD] p-6 w-full max-w-[280px] shadow-sm flex flex-col items-center text-center rounded-2xl reveal reveal-delay-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-                <div className="h-14 w-14 rounded-full bg-[#E3E3FD] text-[#000091] flex items-center justify-center font-bold text-xl mb-4">
-                  DF
-                </div>
-                <span className="font-bold text-[#161616] text-sm block mb-1">DossierFacile.fr</span>
-                <span className="text-xs text-[#666666] block mb-4">Service Public officiel de l'État</span>
-                <div className="border-t border-[#E3E3FD] pt-4 w-full text-xs text-[#3A3A3A]">
-                  <div className="flex justify-between py-1 border-b border-gray-100">
-                    <span>Avis d'impôt</span>
-                    <span className="font-bold text-[#18753C]">Validé ✓</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle className="w-5 h-5 text-[#18753C] shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-xs font-bold text-[#161616]">Zéro usurpation d'identité</h4>
+                      <p className="text-[11px] text-[#666666]">Vos documents sont automatiquement filigranés par l'État.</p>
+                    </div>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-gray-100">
-                    <span>Bulletins salaire</span>
-                    <span className="font-bold text-[#18753C]">Vérifiés ✓</span>
-                  </div>
-                  <div className="flex justify-between py-1">
-                    <span>Justificatif Garant</span>
-                    <span className="font-bold text-[#18753C]">Certifié ✓</span>
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle className="w-5 h-5 text-[#18753C] shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-xs font-bold text-[#161616]">Un dossier unique</h4>
+                      <p className="text-[11px] text-[#666666]">Valable sur toutes les annonces de location de France.</p>
+                    </div>
                   </div>
                 </div>
-                <a
-                  href="https://www.dossierfacile.logement.gouv.fr/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs font-bold text-[#000091] hover:underline mt-4 block"
+              </div>
+
+              {/* Right Column: CTA */}
+              <div className="w-full lg:w-96 bg-[#F8FAFC] border border-[#E2E8F0] p-8 rounded-2xl shadow-sm text-center flex flex-col items-center justify-center">
+                <h3 className="text-base font-bold text-[#161616] mb-2">
+                  Dépôt de candidature
+                </h3>
+                <p className="text-xs text-[#666666] mb-6 leading-relaxed">
+                  Cliquez ci-dessous pour saisir votre code à 6 chiffres et accéder directement à l'annonce du propriétaire.
+                </p>
+                <Link
+                  href="/apply"
+                  className="btn-primary w-full h-12 flex items-center justify-center font-bold text-base cursor-pointer bg-[#000091] text-white hover:bg-[#0b0b7d]"
                 >
-                  Visiter DossierFacile ↗
-                </a>
+                  Saisir le code
+                </Link>
               </div>
             </div>
-
           </div>
         </section>
 

@@ -96,11 +96,11 @@ export default function Navbar() {
             Comment ça marche
           </Link>
           <Link
-            href="/#dossier-facile"
-            onClick={(e) => handleScroll(e, "dossier-facile")}
+            href="/#espace-locataire"
+            onClick={(e) => handleScroll(e, "espace-locataire")}
             className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors"
           >
-            DossierFacile
+            Locataires
           </Link>
           <Link
             href="/#tarifs"
@@ -148,9 +148,17 @@ export default function Navbar() {
             <span className="hidden sm:inline">Se déconnecter</span>
           </button>
         ) : (
-          <Link href="/signin" className="btn-primary text-sm h-9 flex items-center">
-            Se connecter
-          </Link>
+          <>
+            <Link
+              href="/apply"
+              className="btn-secondary text-sm h-9 flex items-center cursor-pointer"
+            >
+              Je suis locataire
+            </Link>
+            <Link href="/signin" className="btn-primary text-sm h-9 flex items-center cursor-pointer">
+              Se connecter
+            </Link>
+          </>
         )}
       </div>
     </header>

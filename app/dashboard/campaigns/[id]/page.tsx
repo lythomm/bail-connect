@@ -1585,7 +1585,7 @@ export default function CampaignDetail() {
                 <>
                   <div className="text-center bg-[#F5F5FE] border border-[#E3E3FD] p-5 rounded-xl space-y-2">
                     <span className="text-[10px] font-bold text-[#000091] uppercase tracking-wider block">
-                      Code Candidature Unique
+                      Code de l'annonce
                     </span>
                     <div className="text-3xl font-mono font-bold tracking-widest text-[#000091] bg-white border border-[#E3E3FD] py-2.5 px-6 rounded-lg inline-block select-all">
                       {campaign.code}

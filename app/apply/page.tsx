@@ -122,9 +122,9 @@ export default function ApplyIndexPage() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <span className="form-label font-bold text-[#161616] mb-4 block text-center">
-                    Code de candidature
+                    Code de l'annonce
                   </span>
-                  
+
                   <div className="flex justify-between items-center gap-1.5 sm:gap-2 max-w-sm mx-auto my-4">
                     {otp.map((digit, index) => (
                       <input
@@ -157,7 +157,7 @@ export default function ApplyIndexPage() {
                   disabled={loading}
                   className="btn-primary w-full h-12 flex items-center justify-center font-bold text-base cursor-pointer"
                 >
-                  {loading ? "Recherche de l'annonce..." : "Accéder au dossier"}
+                  {loading ? "Recherche de l'annonce..." : "Accéder à l'annonce"}
                 </button>
               </form>
 
