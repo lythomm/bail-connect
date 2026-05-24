@@ -107,6 +107,7 @@ export default function CampaignDetail() {
   const updateStatuses = useMutation(api.candidates.updateStatuses);
   const user = useQuery(api.users.current);
   const upgradeCampaign = useMutation(api.campaigns.upgradeToPass);
+  const deleteCampaign = useMutation(api.campaigns.remove);
   
   const allSlots = useQuery(api.appointments.getAllCampaignSlots) || [];
   const createSlotMutation = useMutation(api.appointments.createSlot);
@@ -117,6 +118,8 @@ export default function CampaignDetail() {
 
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
   const [isAddSlotOpen, setIsAddSlotOpen] = useState(false);
   const [newSlotDate, setNewSlotDate] = useState(
@@ -195,6 +198,27 @@ export default function CampaignDetail() {
         type: "error",
       });
       setModalLoading(false);
+    }
+  };
+
+  const handleDeleteCampaign = async () => {
+    if (!campaignId) return;
+    setDeleteLoading(true);
+    try {
+      await deleteCampaign({ id: campaignId });
+      setToast({
+        message: "L'annonce a été clôturée et supprimée avec succès.",
+        type: "success"
+      });
+      setIsDeleteConfirmOpen(false);
+      router.push("/annonces");
+    } catch (err: any) {
+      console.error(err);
+      setToast({
+        message: err.message || "Une erreur est survenue lors de la suppression de l'annonce.",
+        type: "error"
+      });
+      setDeleteLoading(false);
     }
   };
 
@@ -782,7 +806,7 @@ export default function CampaignDetail() {
                 <p className="text-sm text-[#475569] max-w-3xl leading-relaxed">{campaign.description}</p>
               )}
             </div>
-            <div className="shrink-0 self-start">
+            <div className="shrink-0 self-start flex flex-wrap gap-2">
               <button
                 onClick={handleCopyApplyUrl}
                 title="Copier le lien de candidature"
@@ -793,6 +817,14 @@ export default function CampaignDetail() {
                   <rect x="9" y="9" width="13" height="13" rx="1.5" ry="1.5" />
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                 </svg>
+              </button>
+              <button
+                onClick={() => setIsDeleteConfirmOpen(true)}
+                title="Clôturer et supprimer l'annonce"
+                className="text-xs font-bold text-[#CE0500] hover:text-[#a60400] bg-[#FCE8E6]/60 hover:bg-[#FCE8E6] py-2 px-4 border border-[#F8C0BC] rounded-full cursor-pointer transition-all duration-150 flex items-center gap-1.5 focus:outline-none"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-[#CE0500]" />
+                <span>Clôturer l'annonce</span>
               </button>
             </div>
           </div>
@@ -1402,6 +1434,54 @@ export default function CampaignDetail() {
           </div>
         </div>
       )}
+      {/* Delete Campaign Confirmation Dialog */}
+      <Dialog
+        isOpen={isDeleteConfirmOpen}
+        onClose={() => setIsDeleteConfirmOpen(false)}
+        title="Clôturer l'annonce définitivement ?"
+        size="md"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-[#475569] leading-relaxed">
+            Êtes-vous sûr de vouloir clôturer définitivement l'annonce <strong>{campaign?.title}</strong> ?
+          </p>
+          <div className="bg-[#FFE9E9] border border-[#F8C0BC] p-4 rounded-xl flex items-start gap-3">
+            <Trash2 className="w-5 h-5 text-[#CE0500] shrink-0 mt-0.5" />
+            <div>
+              <h4 className="text-xs font-bold text-[#CE0500] uppercase tracking-wider">
+                Action irréversible
+              </h4>
+              <p className="text-xs text-[#7A1C1C] mt-1 leading-relaxed">
+                Cette action supprimera définitivement cette annonce ainsi que toutes les candidatures reçues, les créneaux de visite configurés et les rendez-vous associés.
+              </p>
+            </div>
+          </div>
+          <div className="pt-4 border-t border-[#F0F0F0] flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => setIsDeleteConfirmOpen(false)}
+              className="btn-secondary text-xs px-4 py-2 cursor-pointer"
+              disabled={deleteLoading}
+            >
+              Annuler
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteCampaign}
+              disabled={deleteLoading}
+              className="btn-primary text-xs px-4 py-2 cursor-pointer bg-[#CE0500] text-white hover:bg-[#a60400] rounded font-bold flex items-center gap-1.5"
+            >
+              {deleteLoading ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Trash2 className="w-3.5 h-3.5" />
+              )}
+              <span>Confirmer la clôture</span>
+            </button>
+          </div>
+        </div>
+      </Dialog>
+
       {/* Slot creation Dialog */}
       <Dialog
         isOpen={isAddSlotOpen}

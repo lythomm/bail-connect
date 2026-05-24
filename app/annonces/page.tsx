@@ -1,19 +1,46 @@
 "use client";
 
-import { useQuery, useConvexAuth } from "convex/react";
+import { useQuery, useConvexAuth, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Toast, { ToastType } from "@/components/Toast";
+import { Trash2, Loader2 } from "lucide-react";
+import Dialog from "@/components/Dialog";
 
 export default function AnnoncesPage() {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const campaigns = useQuery(api.campaigns.listWithStats);
   const user = useQuery(api.users.current);
   const router = useRouter();
+  const deleteCampaign = useMutation(api.campaigns.remove);
+  const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+
+  const campaignToDelete = campaigns?.find(c => c._id === deleteConfirmId);
+
+  const handleDeleteCampaign = async (id: any) => {
+    setDeleteLoadingId(id);
+    try {
+      await deleteCampaign({ id });
+      setToast({
+        message: "L'annonce a été clôturée et supprimée avec succès.",
+        type: "success"
+      });
+      setDeleteConfirmId(null);
+    } catch (err: any) {
+      console.error(err);
+      setToast({
+        message: err.message || "Une erreur est survenue lors de la suppression de l'annonce.",
+        type: "error"
+      });
+    } finally {
+      setDeleteLoadingId(null);
+    }
+  };
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -154,6 +181,14 @@ export default function AnnoncesPage() {
                   >
                     Voir les candidats
                   </Link>
+                  <button
+                    onClick={() => setDeleteConfirmId(campaign._id)}
+                    title="Clôturer et supprimer l'annonce"
+                    className="text-xs font-bold text-[#CE0500] hover:bg-[#FCE8E6] border border-[#F8C0BC] px-3 py-2 rounded-sm cursor-pointer transition-all duration-150 flex items-center gap-1.5 focus:outline-none"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-[#CE0500]" />
+                    <span>Clôturer</span>
+                  </button>
                 </div>
               </div>
             ))}
@@ -182,6 +217,58 @@ export default function AnnoncesPage() {
           onClose={() => setToast(null)}
         />
       )}
+
+      {/* Delete Campaign Confirmation Dialog */}
+      <Dialog
+        isOpen={deleteConfirmId !== null}
+        onClose={() => setDeleteConfirmId(null)}
+        title="Clôturer l'annonce définitivement ?"
+        size="md"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-[#475569] leading-relaxed">
+            Êtes-vous sûr de vouloir clôturer définitivement l'annonce <strong>{campaignToDelete?.title}</strong> ?
+          </p>
+          <div className="bg-[#FFE9E9] border border-[#F8C0BC] p-4 rounded-xl flex items-start gap-3">
+            <Trash2 className="w-5 h-5 text-[#CE0500] shrink-0 mt-0.5" />
+            <div>
+              <h4 className="text-xs font-bold text-[#CE0500] uppercase tracking-wider">
+                Action irréversible
+              </h4>
+              <p className="text-xs text-[#7A1C1C] mt-1 leading-relaxed">
+                Cette action supprimera définitivement cette annonce ainsi que toutes les candidatures reçues, les créneaux de visite configurés et les rendez-vous associés.
+              </p>
+            </div>
+          </div>
+          <div className="pt-4 border-t border-[#F0F0F0] flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => setDeleteConfirmId(null)}
+              className="btn-secondary text-xs px-4 py-2 cursor-pointer"
+              disabled={deleteLoadingId !== null}
+            >
+              Annuler
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (deleteConfirmId) {
+                  handleDeleteCampaign(deleteConfirmId);
+                }
+              }}
+              disabled={deleteLoadingId !== null}
+              className="btn-primary text-xs px-4 py-2 cursor-pointer bg-[#CE0500] text-white hover:bg-[#a60400] rounded font-bold flex items-center gap-1.5"
+            >
+              {deleteLoadingId !== null ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Trash2 className="w-3.5 h-3.5" />
+              )}
+              <span>Confirmer la clôture</span>
+            </button>
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 }

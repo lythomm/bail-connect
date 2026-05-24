@@ -185,4 +185,59 @@ export const upgradeToPass = mutation({
   },
 });
 
+/**
+ * Delete a campaign and all associated candidates, slots, and appointments.
+ */
+export const remove = mutation({
+  args: { id: v.id("campaigns") },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Unauthorized");
+    }
+
+    const campaign = await ctx.db.get(args.id);
+    if (!campaign) {
+      throw new Error("Campaign not found");
+    }
+
+    if (campaign.userId !== userId) {
+      throw new Error("Unauthorized");
+    }
+
+    // 1. Delete appointments associated with the campaign
+    const appointments = await ctx.db
+      .query("appointments")
+      .withIndex("by_campaignId", (q) => q.eq("campaignId", args.id))
+      .collect();
+    for (const appt of appointments) {
+      await ctx.db.delete(appt._id);
+    }
+
+    // 2. Delete slots associated with the campaign
+    const slots = await ctx.db
+      .query("slots")
+      .withIndex("by_campaignId", (q) => q.eq("campaignId", args.id))
+      .collect();
+    for (const slot of slots) {
+      await ctx.db.delete(slot._id);
+    }
+
+    // 3. Delete candidates associated with the campaign
+    const candidates = await ctx.db
+      .query("candidates")
+      .withIndex("by_campaignId", (q) => q.eq("campaignId", args.id))
+      .collect();
+    for (const candidate of candidates) {
+      await ctx.db.delete(candidate._id);
+    }
+
+    // 4. Delete the campaign itself
+    await ctx.db.delete(args.id);
+
+    return { success: true };
+  },
+});
+
+
 
