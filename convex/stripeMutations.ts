@@ -137,3 +137,22 @@ export const updateStripeCustomerId = internalMutation({
   },
 });
 
+export const markCouponAsUsed = internalMutation({
+  args: {
+    userId: v.id("users"),
+    couponId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    const usedCoupons = user.usedCoupons || [];
+    if (!usedCoupons.includes(args.couponId)) {
+      await ctx.db.patch(args.userId, {
+        usedCoupons: [...usedCoupons, args.couponId],
+      });
+    }
+  },
+});
+

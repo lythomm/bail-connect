@@ -15,7 +15,7 @@ export default function NewCampaign() {
   const createCheckoutSession = useAction(api.stripe.createCheckoutSession);
   const router = useRouter();
   const campaigns = useQuery(api.campaigns.list, isAuthenticated ? {} : "skip");
-  
+
   // Form states
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -24,10 +24,10 @@ export default function NewCampaign() {
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   const hasFreeCampaign = campaigns?.some(c => c.adType === "free" || !c.adType) ?? false;
-  
+
   // Stepper states
   const [currentStep, setCurrentStep] = useState(1);
-  
+
   // Status states
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -168,7 +168,7 @@ export default function NewCampaign() {
       <main className="flex-1 max-w-2xl w-full mx-auto px-6 py-8">
         {/* Retour button */}
         <button
-          onClick={() => router.back()}
+          onClick={() => router.replace("/annonces")}
           className="inline-flex items-center gap-2 text-sm text-[#000091] hover:text-[#0b0b7d] font-medium mb-5 group transition-colors focus:outline-none cursor-pointer"
         >
           <svg
@@ -357,11 +357,10 @@ export default function NewCampaign() {
                         {/* Free Tier card */}
                         <div
                           onClick={() => setAdType("free")}
-                          className={`border rounded-xl p-4 cursor-pointer transition-all flex flex-col justify-between h-full select-none ${
-                            adType === "free"
+                          className={`border rounded-xl p-4 cursor-pointer transition-all flex flex-col justify-between h-full select-none ${adType === "free"
                               ? "border-[#000091] bg-[#F5F5FE]/40 ring-1 ring-[#000091]"
                               : "border-[#DDDDDD] hover:border-[#000091]"
-                          }`}
+                            }`}
                         >
                           <div>
                             <div className="flex justify-between items-start mb-2">
@@ -382,11 +381,10 @@ export default function NewCampaign() {
                         {/* Premium Tier card */}
                         <div
                           onClick={() => setAdType("pass")}
-                          className={`border rounded-xl p-4 cursor-pointer transition-all flex flex-col justify-between h-full select-none ${
-                            adType === "pass"
+                          className={`border rounded-xl p-4 cursor-pointer transition-all flex flex-col justify-between h-full select-none ${adType === "pass"
                               ? "border-[#000091] bg-[#F5F5FE]/40 ring-1 ring-[#000091]"
                               : "border-[#DDDDDD] hover:border-[#000091]"
-                          }`}
+                            }`}
                         >
                           <div>
                             <div className="flex justify-between items-start mb-2">
@@ -453,8 +451,8 @@ export default function NewCampaign() {
                           {user?.tier === "pro"
                             ? "Pass Annonce (Inclus avec l'Abonnement Pro)"
                             : adType === "free"
-                            ? "Annonce Gratuite"
-                            : "Pass Annonce (19 €)"}
+                              ? "Annonce Gratuite"
+                              : "Pass Annonce (19 €)"}
                         </dd>
                       </div>
                     </dl>

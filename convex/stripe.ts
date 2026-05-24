@@ -6,6 +6,7 @@ import { api, internal } from "./_generated/api";
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const PASS_PRICE_ID = "price_1TaBcm3nf3q37Shxy8Jj8ulQ";
 const PRO_PRICE_ID = "price_1TaBcq3nf3q37ShxV6bD29Ss";
+const ONE_TIME_COUPONS = ["TluNqzID"];
 
 export const createCheckoutSession = action({
   args: {
@@ -125,7 +126,9 @@ export const createCheckoutSession = action({
       // Exclut MB WAY, Bancontact, Satispay et EPS. Seule la carte autorisée pour abonnement.
       params.append("payment_method_types[0]", "card");
     }
-    params.append("allow_promotion_codes", "true");
+    const hasUsedBetaTesteur = user.usedCoupons?.includes("TluNqzID");
+    const allowPromotionCodes = hasUsedBetaTesteur ? "false" : "true";
+    params.append("allow_promotion_codes", allowPromotionCodes);
     
     for (const [key, value] of Object.entries(metadata)) {
       params.append(`metadata[${key}]`, value);
@@ -168,7 +171,7 @@ export const verifySession = action({
       throw new Error("Stripe Secret Key is not configured on the server.");
     }
 
-    const response = await fetch(`https://api.stripe.com/v1/checkout/sessions/${args.sessionId}`, {
+    const response = await fetch(`https://api.stripe.com/v1/checkout/sessions/${args.sessionId}?expand%5B%5D=discounts.promotion_code`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${STRIPE_SECRET_KEY}`,
@@ -184,6 +187,24 @@ export const verifySession = action({
     const session = await response.json();
     if (session.payment_status !== "paid") {
       return { success: false, error: "Payment not completed" };
+    }
+
+    // Check if a one-time coupon was used
+    const sessionDiscounts = session.discounts || [];
+    let appliedCouponId: string | undefined = undefined;
+    for (const d of sessionDiscounts) {
+      const promoCode = d.promotion_code;
+      if (promoCode && typeof promoCode === "object") {
+        appliedCouponId = promoCode.promotion?.coupon || undefined;
+        break;
+      }
+    }
+
+    if (appliedCouponId && ONE_TIME_COUPONS.includes(appliedCouponId)) {
+      const user = await ctx.runQuery(api.users.current);
+      if (user?.usedCoupons?.includes(appliedCouponId)) {
+        return { success: false, error: "Ce code promo a déjà été utilisé." };
+      }
     }
 
     const metadata = session.metadata || {};
@@ -207,6 +228,10 @@ export const verifySession = action({
         stripeSessionId: args.sessionId,
       });
 
+      if (appliedCouponId) {
+        await ctx.runMutation((internal as any).stripeMutations.markCouponAsUsed, { userId, couponId: appliedCouponId });
+      }
+
       return { success: true, type: "pass", campaignId };
     } else if (type === "upgrade_campaign") {
       const campaignId = metadata.campaignId;
@@ -214,6 +239,11 @@ export const verifySession = action({
         campaignId,
         stripeSessionId: args.sessionId,
       });
+
+      if (appliedCouponId) {
+        await ctx.runMutation((internal as any).stripeMutations.markCouponAsUsed, { userId, couponId: appliedCouponId });
+      }
+
       return { success: true, type: "upgrade_campaign", campaignId };
     } else if (type === "pro") {
       const subscriptionId = session.subscription || undefined;
@@ -303,3 +333,5 @@ export const cancelSubscription = action({
     return { success: true };
   },
 });
+
+

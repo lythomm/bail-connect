@@ -19,6 +19,7 @@ export default defineSchema({
     stripeSessionId: v.optional(v.string()),
     stripeSubscriptionId: v.optional(v.string()),
     stripeCustomerId: v.optional(v.string()),
+    usedCoupons: v.optional(v.array(v.string())),
   }).index("email", ["email"])
     .index("phone", ["phone"]),
 
