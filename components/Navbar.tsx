@@ -5,7 +5,7 @@ import { useConvexAuth } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { LogOut, LayoutDashboard, Building, Calendar, User } from "lucide-react";
+import { LogOut, LayoutDashboard, Building, Calendar, User, X } from "lucide-react";
 
 export default function Navbar() {
   const { isAuthenticated } = useConvexAuth();
@@ -14,6 +14,22 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const [shouldSignOut, setShouldSignOut] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobileMenuOpen]);
 
   const excludedPaths = ["/signin", "/cgu", "/cgv", "/confidentialite", "/mentions-legales"];
   const isExcluded =
@@ -149,19 +165,144 @@ export default function Navbar() {
           </button>
         ) : (
           <>
-            <Link
-              href="/apply"
-              className="btn-secondary text-sm h-9 flex items-center cursor-pointer"
+            <div className="hidden md:flex items-center gap-3">
+              <Link
+                href="/apply"
+                className="btn-secondary text-sm h-9 flex items-center cursor-pointer"
+              >
+                Je suis locataire
+              </Link>
+              <Link href="/signin" className="btn-primary text-sm h-9 flex items-center cursor-pointer">
+                Se connecter
+              </Link>
+            </div>
+
+            {/* Hamburger button on mobile */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden flex items-center justify-center p-2 rounded-md hover:bg-[#F5F5FE] text-[#000091] focus:outline-none cursor-pointer"
+              aria-label="Toggle menu"
             >
-              Je suis locataire
-            </Link>
-            <Link href="/signin" className="btn-primary text-sm h-9 flex items-center cursor-pointer">
-              Se connecter
-            </Link>
+              {isMobileMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
           </>
         )}
       </div>
     </header>
+
+    {/* Fullscreen Mobile Menu Overlay */}
+    {!isAuthenticated && (
+      <div
+        className={`fixed inset-x-0 bottom-0 top-16 bg-white z-40 flex flex-col justify-between px-6 py-8 md:hidden transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          isMobileMenuOpen
+            ? "opacity-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 -translate-y-4 pointer-events-none"
+        }`}
+      >
+        <nav className="flex flex-col gap-6 text-left">
+          <Link
+            href="/#comparatif"
+            onClick={(e) => {
+              setIsMobileMenuOpen(false);
+              handleScroll(e, "comparatif");
+            }}
+            className={`text-lg font-bold text-[#161616] hover:text-[#000091] py-1 transition-all duration-500 ${
+              isMobileMenuOpen
+                ? "opacity-100 translate-x-0 delay-[75ms]"
+                : "opacity-0 -translate-x-4"
+            }`}
+          >
+            Pourquoi nous ?
+          </Link>
+          <Link
+            href="/#fonctionnement"
+            onClick={(e) => {
+              setIsMobileMenuOpen(false);
+              handleScroll(e, "fonctionnement");
+            }}
+            className={`text-lg font-bold text-[#161616] hover:text-[#000091] py-1 transition-all duration-500 ${
+              isMobileMenuOpen
+                ? "opacity-100 translate-x-0 delay-[125ms]"
+                : "opacity-0 -translate-x-4"
+            }`}
+          >
+            Comment ça marche
+          </Link>
+          <Link
+            href="/#espace-locataire"
+            onClick={(e) => {
+              setIsMobileMenuOpen(false);
+              handleScroll(e, "espace-locataire");
+            }}
+            className={`text-lg font-bold text-[#161616] hover:text-[#000091] py-1 transition-all duration-500 ${
+              isMobileMenuOpen
+                ? "opacity-100 translate-x-0 delay-[175ms]"
+                : "opacity-0 -translate-x-4"
+            }`}
+          >
+            Locataires
+          </Link>
+          <Link
+            href="/#tarifs"
+            onClick={(e) => {
+              setIsMobileMenuOpen(false);
+              handleScroll(e, "tarifs");
+            }}
+            className={`text-lg font-bold text-[#161616] hover:text-[#000091] py-1 transition-all duration-500 ${
+              isMobileMenuOpen
+                ? "opacity-100 translate-x-0 delay-[225ms]"
+                : "opacity-0 -translate-x-4"
+            }`}
+          >
+            Tarifs
+          </Link>
+          <Link
+            href="/#faq"
+            onClick={(e) => {
+              setIsMobileMenuOpen(false);
+              handleScroll(e, "faq");
+            }}
+            className={`text-lg font-bold text-[#161616] hover:text-[#000091] py-1 transition-all duration-500 ${
+              isMobileMenuOpen
+                ? "opacity-100 translate-x-0 delay-[275ms]"
+                : "opacity-0 -translate-x-4"
+            }`}
+          >
+            FAQ
+          </Link>
+        </nav>
+
+        {/* Bottom CTAs */}
+        <div
+          className={`flex flex-col gap-3 pb-8 transition-all duration-500 ${
+            isMobileMenuOpen
+              ? "opacity-100 translate-y-0 delay-[325ms]"
+              : "opacity-0 translate-y-4"
+          }`}
+        >
+          <Link
+            href="/apply"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="btn-secondary w-full h-12 flex items-center justify-center font-bold text-base cursor-pointer"
+          >
+            Je suis locataire
+          </Link>
+          <Link
+            href="/signin"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="btn-primary w-full h-12 flex items-center justify-center font-bold text-base cursor-pointer"
+          >
+            Se connecter
+          </Link>
+        </div>
+      </div>
+    )}
 
     {/* Bottom bar for mobile users (authenticated only) */}
     {isAuthenticated && (
