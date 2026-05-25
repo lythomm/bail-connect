@@ -5,8 +5,8 @@ import { api, internal } from "./_generated/api";
 import Stripe from "stripe";
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
-const PASS_PRICE_ID = "price_1TaBcm3nf3q37Shxy8Jj8ulQ";
-const PRO_PRICE_ID = "price_1TaBcq3nf3q37ShxV6bD29Ss";
+const PASS_PRICE_ID = "price_1Tb2H6LgWBAz3vS7VLna4vSJ";
+const PRO_PRICE_ID = "price_1Tb2H9LgWBAz3vS7w7HUcYNV";
 const ONE_TIME_COUPONS = ["TluNqzID"];
 
 export const createCheckoutSession = action({
