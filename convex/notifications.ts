@@ -275,6 +275,134 @@ export const sendBookingNotification = internalAction({
 });
 
 /**
+ * Send an immediate booking cancellation email to the landlord.
+ */
+export const sendCancellationNotification = internalAction({
+  args: {
+    candidateId: v.id("candidates"),
+    slotId: v.id("slots"),
+    landlordUserId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const info = await ctx.runQuery(internal.notifications.getLandlordBookingInfo, {
+      candidateId: args.candidateId,
+      slotId: args.slotId,
+      landlordUserId: args.landlordUserId,
+    });
+
+    if (!info || !info.landlordEmail) {
+      console.error("Landlord info not found for cancellation notification");
+      return;
+    }
+
+    const d = new Date(info.slotStartTime);
+    const dateStr = d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    const timeStr = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+
+    const subject = `[BailConnect] ❌ Visite annulée – ${info.campaignTitle}`;
+    const html = `
+      <div style="font-family: sans-serif; max-width: 620px; margin: 0 auto; padding: 20px; border: 1px solid #DDDDDD; color: #161616;">
+        <div style="background-color: #000091; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; margin-bottom: 24px;">
+          BailConnect
+        </div>
+        <h2 style="font-size: 20px; margin-bottom: 6px; color: #161616;">Un candidat a annulé sa visite</h2>
+        <p style="font-size: 14px; color: #666666; margin-bottom: 20px;">Annonce : <strong>${info.campaignTitle}</strong></p>
+
+        <div style="background: #F6F6F6; border-left: 4px solid #D63031; padding: 16px; border-radius: 2px; margin-bottom: 24px;">
+          <p style="margin: 0; font-size: 14px; color: #161616;">
+            Le candidat <strong>${info.candidateFirstName} ${info.candidateLastName}</strong> a annulé la visite prévue le <strong>${dateStr} à ${timeStr}</strong>.
+          </p>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #DDDDDD; margin: 30px 0 15px 0;" />
+        <p style="font-size: 11px; color: #666666; text-align: center;">
+          Email automatique BailConnect. Ne pas répondre directement à cet email.
+        </p>
+      </div>
+    `;
+
+    const emailResult = await sendEmail({
+      from: "BailConnect <notifications@bailconnect.fr>",
+      to: [info.landlordEmail],
+      subject,
+      html,
+    });
+
+    if (emailResult.success) {
+      console.log(`Cancellation notification sent to ${info.landlordEmail} for ${info.campaignTitle}`);
+    } else {
+      console.error("Cancellation notification email failed:", emailResult.error);
+    }
+  },
+});
+
+/**
+ * Send an immediate reschedule notification email to the landlord.
+ */
+export const sendRescheduleNotification = internalAction({
+  args: {
+    candidateId: v.id("candidates"),
+    slotId: v.id("slots"),
+    landlordUserId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const info = await ctx.runQuery(internal.notifications.getLandlordBookingInfo, {
+      candidateId: args.candidateId,
+      slotId: args.slotId,
+      landlordUserId: args.landlordUserId,
+    });
+
+    if (!info || !info.landlordEmail) {
+      console.error("Landlord info not found for reschedule notification");
+      return;
+    }
+
+    const d = new Date(info.slotStartTime);
+    const dateStr = d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    const timeStr = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+
+    const subject = `[BailConnect] 📅 Rendez-vous déplacé – ${info.campaignTitle}`;
+    const html = `
+      <div style="font-family: sans-serif; max-width: 620px; margin: 0 auto; padding: 20px; border: 1px solid #DDDDDD; color: #161616;">
+        <div style="background-color: #000091; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; margin-bottom: 24px;">
+          BailConnect
+        </div>
+        <h2 style="font-size: 20px; margin-bottom: 6px; color: #161616;">Un candidat a déplacé son rendez-vous</h2>
+        <p style="font-size: 14px; color: #666666; margin-bottom: 20px;">Annonce : <strong>${info.campaignTitle}</strong></p>
+
+        <div style="background: #F5F5FE; border-left: 4px solid #000091; padding: 16px; border-radius: 2px; margin-bottom: 24px;">
+          <p style="margin: 0; font-size: 14px; color: #161616;">
+            Le candidat <strong>${info.candidateFirstName} ${info.candidateLastName}</strong> a modifié son rendez-vous.
+          </p>
+          <p style="margin: 8px 0 0 0; font-size: 14px; color: #161616; font-weight: bold;">
+            Nouvelle date : ${dateStr} à ${timeStr}
+          </p>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #DDDDDD; margin: 30px 0 15px 0;" />
+        <p style="font-size: 11px; color: #666666; text-align: center;">
+          Email automatique BailConnect. Ne pas répondre directement à cet email.
+        </p>
+      </div>
+    `;
+
+    const emailResult = await sendEmail({
+      from: "BailConnect <notifications@bailconnect.fr>",
+      to: [info.landlordEmail],
+      subject,
+      html,
+    });
+
+    if (emailResult.success) {
+      console.log(`Reschedule notification sent to ${info.landlordEmail} for ${info.campaignTitle}`);
+    } else {
+      console.error("Reschedule notification email failed:", emailResult.error);
+    }
+  },
+});
+
+
+/**
  * Main cron entry: find all users whose digest hour matches the current UTC+2 hour, send digest.
  */
 export const sendPendingDigests = internalAction({

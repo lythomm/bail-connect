@@ -13,7 +13,8 @@ import {
   Check, 
   ChevronRight,
   MapPin,
-  Euro
+  Euro,
+  Trash2
 } from "lucide-react";
 import Toast, { ToastType } from "@/components/Toast";
 
@@ -27,11 +28,33 @@ function BookingContent() {
   );
 
   const bookMutation = useMutation(api.appointments.bookAppointment);
+  const cancelMutation = useMutation(api.appointments.cancelAppointment);
 
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [successAppt, setSuccessAppt] = useState<{ date: string; time: string } | null>(null);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+
+  const handleCancel = async () => {
+    if (!window.confirm("Êtes-vous sûr de vouloir annuler votre rendez-vous ?")) return;
+    setIsCancelling(true);
+
+    try {
+      await cancelMutation({
+        candidateId: candidateId as any,
+      });
+      setSuccessAppt(null);
+      setSelectedSlotId(null);
+      setIsEditing(false);
+      setToast({ message: "Votre rendez-vous a bien été annulé.", type: "success" });
+    } catch (err: any) {
+      setToast({ message: err.message || "Erreur lors de l'annulation.", type: "error" });
+    } finally {
+      setIsCancelling(false);
+    }
+  };
 
   if (!candidateId) {
     return (
@@ -96,6 +119,7 @@ function BookingContent() {
       }
 
       setToast({ message: "Votre rendez-vous a été enregistré !", type: "success" });
+      setIsEditing(false);
     } catch (err: any) {
       setToast({ message: err.message || "Erreur lors de la réservation.", type: "error" });
     } finally {
@@ -113,6 +137,7 @@ function BookingContent() {
       weekday: "long",
       day: "numeric",
       month: "long",
+      year: "numeric",
     }),
     time: `${new Date(bookedSlot.startTime).toLocaleTimeString("fr-FR", {
       hour: "2-digit",
@@ -122,6 +147,76 @@ function BookingContent() {
       minute: "2-digit"
     })}`
   } : null;
+
+  if (currentAppointment && !isEditing && bookedSlotDetails) {
+    return (
+      <div className="max-w-md w-full mx-auto bg-white border border-[#E2E8F0] rounded-2xl p-8 shadow-md">
+        <div className="text-center mb-6">
+          <div className="w-16 h-16 bg-[#E8F6EE] text-[#18753C] rounded-full flex items-center justify-center mx-auto mb-4">
+            <Check className="w-8 h-8" />
+          </div>
+          <h1 className="text-2xl font-bold text-[#161616] mb-2">Visite planifiée</h1>
+          <p className="text-sm text-[#666666]">
+            Bonjour <strong>{candidate.firstName}</strong>, votre rendez-vous de visite est planifié avec le propriétaire.
+          </p>
+        </div>
+
+        <div className="bg-[#F5F5FE] border border-[#000091]/10 rounded-xl p-4 mb-6 space-y-3">
+          <div className="flex items-start gap-2.5">
+            <Home className="w-4 h-4 text-[#000091] mt-0.5" />
+            <div>
+              <span className="block text-xs text-[#666666] font-semibold">Logement</span>
+              <span className="text-sm font-bold text-[#161616]">{campaign?.title}</span>
+            </div>
+          </div>
+          {campaign?.address && (
+            <div className="flex items-start gap-2.5">
+              <MapPin className="w-4 h-4 text-[#000091] mt-0.5" />
+              <div>
+                <span className="block text-xs text-[#666666] font-semibold">Adresse de la visite</span>
+                <span className="text-sm font-bold text-[#161616]">{campaign.address}</span>
+              </div>
+            </div>
+          )}
+          <div className="flex items-start gap-2.5">
+            <CalendarIcon className="w-4 h-4 text-[#000091] mt-0.5" />
+            <div>
+              <span className="block text-xs text-[#666666] font-semibold">Date de visite</span>
+              <span className="text-sm font-bold text-[#161616] capitalize">{bookedSlotDetails.date}</span>
+            </div>
+          </div>
+          <div className="flex items-start gap-2.5">
+            <Clock className="w-4 h-4 text-[#000091] mt-0.5" />
+            <div>
+              <span className="block text-xs text-[#666666] font-semibold">Plage horaire</span>
+              <span className="text-sm font-bold text-[#161616]">{bookedSlotDetails.time}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <button
+            onClick={() => setIsEditing(true)}
+            className="flex-1 bg-white hover:bg-[#F5F5FE] text-[#000091] border border-[#000091] rounded-xl py-2.5 text-sm font-bold transition-all cursor-pointer text-center"
+          >
+            Modifier mon créneau
+          </button>
+          <button
+            onClick={handleCancel}
+            disabled={isCancelling}
+            className="flex-1 bg-white hover:bg-red-50 text-red-600 border border-red-200 hover:border-red-300 rounded-xl py-2.5 text-sm font-bold transition-all cursor-pointer text-center flex items-center justify-center gap-1.5"
+          >
+            <Trash2 className="w-4 h-4" />
+            {isCancelling ? "Annulation..." : "Annuler le rdv"}
+          </button>
+        </div>
+
+        <p className="text-xs text-[#666666] text-center">
+          Si vous devez modifier ou annuler votre créneau plus tard, vous pouvez réutiliser ce même lien reçu.
+        </p>
+      </div>
+    );
+  }
 
   if (successAppt) {
     return (
@@ -166,7 +261,7 @@ function BookingContent() {
         </div>
 
         <p className="text-xs text-[#666666]">
-          Un e-mail de confirmation vous a été envoyé. Si vous devez modifier votre créneau, vous pouvez réutiliser le même lien reçu.
+          Un e-mail de confirmation vous a été envoyé. Si vous devez modifier ou annuler votre créneau, vous pouvez réutiliser le même lien reçu.
         </p>
       </div>
     );
@@ -216,18 +311,29 @@ function BookingContent() {
       </div>
 
       {/* Reschedule alert banner */}
-      {bookedSlotDetails && (
-        <div className="bg-[#E8F6EE] border border-[#18753C]/20 rounded-2xl p-4 flex gap-3 items-start text-sm text-[#18753C]">
-          <Check className="w-5 h-5 mt-0.5 shrink-0" />
-          <div>
-            <p className="font-bold">Vous avez déjà réservé un créneau :</p>
-            <p className="mt-1 capitalize">
-              {bookedSlotDetails.date} de {bookedSlotDetails.time}.
-            </p>
-            <p className="text-xs text-[#18753C]/80 mt-1">
-              Vous pouvez sélectionner un nouveau créneau ci-dessous pour déplacer votre rendez-vous.
-            </p>
+      {isEditing && bookedSlotDetails && (
+        <div className="bg-[#E8F6EE] border border-[#18753C]/20 rounded-2xl p-4 flex gap-3 items-start text-sm text-[#18753C] justify-between">
+          <div className="flex gap-3 items-start">
+            <Clock className="w-5 h-5 mt-0.5 shrink-0" />
+            <div>
+              <p className="font-bold">Modification de votre créneau :</p>
+              <p className="mt-1">
+                Vous modifiez votre visite actuellement réservée le <span className="capitalize font-semibold">{bookedSlotDetails.date} de {bookedSlotDetails.time}</span>.
+              </p>
+              <p className="text-xs text-[#18753C]/80 mt-1">
+                Sélectionnez un nouveau créneau ci-dessous pour déplacer votre rendez-vous.
+              </p>
+            </div>
           </div>
+          <button
+            onClick={() => {
+              setIsEditing(false);
+              setSelectedSlotId(null);
+            }}
+            className="shrink-0 bg-white hover:bg-gray-50 text-gray-600 border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer"
+          >
+            Retour
+          </button>
         </div>
       )}
 
@@ -298,7 +404,20 @@ function BookingContent() {
           </div>
         )}
 
-        <div className="pt-4 border-t border-[#DDDDDD] flex justify-end">
+        <div className="pt-4 border-t border-[#DDDDDD] flex justify-between items-center">
+          {isEditing ? (
+            <button
+              onClick={() => {
+                setIsEditing(false);
+                setSelectedSlotId(null);
+              }}
+              className="text-sm font-semibold text-gray-500 hover:text-gray-700 cursor-pointer"
+            >
+              Annuler la modification
+            </button>
+          ) : (
+            <div />
+          )}
           <button
             onClick={handleBook}
             disabled={!selectedSlotId || isSubmitting}
@@ -306,7 +425,12 @@ function BookingContent() {
               (!selectedSlotId || isSubmitting) ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
-            {isSubmitting ? "Réservation en cours..." : "Confirmer le rendez-vous"}
+            {isSubmitting 
+              ? "Enregistrement..." 
+              : isEditing 
+                ? "Confirmer la modification" 
+                : "Confirmer le rendez-vous"
+            }
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>

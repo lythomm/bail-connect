@@ -59,13 +59,18 @@ export const deleteSlot = mutation({
       throw new Error("Unauthorized access");
     }
 
-    // Delete appointments on this slot
+    // Delete appointments on this slot and notify candidates
     const appointments = await ctx.db
       .query("appointments")
       .withIndex("by_slotId", (q) => q.eq("slotId", args.slotId))
       .collect();
 
     for (const appt of appointments) {
+      await ctx.scheduler.runAfter(0, internal.emails.sendAppointmentCancellationToCandidate, {
+        candidateId: appt.candidateId,
+        campaignTitle: campaign.title,
+        slotStartTime: slot.startTime,
+      });
       await ctx.db.delete(appt._id);
     }
 
@@ -227,11 +232,15 @@ export const bookAppointment = mutation({
       .withIndex("by_candidateId", (q) => q.eq("candidateId", args.candidateId))
       .unique();
 
+    let isReschedule = false;
+
     if (existingAppt) {
       if (existingAppt.slotId === args.slotId) {
         // Already booked this exact slot, do nothing
         return existingAppt._id;
       }
+
+      isReschedule = true;
 
       // Rescheduling: decrement bookedCount on previous slot
       const previousSlot = await ctx.db.get(existingAppt.slotId);
@@ -257,11 +266,19 @@ export const bookAppointment = mutation({
     });
 
     // Send immediate booking notification to landlord
-    await ctx.scheduler.runAfter(0, internal.notifications.sendBookingNotification, {
-      candidateId: args.candidateId,
-      slotId: args.slotId,
-      landlordUserId: campaign.userId,
-    });
+    if (isReschedule) {
+      await ctx.scheduler.runAfter(0, internal.notifications.sendRescheduleNotification, {
+        candidateId: args.candidateId,
+        slotId: args.slotId,
+        landlordUserId: campaign.userId,
+      });
+    } else {
+      await ctx.scheduler.runAfter(0, internal.notifications.sendBookingNotification, {
+        candidateId: args.candidateId,
+        slotId: args.slotId,
+        landlordUserId: campaign.userId,
+      });
+    }
 
     return apptId;
   },
@@ -362,5 +379,56 @@ export const getAllCampaignSlots = query({
     return results;
   },
 });
+
+/**
+ * Cancel an appointment for a candidate.
+ */
+export const cancelAppointment = mutation({
+  args: {
+    candidateId: v.id("candidates"),
+  },
+  handler: async (ctx, args) => {
+    const candidate = await ctx.db.get(args.candidateId);
+    if (!candidate) {
+      throw new Error("Candidate not found");
+    }
+
+    if (candidate.status !== "accepted") {
+      throw new Error("Candidate status is not accepted");
+    }
+
+    const campaign = await ctx.db.get(candidate.campaignId);
+    if (!campaign || campaign.status === "archived") {
+      throw new Error("Campaign is archived");
+    }
+
+    const existingAppt = await ctx.db
+      .query("appointments")
+      .withIndex("by_candidateId", (q) => q.eq("candidateId", args.candidateId))
+      .unique();
+
+    if (!existingAppt) {
+      throw new Error("No appointment found for this candidate");
+    }
+
+    const slot = await ctx.db.get(existingAppt.slotId);
+    if (slot) {
+      await ctx.db.patch(slot._id, {
+        bookedCount: Math.max(0, slot.bookedCount - 1),
+      });
+    }
+
+    // Send immediate booking cancellation email to landlord
+    await ctx.scheduler.runAfter(0, internal.notifications.sendCancellationNotification, {
+      candidateId: args.candidateId,
+      slotId: existingAppt.slotId,
+      landlordUserId: campaign.userId,
+    });
+
+    await ctx.db.delete(existingAppt._id);
+    return true;
+  },
+});
+
 
 

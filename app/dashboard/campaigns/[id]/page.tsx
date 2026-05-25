@@ -22,7 +22,8 @@ import {
   Check,
   Filter,
   MapPin,
-  Share2
+  Share2,
+  AlertCircle
 } from "lucide-react";
 import Dialog from "@/components/Dialog";
 import {
@@ -130,7 +131,10 @@ export default function CampaignDetail() {
   const [newSlotEnd, setNewSlotEnd] = useState("10:30");
   const [newSlotCapacity, setNewSlotCapacity] = useState(1);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isNoSlotsWarningOpen, setIsNoSlotsWarningOpen] = useState(false);
   const [shareTab, setShareTab] = useState<"desc" | "msg">("desc");
+  const [slotToDelete, setSlotToDelete] = useState<string | null>(null);
+  const [deleteSlotLoading, setDeleteSlotLoading] = useState(false);
 
   const isPremium = campaign?.adType === "pass" || user?.tier === "pro";
 
@@ -354,15 +358,17 @@ export default function CampaignDetail() {
     }
   }, [campaign?.slug]);
 
-  const handleDeleteSlot = async (slotId: string) => {
-    if (!confirm("Voulez-vous vraiment supprimer ce créneau et annuler les rendez-vous associés ?")) {
-      return;
-    }
+  const handleConfirmDeleteSlot = async () => {
+    if (!slotToDelete) return;
+    setDeleteSlotLoading(true);
     try {
-      await deleteSlotMutation({ slotId: slotId as any });
+      await deleteSlotMutation({ slotId: slotToDelete as any });
       setToast({ message: "Créneau retiré.", type: "success" });
+      setSlotToDelete(null);
     } catch (err: any) {
       setToast({ message: err.message || "Erreur lors de la suppression.", type: "error" });
+    } finally {
+      setDeleteSlotLoading(false);
     }
   };
 
@@ -814,7 +820,7 @@ export default function CampaignDetail() {
             </div>
             <div className="shrink-0 self-start flex flex-wrap gap-2">
               <button
-                onClick={() => setIsShareOpen(true)}
+                onClick={() => campaignSlots.length === 0 ? setIsNoSlotsWarningOpen(true) : setIsShareOpen(true)}
                 title="Partager l'annonce"
                 className="text-xs font-bold text-[#000091] hover:text-[#0b0b7d] bg-[#E3E3FD]/60 hover:bg-[#E3E3FD] py-2 px-4 border border-[#E3E3FD] rounded-full cursor-pointer transition-all duration-150 flex items-center gap-1.5 focus:outline-none"
               >
@@ -1167,7 +1173,7 @@ export default function CampaignDetail() {
                               </div>
 
                               <button
-                                onClick={() => handleDeleteSlot(slot._id)}
+                                onClick={() => setSlotToDelete(slot._id)}
                                 className="text-[#CE0500] hover:text-[#a60400] hover:bg-[#FFE9E9] p-2 rounded-lg transition-colors duration-150 self-start border border-transparent hover:border-[#FCE8E6] cursor-pointer"
                                 title="Supprimer ce créneau"
                               >
@@ -1685,6 +1691,88 @@ export default function CampaignDetail() {
               </div>
             </div>
           )}
+        </div>
+      </Dialog>
+
+      {/* Warning Share Without Slots Dialog */}
+      <Dialog
+        isOpen={isNoSlotsWarningOpen}
+        onClose={() => setIsNoSlotsWarningOpen(false)}
+        title="Créer des créneaux de visite"
+        size="md"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-[#475569] leading-relaxed">
+            Vous devez ajouter au moins un créneau de visite avant de pouvoir partager votre annonce. Cela permettra aux candidats de choisir une disponibilité dès que vous aurez accepté leur dossier.
+          </p>
+          <div className="pt-4 border-t border-[#F0F0F0] flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => setIsNoSlotsWarningOpen(false)}
+              className="btn-secondary text-xs px-4 py-2 cursor-pointer"
+            >
+              Annuler
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsNoSlotsWarningOpen(false);
+                setActiveTab("visits");
+                setIsAddSlotOpen(true);
+              }}
+              className="btn-primary text-xs px-4 py-2 cursor-pointer bg-[#000091] text-white hover:bg-[#0b0b7d] rounded font-bold"
+            >
+              Créer un créneau
+            </button>
+          </div>
+        </div>
+      </Dialog>
+
+      {/* Delete Slot Confirmation Dialog */}
+      <Dialog
+        isOpen={slotToDelete !== null}
+        onClose={() => setSlotToDelete(null)}
+        title="Supprimer ce créneau ?"
+        size="md"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-[#475569] leading-relaxed">
+            Voulez-vous vraiment supprimer ce créneau de visite et annuler tous les rendez-vous associés ?
+          </p>
+          <div className="bg-[#FFF3CD] border border-[#FFEBAA] p-4 rounded-xl flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-[#856404] shrink-0 mt-0.5" />
+            <div>
+              <h4 className="text-xs font-bold text-[#856404] uppercase tracking-wider">
+                Attention : Action Irréversible
+              </h4>
+              <p className="text-xs text-[#664d03] mt-1 leading-relaxed">
+                Les candidats inscrits sur ce créneau recevront une notification d'annulation et devront planifier un nouveau rendez-vous.
+              </p>
+            </div>
+          </div>
+          <div className="pt-4 border-t border-[#F0F0F0] flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => setSlotToDelete(null)}
+              className="btn-secondary text-xs px-4 py-2 cursor-pointer"
+              disabled={deleteSlotLoading}
+            >
+              Annuler
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmDeleteSlot}
+              disabled={deleteSlotLoading}
+              className="btn-primary text-xs px-4 py-2 cursor-pointer bg-[#CE0500] text-white hover:bg-[#a60400] rounded font-bold flex items-center gap-1.5 border border-[#F8C0BC]"
+            >
+              {deleteSlotLoading ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Trash2 className="w-3.5 h-3.5" />
+              )}
+              <span>Confirmer la suppression</span>
+            </button>
+          </div>
         </div>
       </Dialog>
     </div>
