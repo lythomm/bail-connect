@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import Toast, { ToastType } from "@/components/Toast";
 import Dialog from "@/components/Dialog";
+import DeleteSlotDialog from "@/components/DeleteSlotDialog";
 
 export default function CalendarPage() {
   const { isAuthenticated, isLoading } = useConvexAuth();
@@ -30,6 +31,8 @@ export default function CalendarPage() {
     new Date().toISOString().split("T")[0]
   );
   const [isAddSlotOpen, setIsAddSlotOpen] = useState(false);
+  const [slotIdToDelete, setSlotIdToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
@@ -128,15 +131,20 @@ export default function CalendarPage() {
     }
   };
 
-  const handleDeleteSlot = async (slotId: string) => {
-    if (!confirm("Voulez-vous vraiment supprimer ce créneau et annuler les rendez-vous associés ?")) {
-      return;
-    }
+  const handleDeleteSlot = (slotId: string) => {
+    setSlotIdToDelete(slotId);
+  };
+
+  const confirmDeleteSlot = async (slotId: string) => {
+    setIsDeleting(true);
     try {
       await deleteSlotMutation({ slotId: slotId as any });
       setToast({ message: "Créneau retiré.", type: "success" });
     } catch (err: any) {
       setToast({ message: err.message || "Erreur lors de la suppression.", type: "error" });
+    } finally {
+      setIsDeleting(false);
+      setSlotIdToDelete(null);
     }
   };
 
@@ -302,7 +310,7 @@ export default function CalendarPage() {
 
               {/* Mobile overlay backdrop */}
               {isMobileDrawerOpen && (
-                <div 
+                <div
                   className="fixed inset-0 bg-black/50 z-[60] lg:hidden animate-fade-in"
                   onClick={() => setIsMobileDrawerOpen(false)}
                 />
@@ -321,7 +329,7 @@ export default function CalendarPage() {
                   <div className="w-12 h-1 bg-neutral-300 rounded-full mb-3" />
                   <div className="flex justify-between items-center w-full">
                     <span className="text-xs font-extrabold text-[#666666] uppercase tracking-wider">Détails du jour</span>
-                    <button 
+                    <button
                       onClick={() => setIsMobileDrawerOpen(false)}
                       className="text-xs font-bold text-[#000091] hover:underline"
                     >
@@ -439,7 +447,7 @@ export default function CalendarPage() {
                                 </div>
                                 <button
                                   onClick={() => handleDeleteSlot(slot._id)}
-                                  className="p-1 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                                  className="p-1 text-red-500 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
                                   title="Supprimer ce créneau"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
@@ -573,6 +581,17 @@ export default function CalendarPage() {
           </div>
         </form>
       </Dialog>
+
+      <DeleteSlotDialog
+        isOpen={slotIdToDelete !== null}
+        onClose={() => setSlotIdToDelete(null)}
+        onConfirm={async () => {
+          if (slotIdToDelete) {
+            await confirmDeleteSlot(slotIdToDelete);
+          }
+        }}
+        isLoading={isDeleting}
+      />
     </div>
   );
 }
