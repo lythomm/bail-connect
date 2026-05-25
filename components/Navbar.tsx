@@ -100,7 +100,7 @@ export default function Navbar() {
     <>
       <header className="bg-white border-b border-[#DDDDDD] h-16 flex items-center justify-between px-6 sticky top-0 z-50">
       {/* Left brand logo */}
-      <div className="flex items-center gap-4">
+      <div className="flex-1 flex items-center justify-start gap-4">
         <Link href={isAuthenticated ? "/dashboard" : "/"} className="flex items-center gap-3 select-none group">
           <div className="h-8 w-8 bg-[#000091] text-white flex items-center justify-center font-bold text-sm rounded-[0.25rem] transition-colors group-hover:bg-[#1212ff]">
             BC
@@ -168,7 +168,7 @@ export default function Navbar() {
       )}
 
       {/* Right side actions */}
-      <div className="flex items-center gap-4">
+      <div className="flex-1 flex items-center justify-end gap-4">
         {isAuthenticated ? (
           <div className="relative">
             <button
