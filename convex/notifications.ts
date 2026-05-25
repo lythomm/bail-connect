@@ -218,8 +218,8 @@ export const sendBookingNotification = internalAction({
     }
 
     const d = new Date(info.slotStartTime);
-    const dateStr = d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-    const timeStr = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+    const dateStr = d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Paris" });
+    const timeStr = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" });
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
@@ -296,8 +296,8 @@ export const sendCancellationNotification = internalAction({
     }
 
     const d = new Date(info.slotStartTime);
-    const dateStr = d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-    const timeStr = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+    const dateStr = d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Paris" });
+    const timeStr = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" });
 
     const subject = `[BailConnect] ❌ Visite annulée – ${info.campaignTitle}`;
     const html = `
@@ -358,8 +358,10 @@ export const sendRescheduleNotification = internalAction({
     }
 
     const d = new Date(info.slotStartTime);
-    const dateStr = d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-    const timeStr = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+    const dateStr = d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Paris" });
+    const timeStr = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" });
+
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
     const subject = `[BailConnect] 📅 Rendez-vous déplacé – ${info.campaignTitle}`;
     const html = `
@@ -377,6 +379,13 @@ export const sendRescheduleNotification = internalAction({
           <p style="margin: 8px 0 0 0; font-size: 14px; color: #161616; font-weight: bold;">
             Nouvelle date : ${dateStr} à ${timeStr}
           </p>
+        </div>
+
+        <div style="text-align: center; margin: 28px 0;">
+          <a href="${siteUrl}/calendar"
+             style="display: inline-block; background-color: #000091; color: white; padding: 12px 28px; text-decoration: none; font-weight: bold; font-size: 14px; border-radius: 4px;">
+            Voir mon calendrier
+          </a>
         </div>
 
         <hr style="border: 0; border-top: 1px solid #DDDDDD; margin: 30px 0 15px 0;" />

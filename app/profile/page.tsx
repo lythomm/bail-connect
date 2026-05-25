@@ -4,14 +4,14 @@ import { useConvexAuth, useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  Shield, 
-  CreditCard, 
-  Check, 
-  Sparkles, 
+import {
+  User,
+  Mail,
+  Phone,
+  Shield,
+  CreditCard,
+  Check,
+  Sparkles,
   CheckCircle,
   Building,
   ArrowRight,
@@ -30,7 +30,7 @@ export default function ProfilePage() {
   const user = useQuery(api.users.current);
   const updateProfile = useMutation(api.users.update);
   const updateNotificationPrefs = useMutation(api.users.updateNotificationPrefs);
-  
+
   const createCheckoutSession = useAction(api.stripe.createCheckoutSession);
   const verifySession = useAction(api.stripe.verifySession);
   const cancelSubscription = useAction(api.stripe.cancelSubscription);
@@ -177,7 +177,7 @@ export default function ProfilePage() {
       message: `Redirection vers la page de paiement sécurisée de Stripe pour l'${planName}...`,
       type: "success"
     });
-    
+
     try {
       const { url } = await createCheckoutSession({
         type: "pro"
@@ -201,7 +201,7 @@ export default function ProfilePage() {
   return (
     <div className="flex-1 flex flex-col bg-[#F6F6F6]">
       <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-8">
-        
+
         {/* Header */}
         <div className="mb-8">
           <span className="gov-badge mb-2">Mon compte</span>
@@ -212,7 +212,7 @@ export default function ProfilePage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          
+
           {/* Left Column: Profile Form */}
           <div className="md:col-span-2 space-y-6 order-2 md:order-1">
             <div className="bg-white border border-[#E2E8F0] rounded-2xl shadow-xs p-6">
@@ -294,11 +294,10 @@ export default function ProfilePage() {
                 {/* Daily option */}
                 <label
                   htmlFor="notif-daily"
-                  className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                    notifPref === "daily"
+                  className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${notifPref === "daily"
                       ? "border-[#000091] bg-[#F5F5FE]"
                       : "border-[#DDDDDD] hover:border-[#AAAAAA]"
-                  }`}
+                    }`}
                 >
                   <input
                     id="notif-daily"
@@ -313,7 +312,7 @@ export default function ProfilePage() {
                     <p className="text-sm font-semibold text-[#161616] flex items-center gap-1.5">
                       <Bell className="w-3.5 h-3.5 text-[#000091]" /> Digest quotidien
                     </p>
-                    <p className="text-xs text-[#666666] mt-0.5">Un seul email par jour regroupant toute l&apos;activité.</p>
+                    <p className="text-xs text-[#666666] mt-0.5">Un seul email par jour regroupant toutes les nouvelles candidatures reçues.</p>
                     {notifPref === "daily" && (
                       <div className="mt-3 flex items-center gap-2">
                         <label className="text-xs font-bold text-[#3A3A3A] shrink-0">Heure d&apos;envoi :</label>
@@ -336,11 +335,10 @@ export default function ProfilePage() {
                 {/* None option */}
                 <label
                   htmlFor="notif-none"
-                  className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                    notifPref === "none"
+                  className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${notifPref === "none"
                       ? "border-[#CE0500] bg-[#FEF5F5]"
                       : "border-[#DDDDDD] hover:border-[#AAAAAA]"
-                  }`}
+                    }`}
                 >
                   <input
                     id="notif-none"
@@ -412,7 +410,7 @@ export default function ProfilePage() {
                 </h3>
 
                 {currentTier !== "pro" ? (
-                  <div 
+                  <div
                     onClick={() => handleUpgradePlan("Abonnement Pro")}
                     className="border border-[#DDDDDD] hover:border-[#000091] rounded-xl p-4 cursor-pointer transition-all group hover:bg-[#F5F5FE]/30"
                   >
@@ -434,7 +432,7 @@ export default function ProfilePage() {
                     <p className="text-[11px] text-[#666666] leading-relaxed">
                       Vous disposez de toutes les fonctionnalités PRO. Si vous ne souhaitez plus utiliser ces avantages, vous pouvez résilier votre abonnement.
                     </p>
-                    <button 
+                    <button
                       onClick={() => setCancelModalOpen(true)}
                       className="w-full text-center py-2.5 px-4 border border-[#CE0500] text-[#CE0500] hover:bg-[#FCE8E6] text-xs font-bold rounded-xl transition-all cursor-pointer animate-scale-in"
                     >

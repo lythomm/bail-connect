@@ -32,6 +32,8 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
       await ctx.db.patch(args.userId, {
         tier: "free",
         name,
+        digestHour: 18,
+        notificationPreference: "daily",
         emailVerificationCode: otpCode,
         emailVerificationCodeExpires: otpExpires,
       });
