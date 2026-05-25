@@ -467,12 +467,6 @@ export default function CalendarPage() {
                                         >
                                           <ExternalLink className="w-2.5 h-2.5" /> Dossier
                                         </a>
-                                        <button
-                                          onClick={() => setToast({ message: "Rappel SMS envoyé.", type: "success" })}
-                                          className="text-[10px] bg-[#000091] text-white rounded px-1.5 py-0.5 hover:bg-[#000078] font-semibold"
-                                        >
-                                          Rappeler
-                                        </button>
                                       </div>
                                     </div>
                                   ))}

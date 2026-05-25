@@ -13,7 +13,6 @@ import {
   Plus, 
   ChevronRight, 
   ExternalLink,
-  MessageSquare,
   AlertCircle,
   TrendingUp,
   Check
@@ -231,14 +230,6 @@ export default function Dashboard() {
                             >
                               Dossier <ExternalLink className="w-3 h-3" />
                             </a>
-                            <button
-                              onClick={() => {
-                                setToast({ message: "SMS de rappel de visite envoyé au candidat.", type: "success" });
-                              }}
-                              className="btn-primary text-[11px] px-3 py-1.5 flex items-center justify-center gap-1"
-                            >
-                              Rappeler <MessageSquare className="w-3 h-3" />
-                            </button>
                           </div>
                         </div>
                       </div>
