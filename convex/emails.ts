@@ -1,6 +1,6 @@
-import { internalQuery, internalAction } from "./_generated/server";
+import { internalQuery, internalAction, action } from "./_generated/server";
 import { v } from "convex/values";
-import { internal } from "./_generated/api";
+import { internal, api } from "./_generated/api";
 import { sendEmail } from "./resend";
 
 /**
@@ -271,6 +271,60 @@ export const sendAppointmentCancellationToCandidate = internalAction({
     }
   },
 });
+
+/**
+ * Send support request to contact@bailconnect.fr
+ */
+export const sendSupportEmail = action({
+  args: {
+    subject: v.string(),
+    message: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.runQuery(api.users.current);
+    if (!user) {
+      throw new Error("Non autorisé");
+    }
+
+    const cleanSubject = args.subject.trim().substring(0, 150);
+    const cleanMessage = args.message.trim().substring(0, 1000);
+
+    if (!cleanSubject || !cleanMessage) {
+      throw new Error("Sujet et message requis.");
+    }
+
+    const htmlContent = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #DDDDDD; color: #161616;">
+        <div style="background-color: #000091; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; margin-bottom: 20px;">
+          BailConnect — Demande de Support
+        </div>
+        <p style="font-size: 14px; line-height: 1.5; color: #3A3A3A;">
+          <strong>De :</strong> ${user.name || "Utilisateur"} (${user.email})<br/>
+          <strong>ID Utilisateur :</strong> ${user._id}<br/>
+          <strong>Objet :</strong> ${cleanSubject}
+        </p>
+        <hr style="border: 0; border-top: 1px solid #DDDDDD; margin: 20px 0;" />
+        <p style="font-size: 14px; line-height: 1.5; color: #161616; white-space: pre-wrap;">
+          ${cleanMessage}
+        </p>
+      </div>
+    `;
+
+    const emailResult = await sendEmail({
+      from: "BailConnect Support <noreply@bailconnect.fr>",
+      to: ["contact@bailconnect.fr"],
+      subject: `[Support BailConnect] ${cleanSubject}`,
+      html: htmlContent,
+    });
+
+    if (!emailResult.success) {
+      throw new Error("Erreur lors de l'envoi de l'email : " + emailResult.error);
+    }
+
+    return { success: true };
+  },
+});
+
 
 
 

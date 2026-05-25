@@ -5,7 +5,7 @@ import { useConvexAuth } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { LogOut, LayoutDashboard, Building, Calendar, User, X } from "lucide-react";
+import { LogOut, LayoutDashboard, Building, Calendar, User, X, LifeBuoy } from "lucide-react";
 
 export default function Navbar() {
   const { isAuthenticated } = useConvexAuth();
@@ -15,10 +15,27 @@ export default function Navbar() {
   const pathname = usePathname();
   const [shouldSignOut, setShouldSignOut] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    setIsDropdownOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest("#user-menu-button") && !target.closest("#user-dropdown-menu")) {
+        setIsDropdownOpen(false);
+      }
+    };
+    if (isDropdownOpen) {
+      document.addEventListener("click", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [isDropdownOpen]);
 
   useEffect(() => {
     if (isMobileMenuOpen) {
@@ -147,22 +164,67 @@ export default function Navbar() {
           <Link href="/calendar" className={`text-sm font-medium px-4 py-2 transition-colors ${pathname === "/calendar" ? "text-[#000091] underline underline-offset-8" : "text-[#3A3A3A] hover:text-[#000091]"}`}>
             Calendrier
           </Link>
-          <Link href="/profile" className={`text-sm font-medium px-4 py-2 transition-colors ${pathname === "/profile" ? "text-[#000091] underline underline-offset-8" : "text-[#3A3A3A] hover:text-[#000091]"}`}>
-            Mon Profil
-          </Link>
         </nav>
       )}
 
       {/* Right side actions */}
       <div className="flex items-center gap-4">
         {isAuthenticated ? (
-          <button
-            onClick={handleSignOut}
-            className="btn-secondary text-sm h-9 flex items-center gap-2"
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">Se déconnecter</span>
-          </button>
+          <div className="relative">
+            <button
+              id="user-menu-button"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="flex items-center justify-center w-9 h-9 rounded-full bg-[#F5F5FE] text-[#000091] hover:bg-[#E3E3FD] border border-[#CBCBFC] transition-colors focus:outline-none focus:ring-2 focus:ring-[#000091] cursor-pointer"
+              aria-expanded={isDropdownOpen}
+              aria-haspopup="true"
+              aria-label="Menu utilisateur"
+            >
+              <User className="w-5 h-5" />
+            </button>
+
+            {isDropdownOpen && (
+              <div
+                id="user-dropdown-menu"
+                className="absolute right-0 mt-2 w-48 bg-white border border-[#DDDDDD] rounded-md shadow-lg py-1 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+              >
+                <Link
+                  href="/profile"
+                  onClick={() => setIsDropdownOpen(false)}
+                  className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
+                    pathname === "/profile"
+                      ? "bg-[#F5F5FE] text-[#000091] font-semibold"
+                      : "text-[#161616] hover:bg-[#F5F5FE] hover:text-[#000091]"
+                  }`}
+                >
+                  <User className="w-4 h-4" />
+                  <span>Mon Profil</span>
+                </Link>
+                <Link
+                  href="/support"
+                  onClick={() => setIsDropdownOpen(false)}
+                  className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
+                    pathname === "/support"
+                      ? "bg-[#F5F5FE] text-[#000091] font-semibold"
+                      : "text-[#161616] hover:bg-[#F5F5FE] hover:text-[#000091]"
+                  }`}
+                >
+                  <LifeBuoy className="w-4 h-4" />
+                  <span>Support</span>
+                </Link>
+                <hr className="my-1 border-[#DDDDDD]" />
+                <button
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    handleSignOut();
+                  }}
+                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-[#CE0500] hover:bg-[#FFF2F2] transition-colors text-left font-medium"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Se déconnecter</span>
+                </button>
+              </div>
+            )}
+          </div>
         ) : (
           <>
             <div className="hidden md:flex items-center gap-3">
@@ -309,7 +371,7 @@ export default function Navbar() {
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#DDDDDD] h-16 flex items-center justify-around z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
         <Link
           href="/dashboard"
-          className={`flex flex-col items-center justify-center gap-1 w-1/4 h-full text-[10px] font-medium transition-colors ${
+          className={`flex flex-col items-center justify-center gap-1 w-1/3 h-full text-[10px] font-medium transition-colors ${
             pathname === "/dashboard" ? "text-[#000091]" : "text-[#666666] hover:text-[#000091]"
           }`}
         >
@@ -318,7 +380,7 @@ export default function Navbar() {
         </Link>
         <Link
           href="/annonces"
-          className={`flex flex-col items-center justify-center gap-1 w-1/4 h-full text-[10px] font-medium transition-colors ${
+          className={`flex flex-col items-center justify-center gap-1 w-1/3 h-full text-[10px] font-medium transition-colors ${
             pathname === "/annonces" || pathname?.startsWith("/dashboard/campaigns")
               ? "text-[#000091]"
               : "text-[#666666] hover:text-[#000091]"
@@ -329,21 +391,12 @@ export default function Navbar() {
         </Link>
         <Link
           href="/calendar"
-          className={`flex flex-col items-center justify-center gap-1 w-1/4 h-full text-[10px] font-medium transition-colors ${
+          className={`flex flex-col items-center justify-center gap-1 w-1/3 h-full text-[10px] font-medium transition-colors ${
             pathname === "/calendar" ? "text-[#000091]" : "text-[#666666] hover:text-[#000091]"
           }`}
         >
           <Calendar className="w-5 h-5" />
           <span>Calendrier</span>
-        </Link>
-        <Link
-          href="/profile"
-          className={`flex flex-col items-center justify-center gap-1 w-1/4 h-full text-[10px] font-medium transition-colors ${
-            pathname === "/profile" ? "text-[#000091]" : "text-[#666666] hover:text-[#000091]"
-          }`}
-        >
-          <User className="w-5 h-5" />
-          <span>Mon Profil</span>
         </Link>
       </nav>
     )}
