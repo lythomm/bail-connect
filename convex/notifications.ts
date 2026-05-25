@@ -1,6 +1,7 @@
 import { internalAction, internalMutation, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
+import { sendEmail } from "./resend";
 
 // ─── Queries ────────────────────────────────────────────────────────────────
 
@@ -114,12 +115,6 @@ export const sendDigestForUser = internalAction({
 
     if (!email || items.length === 0) return;
 
-    const resendApiKey = process.env.RESEND_API_KEY;
-    if (!resendApiKey) {
-      console.warn("RESEND_API_KEY not configured. Digest skipped.");
-      return;
-    }
-
     // Only process candidate-type items in the digest (bookings are sent immediately)
     const candidateItems = items.filter((i) => i.type === "candidate");
     if (candidateItems.length === 0) return;
@@ -180,29 +175,17 @@ export const sendDigestForUser = internalAction({
       </div>
     `;
 
-    try {
-      const response = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${resendApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: "BailConnect <notifications@bailconnect.fr>",
-          to: [email],
-          subject,
-          html,
-        }),
-      });
+    const emailResult = await sendEmail({
+      from: "BailConnect <notifications@bailconnect.fr>",
+      to: [email],
+      subject,
+      html,
+    });
 
-      if (!response.ok) {
-        console.error("Digest email failed:", await response.text());
-        return;
-      }
-
+    if (emailResult.success) {
       console.log(`Digest sent to ${email} (${items.length} items)`);
-    } catch (err) {
-      console.error("Error sending digest:", err);
+    } else {
+      console.error("Digest email failed:", emailResult.error);
       return;
     }
 
@@ -231,12 +214,6 @@ export const sendBookingNotification = internalAction({
 
     if (!info || !info.landlordEmail) {
       console.error("Landlord info not found for booking notification");
-      return;
-    }
-
-    const resendApiKey = process.env.RESEND_API_KEY;
-    if (!resendApiKey) {
-      console.warn("RESEND_API_KEY not configured. Booking notification skipped.");
       return;
     }
 
@@ -282,28 +259,17 @@ export const sendBookingNotification = internalAction({
       </div>
     `;
 
-    try {
-      const response = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${resendApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: "BailConnect <notifications@bailconnect.fr>",
-          to: [info.landlordEmail],
-          subject,
-          html,
-        }),
-      });
+    const emailResult = await sendEmail({
+      from: "BailConnect <notifications@bailconnect.fr>",
+      to: [info.landlordEmail],
+      subject,
+      html,
+    });
 
-      if (!response.ok) {
-        console.error("Booking notification email failed:", await response.text());
-      } else {
-        console.log(`Booking notification sent to ${info.landlordEmail} for ${info.campaignTitle}`);
-      }
-    } catch (err) {
-      console.error("Error sending booking notification:", err);
+    if (emailResult.success) {
+      console.log(`Booking notification sent to ${info.landlordEmail} for ${info.campaignTitle}`);
+    } else {
+      console.error("Booking notification email failed:", emailResult.error);
     }
   },
 });

@@ -16,6 +16,7 @@ import type * as crons from "../crons.js";
 import type * as emails from "../emails.js";
 import type * as http from "../http.js";
 import type * as notifications from "../notifications.js";
+import type * as resend from "../resend.js";
 import type * as stripe from "../stripe.js";
 import type * as stripeMutations from "../stripeMutations.js";
 import type * as users from "../users.js";
@@ -35,6 +36,7 @@ declare const fullApi: ApiFromModules<{
   emails: typeof emails;
   http: typeof http;
   notifications: typeof notifications;
+  resend: typeof resend;
   stripe: typeof stripe;
   stripeMutations: typeof stripeMutations;
   users: typeof users;

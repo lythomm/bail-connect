@@ -1,5 +1,6 @@
 import { internalMutation } from "./_generated/server";
 import { v } from "convex/values";
+import { insertCampaignInternal } from "./campaigns";
 
 export const createPaidCampaign = internalMutation({
   args: {
@@ -21,51 +22,14 @@ export const createPaidCampaign = internalMutation({
       return existing._id;
     }
 
-    const slugify = (text: string): string => {
-      return text
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)+/g, "");
-    };
-
-    const baseSlug = slugify(args.title) || "listing";
-    const rand = Math.random().toString(36).substring(2, 7);
-    const slug = `${baseSlug}-${rand}`;
-
-    // Generate unique 6-digit code
-    let code = "";
-    let isUnique = false;
-    let attempts = 0;
-    while (!isUnique && attempts < 10) {
-      const candidateCode = Math.floor(100000 + Math.random() * 900000).toString();
-      const existing = await ctx.db
-        .query("campaigns")
-        .withIndex("by_code", (q) => q.eq("code", candidateCode))
-        .unique();
-      if (!existing) {
-        code = candidateCode;
-        isUnique = true;
-      }
-      attempts++;
-    }
-    if (!code) {
-      code = Math.floor(100000 + Math.random() * 900000).toString();
-    }
-
-    return await ctx.db.insert("campaigns", {
+    return await insertCampaignInternal(ctx, {
       userId: args.userId,
-      title: args.title.trim(),
-      slug,
-      code,
-      description: args.description?.trim(),
+      title: args.title,
+      description: args.description,
       rentAmount: args.rentAmount,
-      address: args.address?.trim(),
+      address: args.address,
       adType: "pass",
-      status: "active",
       stripeSessionId: args.stripeSessionId,
-      createdAt: Date.now(),
     });
   },
 });

@@ -1,6 +1,7 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
+import { Id } from "./_generated/dataModel";
 
 // Helper to slugify a text
 function slugify(text: string): string {
@@ -10,6 +11,60 @@ function slugify(text: string): string {
     .replace(/[\u0300-\u036f]/g, "") // Remove accents
     .replace(/[^a-z0-9]+/g, "-") // Replace non-alphanumeric with hyphens
     .replace(/(^-|-$)+/g, ""); // Clean trailing/leading hyphens
+}
+
+/**
+ * Shared helper to create a campaign document in DB.
+ * Handles unique slug and unique 6-digit candidate code generation.
+ */
+export async function insertCampaignInternal(
+  ctx: MutationCtx,
+  args: {
+    userId: Id<"users">;
+    title: string;
+    description?: string;
+    rentAmount?: number;
+    address?: string;
+    adType: "free" | "pass";
+    stripeSessionId?: string;
+  }
+) {
+  const baseSlug = slugify(args.title) || "listing";
+  const rand = Math.random().toString(36).substring(2, 7);
+  const slug = `${baseSlug}-${rand}`;
+
+  let code = "";
+  let isUnique = false;
+  let attempts = 0;
+  while (!isUnique && attempts < 10) {
+    const candidateCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const existing = await ctx.db
+      .query("campaigns")
+      .withIndex("by_code", (q) => q.eq("code", candidateCode))
+      .unique();
+    if (!existing) {
+      code = candidateCode;
+      isUnique = true;
+    }
+    attempts++;
+  }
+  if (!code) {
+    code = Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  return await ctx.db.insert("campaigns", {
+    userId: args.userId,
+    title: args.title.trim(),
+    slug,
+    code,
+    description: args.description?.trim(),
+    rentAmount: args.rentAmount,
+    address: args.address?.trim(),
+    adType: args.adType,
+    status: "active",
+    stripeSessionId: args.stripeSessionId,
+    createdAt: Date.now(),
+  });
 }
 
 /**
@@ -129,31 +184,6 @@ export const create = mutation({
       throw new Error("You must be signed in to create a campaign");
     }
 
-    // Generate unique slug
-    const baseSlug = slugify(args.title) || "listing";
-    const rand = Math.random().toString(36).substring(2, 7);
-    const slug = `${baseSlug}-${rand}`;
-
-    // Generate unique 6-digit code
-    let code = "";
-    let isUnique = false;
-    let attempts = 0;
-    while (!isUnique && attempts < 10) {
-      const candidateCode = Math.floor(100000 + Math.random() * 900000).toString();
-      const existing = await ctx.db
-        .query("campaigns")
-        .withIndex("by_code", (q) => q.eq("code", candidateCode))
-        .unique();
-      if (!existing) {
-        code = candidateCode;
-        isUnique = true;
-      }
-      attempts++;
-    }
-    if (!code) {
-      code = Math.floor(100000 + Math.random() * 900000).toString();
-    }
-
     let adType = args.adType || "free";
     if (adType === "pass") {
       const user = await ctx.db.get(userId);
@@ -162,20 +192,14 @@ export const create = mutation({
       }
     }
 
-    const campaignId = await ctx.db.insert("campaigns", {
+    return await insertCampaignInternal(ctx, {
       userId,
-      title: args.title.trim(),
-      slug,
-      code,
-      description: args.description?.trim(),
+      title: args.title,
+      description: args.description,
       rentAmount: args.rentAmount,
-      address: args.address?.trim(),
+      address: args.address,
       adType,
-      status: "active",
-      createdAt: Date.now(),
     });
-
-    return campaignId;
   },
 });
 

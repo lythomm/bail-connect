@@ -1,6 +1,7 @@
 import { internalQuery, internalAction } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
+import { sendEmail } from "./resend";
 
 /**
  * Internal query to fetch candidate details for email invitation.
@@ -33,12 +34,6 @@ export const sendCandidateInvitation = internalAction({
     });
     if (!info) {
       console.error("Candidate info not found for ID:", args.candidateId);
-      return;
-    }
-
-    const resendApiKey = process.env.RESEND_API_KEY;
-    if (!resendApiKey) {
-      console.warn("RESEND_API_KEY is not configured. Invitation email skipped.");
       return;
     }
 
@@ -80,29 +75,17 @@ export const sendCandidateInvitation = internalAction({
       </div>
     `;
 
-    try {
-      const response = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${resendApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: "BailConnect <noreply@bailconnect.fr>",
-          to: [info.candidateEmail],
-          subject: subject,
-          html: htmlContent,
-        }),
-      });
+    const emailResult = await sendEmail({
+      from: "BailConnect <noreply@bailconnect.fr>",
+      to: [info.candidateEmail],
+      subject,
+      html: htmlContent,
+    });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Failed to send candidate email via Resend:", errorText);
-      } else {
-        console.log("Candidate booking invitation sent successfully to", info.candidateEmail);
-      }
-    } catch (err) {
-      console.error("Error calling Resend API for candidate email:", err);
+    if (!emailResult.success) {
+      console.error("Failed to send candidate email via Resend:", emailResult.error);
+    } else {
+      console.log("Candidate booking invitation sent successfully to", info.candidateEmail);
     }
   },
 });
@@ -118,12 +101,6 @@ export const sendCandidateRejection = internalAction({
     });
     if (!info) {
       console.error("Candidate info not found for ID:", args.candidateId);
-      return;
-    }
-
-    const resendApiKey = process.env.RESEND_API_KEY;
-    if (!resendApiKey) {
-      console.warn("RESEND_API_KEY is not configured. Rejection email skipped.");
       return;
     }
 
@@ -154,29 +131,17 @@ export const sendCandidateRejection = internalAction({
       </div>
     `;
 
-    try {
-      const response = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${resendApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: "BailConnect <noreply@bailconnect.fr>",
-          to: [info.candidateEmail],
-          subject: subject,
-          html: htmlContent,
-        }),
-      });
+    const emailResult = await sendEmail({
+      from: "BailConnect <noreply@bailconnect.fr>",
+      to: [info.candidateEmail],
+      subject,
+      html: htmlContent,
+    });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Failed to send candidate rejection email via Resend:", errorText);
-      } else {
-        console.log("Candidate rejection email sent successfully to", info.candidateEmail);
-      }
-    } catch (err) {
-      console.error("Error calling Resend API for candidate rejection email:", err);
+    if (!emailResult.success) {
+      console.error("Failed to send candidate rejection email via Resend:", emailResult.error);
+    } else {
+      console.log("Candidate rejection email sent successfully to", info.candidateEmail);
     }
   },
 });
@@ -190,11 +155,6 @@ export const sendOTPCode = internalAction({
     code: v.string(),
   },
   handler: async (ctx, args) => {
-    const resendApiKey = process.env.RESEND_API_KEY;
-    if (!resendApiKey) {
-      console.warn("RESEND_API_KEY is not configured. OTP email skipped.");
-      return;
-    }
 
     const subject = `[BailConnect] 🔑 Votre code de vérification : ${args.code}`;
     const htmlContent = `
@@ -227,29 +187,17 @@ export const sendOTPCode = internalAction({
       </div>
     `;
 
-    try {
-      const response = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${resendApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: "BailConnect <noreply@bailconnect.fr>",
-          to: [args.email],
-          subject: subject,
-          html: htmlContent,
-        }),
-      });
+    const emailResult = await sendEmail({
+      from: "BailConnect <noreply@bailconnect.fr>",
+      to: [args.email],
+      subject,
+      html: htmlContent,
+    });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Failed to send OTP verification email via Resend:", errorText);
-      } else {
-        console.log("OTP verification email sent successfully to", args.email);
-      }
-    } catch (err) {
-      console.error("Error calling Resend API for OTP email:", err);
+    if (!emailResult.success) {
+      console.error("Failed to send OTP verification email via Resend:", emailResult.error);
+    } else {
+      console.log("OTP verification email sent successfully to", args.email);
     }
   },
 });
