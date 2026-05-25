@@ -5,8 +5,9 @@ import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { CreditCard, Lock, CheckCircle2, Loader2 } from "lucide-react";
+import { CreditCard, Lock, CheckCircle2, Loader2, HelpCircle } from "lucide-react";
 import Toast, { ToastType } from "@/components/Toast";
+import Dialog from "@/components/Dialog";
 
 export default function NewCampaign() {
   const { isAuthenticated, isLoading } = useConvexAuth();
@@ -23,6 +24,7 @@ export default function NewCampaign() {
   const [rentAmount, setRentAmount] = useState("");
   const [adType, setAdType] = useState<"free" | "pass">("free");
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+  const [showAddressInfo, setShowAddressInfo] = useState(false);
 
   const hasFreeCampaign = campaigns?.some(c => c.adType === "free" || !c.adType) ?? false;
 
@@ -298,9 +300,19 @@ export default function NewCampaign() {
               {currentStep === 2 && (
                 <div className="space-y-6">
                   <div>
-                    <label htmlFor="address" className="form-label">
-                      Adresse du logement *
-                    </label>
+                    <div className="flex justify-between items-center mb-1">
+                      <label htmlFor="address" className="form-label m-0">
+                        Adresse du logement *
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowAddressInfo(true)}
+                        className="text-xs text-[#000091] hover:underline font-medium cursor-pointer focus:outline-none flex items-center gap-1"
+                      >
+                        <HelpCircle className="w-3.5 h-3.5" />
+                        ? savoir plus
+                      </button>
+                    </div>
                     <input
                       id="address"
                       type="text"
@@ -591,6 +603,31 @@ export default function NewCampaign() {
           type={toast.type}
           onClose={() => setToast(null)}
         />
+      )}
+      {showAddressInfo && (
+        <Dialog
+          isOpen={showAddressInfo}
+          onClose={() => setShowAddressInfo(false)}
+          title="Confidentialité de l'adresse"
+          footer={
+            <button
+              type="button"
+              onClick={() => setShowAddressInfo(false)}
+              className="btn-primary w-full sm:w-auto cursor-pointer"
+            >
+              Compris
+            </button>
+          }
+        >
+          <div className="space-y-4">
+            <p className="text-sm leading-relaxed text-[#3A3A3A]">
+              Par souci de confidentialité et de sécurité, l'adresse exacte de votre logement n'est pas affichée publiquement sur la page de candidature.
+            </p>
+            <p className="text-sm leading-relaxed text-[#3A3A3A]">
+              Elle sera uniquement partagée avec les candidats dont vous aurez <strong>retenu</strong> le dossier, lorsqu'ils accèderont à la page de réservation de créneau pour planifier leur visite.
+            </p>
+          </div>
+        </Dialog>
       )}
     </div>
   );

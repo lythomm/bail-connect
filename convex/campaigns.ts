@@ -134,7 +134,6 @@ export const getBySlug = query({
       description: campaign.description,
       slug: campaign.slug,
       rentAmount: campaign.rentAmount,
-      address: campaign.address,
       code: campaign.code,
     };
   },
