@@ -1,6 +1,7 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { query, internalMutation, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
 
 /**
  * Fetch the currently authenticated user's record.
@@ -45,3 +46,99 @@ export const update = mutation({
   },
 });
 
+export const updateNotificationPrefs = mutation({
+  args: {
+    notificationPreference: v.union(v.literal("daily"), v.literal("none")),
+    digestHour: v.number(), // 0–23
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Non autorisé");
+    // Validate hour range
+    if (args.digestHour < 0 || args.digestHour > 23 || !Number.isInteger(args.digestHour)) {
+      throw new Error("digestHour doit être un entier entre 0 et 23");
+    }
+    await ctx.db.patch(userId, {
+      notificationPreference: args.notificationPreference,
+      digestHour: args.digestHour,
+    });
+  },
+});
+
+/**
+ * Verify user's email using a 6-digit OTP code.
+ */
+export const verifyEmailOTP = mutation({
+  args: { code: v.string() },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Non autorisé");
+
+    const user = await ctx.db.get(userId);
+    if (!user) throw new Error("Utilisateur introuvable");
+
+    if (user.emailVerificationTime) {
+      return { success: true, message: "E-mail déjà vérifié." };
+    }
+
+    const { emailVerificationCode, emailVerificationCodeExpires } = user;
+
+    if (!emailVerificationCode || !emailVerificationCodeExpires) {
+      throw new Error("Aucun code de vérification n'a été généré pour ce compte.");
+    }
+
+    if (emailVerificationCodeExpires < Date.now()) {
+      throw new Error("Le code de vérification a expiré.");
+    }
+
+    if (emailVerificationCode !== args.code.trim()) {
+      throw new Error("Le code de vérification est incorrect.");
+    }
+
+    // Success! Mark email as verified and clear verification fields
+    await ctx.db.patch(userId, {
+      emailVerificationTime: Date.now(),
+      emailVerificationCode: undefined,
+      emailVerificationCodeExpires: undefined,
+    });
+
+    return { success: true };
+  },
+});
+
+/**
+ * Regenerate and resend verification OTP code to user.
+ */
+export const resendVerificationCode = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Non autorisé");
+
+    const user = await ctx.db.get(userId);
+    if (!user) throw new Error("Utilisateur introuvable");
+
+    if (user.emailVerificationTime) {
+      return { success: true, alreadyVerified: true };
+    }
+
+    if (!user.email) {
+      throw new Error("L'utilisateur n'a pas d'adresse e-mail associée.");
+    }
+
+    const newCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const newExpires = Date.now() + 15 * 60 * 1000;
+
+    await ctx.db.patch(userId, {
+      emailVerificationCode: newCode,
+      emailVerificationCodeExpires: newExpires,
+    });
+
+    await ctx.scheduler.runAfter(0, internal.emails.sendOTPCode, {
+      email: user.email,
+      code: newCode,
+    });
+
+    return { success: true };
+  },
+});

@@ -1,6 +1,7 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
 
 /**
  * Create a new visit slot for a campaign.
@@ -248,12 +249,18 @@ export const bookAppointment = mutation({
       bookedCount: targetSlot.bookedCount + 1,
     });
 
-    // Create new appointment
     const apptId = await ctx.db.insert("appointments", {
       slotId: args.slotId,
       candidateId: args.candidateId,
       campaignId: candidate.campaignId,
       createdAt: Date.now(),
+    });
+
+    // Send immediate booking notification to landlord
+    await ctx.scheduler.runAfter(0, internal.notifications.sendBookingNotification, {
+      candidateId: args.candidateId,
+      slotId: args.slotId,
+      landlordUserId: campaign.userId,
     });
 
     return apptId;

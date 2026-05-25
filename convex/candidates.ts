@@ -3,6 +3,7 @@ import { mutation, query, internalQuery, internalAction } from "./_generated/ser
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 
+
 // Regex to validate DossierFacile public sharing URLs (accepts locataire.dossierfacile.logement.gouv.fr or locataire.dossierfacile.fr)
 const DOSSIER_FACILE_REGEX = /^https:\/\/[a-z0-9.-]*dossierfacile\.(logement\.gouv\.fr|fr)\/(file|pf)\/[a-zA-Z0-9-]+$/i;
 
@@ -85,13 +86,19 @@ export const create = mutation({
       createdAt: Date.now(),
     });
 
-    // 3. Queue email notification to landlord
-    await ctx.scheduler.runAfter(0, internal.candidates.sendNotificationEmail, {
+    // 3. Enqueue digest notification for landlord
+    await ctx.db.insert("notificationQueue", {
+      userId: campaign.userId,
       campaignId: args.campaignId,
-      candidateTrigram: args.nameTrigram.trim().toUpperCase(),
-      candidateJobStatus: args.jobStatus.trim(),
-      candidateMonthlyIncome: args.monthlyIncome,
-      candidateHasGuarantor: args.hasGuarantor,
+      type: "candidate",
+      payload: {
+        trigram: args.nameTrigram.trim().toUpperCase(),
+        jobStatus: args.jobStatus.trim(),
+        monthlyIncome: args.monthlyIncome,
+        hasGuarantor: args.hasGuarantor,
+      },
+      sent: false,
+      createdAt: Date.now(),
     });
 
     return candidateId;
@@ -298,7 +305,7 @@ export const sendNotificationEmail = internalAction({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: "BailConnect <onboarding@resend.dev>",
+          from: "BailConnect <noreply@bailconnect.fr>",
           to: [landlordEmail],
           subject: subject,
           html: htmlContent,

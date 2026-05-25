@@ -15,7 +15,9 @@ import {
   CheckCircle,
   Building,
   ArrowRight,
-  Loader2
+  Loader2,
+  Bell,
+  BellOff,
 } from "lucide-react";
 import Toast, { ToastType } from "@/components/Toast";
 
@@ -27,6 +29,7 @@ export default function ProfilePage() {
   // Queries & Mutations
   const user = useQuery(api.users.current);
   const updateProfile = useMutation(api.users.update);
+  const updateNotificationPrefs = useMutation(api.users.updateNotificationPrefs);
   
   const createCheckoutSession = useAction(api.stripe.createCheckoutSession);
   const verifySession = useAction(api.stripe.verifySession);
@@ -37,6 +40,11 @@ export default function ProfilePage() {
   const [phone, setPhone] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+
+  // Notification prefs state
+  const [notifPref, setNotifPref] = useState<"daily" | "none">("daily");
+  const [digestHour, setDigestHour] = useState(18);
+  const [isSavingNotif, setIsSavingNotif] = useState(false);
 
   // Cancellation States
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
@@ -122,6 +130,8 @@ export default function ProfilePage() {
     if (user) {
       setName(user.name || "");
       setPhone(user.phone || "");
+      setNotifPref((user.notificationPreference as "daily" | "none") ?? "daily");
+      setDigestHour(user.digestHour ?? 18);
     }
   }, [user]);
 
@@ -274,31 +284,103 @@ export default function ProfilePage() {
             {/* Notification settings */}
             <div className="bg-white border border-[#E2E8F0] rounded-2xl shadow-xs p-6">
               <h2 className="text-lg font-bold text-[#161616] mb-4 flex items-center gap-2">
-                <Shield className="w-5 h-5 text-[#000091]" /> Préférences et Sécurité
+                <Bell className="w-5 h-5 text-[#000091]" /> Notifications par email
               </h2>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between py-2 border-b border-[#F0F0F0]">
-                  <div>
-                    <h3 className="text-sm font-semibold text-[#161616]">Alertes SMS pour nouveaux dossiers</h3>
-                    <p className="text-xs text-[#666666]">Recevoir un SMS lorsqu&apos;un candidat soumet un dossier certifié.</p>
+              <p className="text-xs text-[#666666] mb-5 leading-relaxed">
+                Recevez un récap quotidien de vos nouvelles candidatures et réservations de créneaux.
+              </p>
+
+              <div className="space-y-3 mb-5">
+                {/* Daily option */}
+                <label
+                  htmlFor="notif-daily"
+                  className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                    notifPref === "daily"
+                      ? "border-[#000091] bg-[#F5F5FE]"
+                      : "border-[#DDDDDD] hover:border-[#AAAAAA]"
+                  }`}
+                >
+                  <input
+                    id="notif-daily"
+                    type="radio"
+                    name="notifPref"
+                    value="daily"
+                    checked={notifPref === "daily"}
+                    onChange={() => setNotifPref("daily")}
+                    className="mt-0.5 accent-[#000091] cursor-pointer"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-[#161616] flex items-center gap-1.5">
+                      <Bell className="w-3.5 h-3.5 text-[#000091]" /> Digest quotidien
+                    </p>
+                    <p className="text-xs text-[#666666] mt-0.5">Un seul email par jour regroupant toute l&apos;activité.</p>
+                    {notifPref === "daily" && (
+                      <div className="mt-3 flex items-center gap-2">
+                        <label className="text-xs font-bold text-[#3A3A3A] shrink-0">Heure d&apos;envoi :</label>
+                        <select
+                          value={digestHour}
+                          onChange={(e) => setDigestHour(Number(e.target.value))}
+                          className="text-sm border border-[#CCCCCC] rounded-md px-2 py-1.5 bg-white focus:outline-none focus:border-[#000091] transition-all cursor-pointer"
+                        >
+                          {Array.from({ length: 24 }, (_, h) => (
+                            <option key={h} value={h}>
+                              {String(h).padStart(2, "0")}:00
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                   </div>
-                  <input type="checkbox" defaultChecked className="h-4 w-4 accent-[#000091]" />
-                </div>
-                <div className="flex items-center justify-between py-2 border-b border-[#F0F0F0]">
+                </label>
+
+                {/* None option */}
+                <label
+                  htmlFor="notif-none"
+                  className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                    notifPref === "none"
+                      ? "border-[#CE0500] bg-[#FEF5F5]"
+                      : "border-[#DDDDDD] hover:border-[#AAAAAA]"
+                  }`}
+                >
+                  <input
+                    id="notif-none"
+                    type="radio"
+                    name="notifPref"
+                    value="none"
+                    checked={notifPref === "none"}
+                    onChange={() => setNotifPref("none")}
+                    className="mt-0.5 accent-[#CE0500] cursor-pointer"
+                  />
                   <div>
-                    <h3 className="text-sm font-semibold text-[#161616]">Rappels automatiques de visites</h3>
-                    <p className="text-xs text-[#666666]">Envoyer un SMS de rappel aux candidats 24 heures avant la visite.</p>
+                    <p className="text-sm font-semibold text-[#161616] flex items-center gap-1.5">
+                      <BellOff className="w-3.5 h-3.5 text-[#CE0500]" /> Désactivé
+                    </p>
+                    <p className="text-xs text-[#666666] mt-0.5">Aucun email de notification. Consultez le tableau de bord manuellement.</p>
                   </div>
-                  <input type="checkbox" defaultChecked className="h-4 w-4 accent-[#000091]" />
-                </div>
-                <div className="flex items-center justify-between py-2">
-                  <div>
-                    <h3 className="text-sm font-semibold text-[#161616]">Double authentification (MFA)</h3>
-                    <p className="text-xs text-[#666666]">Sécuriser les connexions à mon espace personnel.</p>
-                  </div>
-                  <span className="text-[10px] font-bold text-[#666666] bg-[#EEEEEE] px-2 py-0.5 rounded-sm">Bientôt</span>
-                </div>
+                </label>
               </div>
+
+              <button
+                type="button"
+                disabled={isSavingNotif}
+                onClick={async () => {
+                  setIsSavingNotif(true);
+                  try {
+                    await updateNotificationPrefs({
+                      notificationPreference: notifPref,
+                      digestHour,
+                    });
+                    setToast({ message: "Préférences de notifications mises à jour !", type: "success" });
+                  } catch (err: any) {
+                    setToast({ message: err.message || "Erreur lors de la sauvegarde.", type: "error" });
+                  } finally {
+                    setIsSavingNotif(false);
+                  }
+                }}
+                className="btn-primary w-full sm:w-auto text-center justify-center"
+              >
+                {isSavingNotif ? "Enregistrement..." : "Enregistrer les préférences"}
+              </button>
             </div>
           </div>
 

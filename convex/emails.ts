@@ -88,7 +88,7 @@ export const sendCandidateInvitation = internalAction({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: "BailConnect <onboarding@resend.dev>",
+          from: "BailConnect <noreply@bailconnect.fr>",
           to: [info.candidateEmail],
           subject: subject,
           html: htmlContent,
@@ -162,7 +162,7 @@ export const sendCandidateRejection = internalAction({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: "BailConnect <onboarding@resend.dev>",
+          from: "BailConnect <noreply@bailconnect.fr>",
           to: [info.candidateEmail],
           subject: subject,
           html: htmlContent,
@@ -180,4 +180,78 @@ export const sendCandidateRejection = internalAction({
     }
   },
 });
+
+/**
+ * Send a 6-digit OTP code to verify a user's email.
+ */
+export const sendOTPCode = internalAction({
+  args: {
+    email: v.string(),
+    code: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const resendApiKey = process.env.RESEND_API_KEY;
+    if (!resendApiKey) {
+      console.warn("RESEND_API_KEY is not configured. OTP email skipped.");
+      return;
+    }
+
+    const subject = `[BailConnect] 🔑 Votre code de vérification : ${args.code}`;
+    const htmlContent = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #DDDDDD; color: #161616;">
+        <div style="background-color: #000091; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; margin-bottom: 20px;">
+          BailConnect
+        </div>
+        <h2 style="font-size: 20px; margin-bottom: 15px; color: #161616;">Vérification de votre adresse e-mail</h2>
+        <p style="font-size: 14px; line-height: 1.5; color: #3A3A3A;">
+          Bonjour,
+        </p>
+        <p style="font-size: 14px; line-height: 1.5; color: #3A3A3A;">
+          Merci de vous être inscrit sur BailConnect. Veuillez saisir le code de validation ci-dessous pour finaliser la création de votre compte :
+        </p>
+        
+        <div style="margin: 30px 0; text-align: center;">
+          <div style="display: inline-block; background-color: #F5F5FE; border: 1px solid #000091; color: #000091; padding: 16px 32px; font-size: 24px; font-weight: bold; letter-spacing: 6px; border-radius: 4px; font-family: monospace;">
+            ${args.code}
+          </div>
+        </div>
+        
+        <p style="font-size: 13px; line-height: 1.5; color: #666666;">
+          Ce code est valable pendant <strong>15 minutes</strong>. Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet e-mail en toute sécurité.
+        </p>
+        
+        <hr style="border: 0; border-top: 1px solid #DDDDDD; margin: 30px 0 15px 0;" />
+        <p style="font-size: 11px; color: #666666; text-align: center;">
+          Ceci est un email automatique envoyé par BailConnect. Ne pas répondre directement à cet email.
+        </p>
+      </div>
+    `;
+
+    try {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${resendApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: "BailConnect <noreply@bailconnect.fr>",
+          to: [args.email],
+          subject: subject,
+          html: htmlContent,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Failed to send OTP verification email via Resend:", errorText);
+      } else {
+        console.log("OTP verification email sent successfully to", args.email);
+      }
+    } catch (err) {
+      console.error("Error calling Resend API for OTP email:", err);
+    }
+  },
+});
+
 

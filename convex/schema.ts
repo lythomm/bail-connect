@@ -20,6 +20,10 @@ export default defineSchema({
     stripeSubscriptionId: v.optional(v.string()),
     stripeCustomerId: v.optional(v.string()),
     usedCoupons: v.optional(v.array(v.string())),
+    notificationPreference: v.optional(v.union(v.literal("daily"), v.literal("none"))),
+    digestHour: v.optional(v.number()), // 0-23, default 18
+    emailVerificationCode: v.optional(v.string()),
+    emailVerificationCodeExpires: v.optional(v.number()),
   }).index("email", ["email"])
     .index("phone", ["phone"])
     .index("by_stripeSubscriptionId", ["stripeSubscriptionId"]),
@@ -90,4 +94,13 @@ export default defineSchema({
     feedback: v.optional(v.string()),
     createdAt: v.number(),
   }).index("by_userId", ["userId"]),
+
+  notificationQueue: defineTable({
+    userId: v.id("users"),
+    campaignId: v.id("campaigns"),
+    type: v.union(v.literal("candidate"), v.literal("booking")),
+    payload: v.any(),
+    sent: v.boolean(),
+    createdAt: v.number(),
+  }).index("by_userId_sent", ["userId", "sent"]),
 });
