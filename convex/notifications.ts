@@ -154,7 +154,7 @@ export const sendDigestForUser = internalAction({
 
     const totalCandidates = candidateItems.length;
     const summaryText = `${totalCandidates} nouveau${totalCandidates > 1 ? "x" : ""} candidat${totalCandidates > 1 ? "s" : ""}`;
-    const subject = `[BailConnect] ${summaryText} aujourd'hui`;
+    const subject = `${summaryText} aujourd'hui`;
 
     const html = `
       <div style="font-family: sans-serif; max-width: 580px; margin: 0 auto; padding: 20px; border: 1px solid #DDDDDD; color: #161616;">
@@ -223,7 +223,7 @@ export const sendBookingNotification = internalAction({
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-    const subject = `[BailConnect] 📅 Créneau réservé – ${info.campaignTitle}`;
+    const subject = `📅 Créneau réservé – ${info.campaignTitle}`;
     const html = `
       <div style="font-family: sans-serif; max-width: 620px; margin: 0 auto; padding: 20px; border: 1px solid #DDDDDD; color: #161616;">
         <div style="background-color: #000091; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; margin-bottom: 24px;">
@@ -299,7 +299,7 @@ export const sendCancellationNotification = internalAction({
     const dateStr = d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Paris" });
     const timeStr = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" });
 
-    const subject = `[BailConnect] ❌ Visite annulée – ${info.campaignTitle}`;
+    const subject = `❌ Visite annulée – ${info.campaignTitle}`;
     const html = `
       <div style="font-family: sans-serif; max-width: 620px; margin: 0 auto; padding: 20px; border: 1px solid #DDDDDD; color: #161616;">
         <div style="background-color: #000091; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; margin-bottom: 24px;">
@@ -363,7 +363,7 @@ export const sendRescheduleNotification = internalAction({
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-    const subject = `[BailConnect] 📅 Rendez-vous déplacé – ${info.campaignTitle}`;
+    const subject = `📅 Rendez-vous déplacé – ${info.campaignTitle}`;
     const html = `
       <div style="font-family: sans-serif; max-width: 620px; margin: 0 auto; padding: 20px; border: 1px solid #DDDDDD; color: #161616;">
         <div style="background-color: #000091; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; margin-bottom: 24px;">

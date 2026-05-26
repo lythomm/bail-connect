@@ -40,7 +40,7 @@ export const sendCandidateInvitation = internalAction({
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
     const bookingUrl = `${siteUrl}/calendar/book?candidateId=${args.candidateId}`;
 
-    const subject = `[BailConnect] Votre dossier a été retenu pour ${info.campaignTitle}`;
+    const subject = `Votre dossier a été retenu pour ${info.campaignTitle}`;
     const htmlContent = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #DDDDDD; color: #161616;">
         <div style="background-color: #000091; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; margin-bottom: 20px;">
@@ -104,7 +104,7 @@ export const sendCandidateRejection = internalAction({
       return;
     }
 
-    const subject = `[BailConnect] Candidature pour ${info.campaignTitle}`;
+    const subject = `Candidature pour ${info.campaignTitle}`;
     const htmlContent = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #DDDDDD; color: #161616;">
         <div style="background-color: #000091; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; margin-bottom: 20px;">
@@ -156,7 +156,7 @@ export const sendOTPCode = internalAction({
   },
   handler: async (ctx, args) => {
 
-    const subject = `[BailConnect] 🔑 Votre code de vérification : ${args.code}`;
+    const subject = `🔑 Votre code de vérification : ${args.code}`;
     const htmlContent = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #DDDDDD; color: #161616;">
         <div style="background-color: #000091; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; margin-bottom: 20px;">
@@ -224,7 +224,7 @@ export const sendAppointmentCancellationToCandidate = internalAction({
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
     const bookingUrl = `${siteUrl}/calendar/book?candidateId=${args.candidateId}`;
 
-    const subject = `[BailConnect] ❌ Visite annulée – ${args.campaignTitle}`;
+    const subject = `❌ Visite annulée – ${args.campaignTitle}`;
     const htmlContent = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #DDDDDD; color: #161616;">
         <div style="background-color: #000091; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; margin-bottom: 20px;">
