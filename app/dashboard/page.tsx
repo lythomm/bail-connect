@@ -279,15 +279,38 @@ export default function Dashboard() {
               </ul>
             </div>
 
-            {/* Quick Tips */}
-            <div className="bg-[#F5F5FE] border border-[#000091]/10 rounded-lg p-6">
-              <h3 className="text-sm font-bold text-[#000091] mb-2 uppercase tracking-wide flex items-center gap-1.5">
-                <TrendingUp className="w-4 h-4" /> Astuce BailConnect
-              </h3>
-              <p className="text-xs text-[#3A3A3A] leading-relaxed">
-                Les dossiers des candidats sont vérifiés et garantis par l'État via le service <strong>DossierFacile</strong>. N'hésitez pas à leur envoyer un rappel SMS avant la visite pour confirmer leur présence.
-              </p>
-            </div>
+            {/* Quick Tips or Pro Upgrade CTA */}
+            {user !== undefined && (user?.tier === "free" || !user?.tier) ? (
+              <div className="bg-gradient-to-br from-[#F5F5FE] to-[#E3E3FD] border border-[#000091]/20 rounded-lg p-6 space-y-3 relative overflow-hidden">
+                <div className="absolute right-0 bottom-0 translate-x-4 translate-y-4 opacity-5 pointer-events-none">
+                  <TrendingUp className="w-32 h-32 text-[#000091]" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="bg-[#000091] text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">PRO</span>
+                  <h3 className="text-sm font-bold text-[#161616]">Passez à la vitesse supérieure</h3>
+                </div>
+                <p className="text-xs text-[#3A3A3A] leading-relaxed">
+                  Ajouter des logements avec le PASS Annonce en <strong>illimité</strong>, bénéficiez du <strong>support prioritaire</strong> et gérez vos visites sans contrainte.
+                </p>
+                <div className="pt-2">
+                  <Link
+                    href="/profile"
+                    className="btn-primary text-xs w-full py-2.5 flex items-center justify-center gap-1 font-bold shadow-xs hover:bg-[#00007A]"
+                  >
+                    Devenir Membre Pro
+                  </Link>
+                </div>
+              </div>
+            ) : user?.tier === "pro" ? (
+              <div className="bg-[#F5F5FE] border border-[#000091]/10 rounded-lg p-6">
+                <h3 className="text-sm font-bold text-[#000091] mb-2 uppercase tracking-wide flex items-center gap-1.5">
+                  <TrendingUp className="w-4 h-4" /> Astuce BailConnect
+                </h3>
+                <p className="text-xs text-[#3A3A3A] leading-relaxed">
+                  Les dossiers des candidats sont vérifiés et garantis par l'État via le service <strong>DossierFacile</strong>. N'hésitez pas à leur envoyer un rappel SMS avant la visite pour confirmer leur présence.
+                </p>
+              </div>
+            ) : null}
 
           </div>
 

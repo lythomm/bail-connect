@@ -198,7 +198,7 @@ export default function ApplyPage() {
         <div className="gov-card max-w-md text-center">
           <div className="gov-card-header text-red-600 border-red-600">Offre introuvable</div>
           <div className="gov-card-body">
-            <p className="mb-4">Cette annonce de logement n'existe plus ou l'adresse URL est incorrecte.</p>
+            <p className="mb-4">Ce logement n'est plus disponible ou l'adresse URL est incorrecte.</p>
           </div>
         </div>
       </div>

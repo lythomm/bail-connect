@@ -293,13 +293,16 @@ export const sendSupportEmail = action({
       throw new Error("Sujet et message requis.");
     }
 
+    const isPro = user.tier === "pro";
+
     const htmlContent = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #DDDDDD; color: #161616;">
-        <div style="background-color: #000091; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; margin-bottom: 20px;">
-          BailConnect — Demande de Support
+        <div style="background-color: #000091; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
+          <span>BailConnect — Demande de Support</span>
+          ${isPro ? '<span style="background-color: #E8F6EE; color: #18753C; font-size: 11px; padding: 4px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase; margin-left: 7px;">PRO</span>' : ""}
         </div>
         <p style="font-size: 14px; line-height: 1.5; color: #3A3A3A;">
-          <strong>De :</strong> ${user.name || "Utilisateur"} (${user.email})<br/>
+          <strong>De :</strong> ${user.name || "Utilisateur"} (${user.email})${isPro ? ' <span style="background-color: #E8F6EE; color: #18753C; font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: bold; vertical-align: middle; margin-left: 5px;">PRO</span>' : ""}<br/>
           <strong>ID Utilisateur :</strong> ${user._id}<br/>
           <strong>Objet :</strong> ${cleanSubject}
         </p>
@@ -313,7 +316,7 @@ export const sendSupportEmail = action({
     const emailResult = await sendEmail({
       from: "BailConnect Support <noreply@bailconnect.fr>",
       to: ["contact@bailconnect.fr"],
-      subject: `[Support BailConnect] ${cleanSubject}`,
+      subject: isPro ? `[Support BailConnect] [PRO] ${cleanSubject}` : `[Support BailConnect] ${cleanSubject}`,
       html: htmlContent,
     });
 

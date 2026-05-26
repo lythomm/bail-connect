@@ -295,8 +295,8 @@ export default function ProfilePage() {
                 <label
                   htmlFor="notif-daily"
                   className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${notifPref === "daily"
-                      ? "border-[#000091] bg-[#F5F5FE]"
-                      : "border-[#DDDDDD] hover:border-[#AAAAAA]"
+                    ? "border-[#000091] bg-[#F5F5FE]"
+                    : "border-[#DDDDDD] hover:border-[#AAAAAA]"
                     }`}
                 >
                   <input
@@ -336,8 +336,8 @@ export default function ProfilePage() {
                 <label
                   htmlFor="notif-none"
                   className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${notifPref === "none"
-                      ? "border-[#CE0500] bg-[#FEF5F5]"
-                      : "border-[#DDDDDD] hover:border-[#AAAAAA]"
+                    ? "border-[#CE0500] bg-[#FEF5F5]"
+                    : "border-[#DDDDDD] hover:border-[#AAAAAA]"
                     }`}
                 >
                   <input
@@ -421,7 +421,7 @@ export default function ProfilePage() {
                       <span className="font-bold text-sm text-[#000091]">49 €<span className="text-[10px] text-[#666666]">/m</span></span>
                     </div>
                     <p className="text-[11px] text-[#666666] leading-relaxed mb-3">
-                      Gestion multi-biens illimitée, exportations de dossiers et options d&apos;automatisation avancées.
+                      Vous possédez plus de 2 logements ? Optez pour l'abonnement Pro et gérez vos biens en illimité.
                     </p>
                     <div className="text-xs font-bold text-[#000091] group-hover:underline flex items-center gap-1">
                       Choisir cette offre <ArrowRight className="w-3 h-3" />
@@ -545,7 +545,7 @@ export default function ProfilePage() {
                       <span>Résiliation...</span>
                     </>
                   ) : (
-                    <span>Confirmer la résiliation</span>
+                    <span>Confirmer</span>
                   )}
                 </button>
               </div>

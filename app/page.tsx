@@ -394,7 +394,7 @@ export default function Home() {
                   4. Planifiez les visites
                 </h3>
                 <p className="text-xs text-[#3A3A3A] leading-relaxed">
-                  Tout les candidats retenus sont automatiquement conviés à réserver leur créneau sur votre calendrier. Les rappels sont gérés <strong>automatiquement</strong>.
+                  Les candidats retenus réservent <strong>en toute autonomie</strong> leur créneau de visite que vous aurez au préalable défini.
                 </p>
               </div>
             </div>
@@ -621,7 +621,7 @@ export default function Home() {
                     </li>
                     <li className="flex items-start gap-3 text-sm text-[#3A3A3A]">
                       <Check className="w-5 h-5 text-[#18753C] flex-shrink-0" />
-                      <span>Import LeBonCoin / SeLoger</span>
+                      <span>Support <strong>prioritaire</strong></span>
                     </li>
                   </ul>
                 </div>
