@@ -10,7 +10,8 @@ import {
   Plus,
   CalendarRange,
   Trash2,
-  Filter
+  Filter,
+  Info
 } from "lucide-react";
 import Toast, { ToastType } from "@/components/Toast";
 import Dialog from "@/components/Dialog";
@@ -25,11 +26,41 @@ export default function CalendarPage() {
   const [selectedDateStr, setSelectedDateStr] = useState<string>(
     new Date().toISOString().split("T")[0]
   );
+  const [selectedDates, setSelectedDates] = useState<Set<string>>(
+    new Set([new Date().toISOString().split("T")[0]])
+  );
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartDate, setDragStartDate] = useState<string | null>(null);
   const [isAddSlotOpen, setIsAddSlotOpen] = useState(false);
   const [slotIdToDelete, setSlotIdToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+
+  const getDatesInRange = (startStr: string, endStr: string): string[] => {
+    const start = new Date(startStr);
+    const end = new Date(endStr);
+    const dates: string[] = [];
+    const minDate = start < end ? start : end;
+    const maxDate = start < end ? end : start;
+    const current = new Date(minDate);
+    while (current <= maxDate) {
+      const y = current.getFullYear();
+      const m = String(current.getMonth() + 1).padStart(2, "0");
+      const d = String(current.getDate()).padStart(2, "0");
+      dates.push(`${y}-${m}-${d}`);
+      current.setDate(current.getDate() + 1);
+    }
+    return dates;
+  };
+
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      setIsDragging(false);
+    };
+    window.addEventListener("mouseup", handleGlobalMouseUp);
+    return () => window.removeEventListener("mouseup", handleGlobalMouseUp);
+  }, []);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -99,27 +130,43 @@ export default function CalendarPage() {
     }
 
     try {
-      const start = new Date(`${selectedDateStr}T${newSlotStart}`);
-      const end = new Date(`${selectedDateStr}T${newSlotEnd}`);
-
-      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        setToast({ message: "Veuillez entrer des heures valides.", type: "error" });
-        return;
+      const datesArray = Array.from(selectedDates);
+      if (datesArray.length === 0) {
+        datesArray.push(selectedDateStr);
       }
 
-      if (end.getTime() <= start.getTime()) {
-        setToast({ message: "L'heure de fin doit être après l'heure de début.", type: "error" });
-        return;
+      for (const dStr of datesArray) {
+        const start = new Date(`${dStr}T${newSlotStart}`);
+        const end = new Date(`${dStr}T${newSlotEnd}`);
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+          setToast({ message: "Veuillez entrer des heures valides.", type: "error" });
+          return;
+        }
+        if (end.getTime() <= start.getTime()) {
+          setToast({ message: "L'heure de fin doit être après l'heure de début.", type: "error" });
+          return;
+        }
       }
 
-      await createSlotMutation({
-        campaignId: newSlotCampaignId as any,
-        startTime: start.getTime(),
-        endTime: end.getTime(),
-        maxCapacity: newSlotCapacity,
+      await Promise.all(
+        datesArray.map(async (dStr) => {
+          const start = new Date(`${dStr}T${newSlotStart}`);
+          const end = new Date(`${dStr}T${newSlotEnd}`);
+          await createSlotMutation({
+            campaignId: newSlotCampaignId as any,
+            startTime: start.getTime(),
+            endTime: end.getTime(),
+            maxCapacity: newSlotCapacity,
+          });
+        })
+      );
+
+      setToast({
+        message: datesArray.length > 1
+          ? `Créneaux ajoutés avec succès pour ${datesArray.length} jours !`
+          : "Créneau ajouté avec succès !",
+        type: "success"
       });
-
-      setToast({ message: "Créneau ajouté avec succès !", type: "success" });
       setIsAddSlotOpen(false);
     } catch (err: any) {
       setToast({ message: err.message || "Erreur lors de la création.", type: "error" });
@@ -166,6 +213,34 @@ export default function CalendarPage() {
   });
 
   const formattedSelectedDayLabel = (() => {
+    if (selectedDates.size > 1) {
+      const sortedDates = Array.from(selectedDates).sort();
+      const startStr = sortedDates[0];
+      const endStr = sortedDates[sortedDates.length - 1];
+
+      const startParts = startStr.split("-");
+      const endParts = endStr.split("-");
+      if (startParts.length !== 3 || endParts.length !== 3) return "";
+
+      const startDate = new Date(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(startParts[2]));
+      const endDate = new Date(parseInt(endParts[0]), parseInt(endParts[1]) - 1, parseInt(endParts[2]));
+
+      const endDayMonthYear = endDate.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+
+      if (startDate.getFullYear() !== endDate.getFullYear()) {
+        const startDayMonthYear = startDate.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+        return `${startDayMonthYear} - ${endDayMonthYear}`;
+      }
+
+      if (startDate.getMonth() === endDate.getMonth()) {
+        const startDay = startDate.getDate();
+        return `${startDay} - ${endDayMonthYear}`;
+      }
+
+      const startDayMonth = startDate.toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
+      return `${startDayMonth} - ${endDayMonthYear}`;
+    }
+
     const parts = selectedDateStr.split("-");
     if (parts.length !== 3) return "";
     const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
@@ -224,7 +299,7 @@ export default function CalendarPage() {
                       </div>
 
                       {/* Days Grid */}
-                      <div className="grid grid-cols-7 gap-1 sm:gap-2">
+                      <div className="grid grid-cols-7 gap-1 sm:gap-2 select-none">
                         {/* Empty offsets */}
                         {Array.from({ length: mStartDayOffset }).map((_, idx) => (
                           <div key={`offset-${idx}`} className="aspect-square bg-transparent"></div>
@@ -235,7 +310,7 @@ export default function CalendarPage() {
                           const mm = String(mMonth + 1).padStart(2, "0");
                           const dd = String(day).padStart(2, "0");
                           const dateStr = `${mYear}-${mm}-${dd}`;
-                          const isSelected = selectedDateStr === dateStr;
+                          const isSelected = selectedDateStr === dateStr || selectedDates.has(dateStr);
                           const isToday = new Date().toDateString() === new Date(mYear, mMonth, day).toDateString();
 
                           // Check if day is in the past
@@ -261,7 +336,31 @@ export default function CalendarPage() {
                               key={`day-${day}`}
                               onClick={() => {
                                 setSelectedDateStr(dateStr);
+                                setSelectedDates(new Set([dateStr]));
                                 setIsMobileDrawerOpen(true);
+                              }}
+                              onMouseDown={(e) => {
+                                if (isPast) return;
+                                if (e.button !== 0) return; // Only left click
+                                e.preventDefault();
+                                setIsDragging(true);
+                                setDragStartDate(dateStr);
+                                setSelectedDates(new Set([dateStr]));
+                                setSelectedDateStr(dateStr);
+                              }}
+                              onMouseEnter={() => {
+                                if (isPast) return;
+                                if (isDragging && dragStartDate) {
+                                  const range = getDatesInRange(dragStartDate, dateStr);
+                                  const activeRange = range.filter(d => {
+                                    const dayDate = new Date(d);
+                                    const todayDate = new Date();
+                                    todayDate.setHours(0, 0, 0, 0);
+                                    dayDate.setHours(0, 0, 0, 0);
+                                    return dayDate.getTime() >= todayDate.getTime();
+                                  });
+                                  setSelectedDates(new Set(activeRange));
+                                }
                               }}
                               disabled={isPast}
                               className={`aspect-square flex flex-col items-center justify-between p-1 sm:p-2 relative rounded-xl border text-xs font-semibold transition-all duration-200 ${isPast
@@ -403,8 +502,12 @@ export default function CalendarPage() {
                   {/* Selected Date Header */}
                   <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 pb-4 border-b border-[#F0F0F0]">
                     <div>
-                      <span className="text-[10px] font-bold text-[#000091] uppercase tracking-wider">Jour sélectionné</span>
-                      <h3 className="text-base font-bold text-[#161616] capitalize mt-1">{formattedSelectedDayLabel}</h3>
+                      <span className="text-[10px] font-bold text-[#000091] uppercase tracking-wider">
+                        {selectedDates.size > 1 ? `${selectedDates.size} jours sélectionnés` : "Période sélectionnée"}
+                      </span>
+                      <h3 className="text-base font-bold text-[#161616] capitalize mt-1">
+                        {formattedSelectedDayLabel}
+                      </h3>
                     </div>
                     <button
                       onClick={() => setIsAddSlotOpen(true)}
@@ -420,7 +523,17 @@ export default function CalendarPage() {
                       <CalendarRange className="w-4 h-4 text-[#000091]" /> Créneaux & Visites
                     </h4>
 
-                    {slotsOnSelectedDay.length === 0 ? (
+                    {selectedDates.size > 1 ? (
+                      <div className="bg-[#F5F5FE] border border-[#000091]/10 rounded-lg p-4 flex gap-3 text-xs text-[#000091] leading-relaxed">
+                        <Info className="w-5 h-5 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-bold mb-1">Mode multi-sélection ({selectedDates.size} jours)</p>
+                          <p>
+                            Les nouveaux créneaux ajoutés s'appliqueront simultanément à chacun des jours sélectionnés.
+                          </p>
+                        </div>
+                      </div>
+                    ) : slotsOnSelectedDay.length === 0 ? (
                       <p className="text-xs text-[#666666] py-4 text-center">Aucun créneau configuré pour ce jour.</p>
                     ) : (
                       <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
@@ -509,7 +622,11 @@ export default function CalendarPage() {
       >
         <form onSubmit={handleAddSlot} className="space-y-4">
           <div className="bg-[#F5F5FE] p-3 rounded-md border border-[#000091]/10 mb-4">
-            <span className="text-xs font-bold text-[#000091]">Jour de visite : {formattedSelectedDayLabel}</span>
+            <span className="text-xs font-bold text-[#000091]">
+              {selectedDates.size > 1
+                ? `${selectedDates.size} jours sélectionnés pour l'ajout de créneau`
+                : `Jour de visite : ${formattedSelectedDayLabel}`}
+            </span>
           </div>
 
           <div>
