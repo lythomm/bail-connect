@@ -18,6 +18,7 @@ import {
   Check
 } from "lucide-react";
 import Toast, { ToastType } from "@/components/Toast";
+import WelcomeOnboarding from "@/components/WelcomeOnboarding";
 
 export default function Dashboard() {
   const { isAuthenticated, isLoading } = useConvexAuth();
@@ -26,12 +27,19 @@ export default function Dashboard() {
   const user = useQuery(api.users.current);
   const router = useRouter();
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+  const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.replace("/signin");
     }
   }, [isLoading, isAuthenticated, router]);
+
+  useEffect(() => {
+    if (user && user.isOnboarded !== true) {
+      setIsWelcomeOpen(true);
+    }
+  }, [user]);
 
   if (isLoading) {
     return (
@@ -325,6 +333,11 @@ export default function Dashboard() {
           onClose={() => setToast(null)}
         />
       )}
+
+      <WelcomeOnboarding
+        isOpen={isWelcomeOpen}
+        onClose={() => setIsWelcomeOpen(false)}
+      />
     </div>
   );
 }

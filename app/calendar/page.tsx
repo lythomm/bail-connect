@@ -16,11 +16,13 @@ import {
 import Toast, { ToastType } from "@/components/Toast";
 import Dialog from "@/components/Dialog";
 import DeleteSlotDialog from "@/components/DeleteSlotDialog";
+import CalendarOnboarding from "@/components/CalendarOnboarding";
 
 export default function CalendarPage() {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const router = useRouter();
   const campaigns = useQuery(api.campaigns.listWithStats) || [];
+  const user = useQuery(api.users.current);
 
   const [selectedCampaignIds, setSelectedCampaignIds] = useState<string[]>([]);
   const [selectedDateStr, setSelectedDateStr] = useState<string>(
@@ -36,6 +38,16 @@ export default function CalendarPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+  const [isCalendarOnboardingOpen, setIsCalendarOnboardingOpen] = useState(false);
+
+  useEffect(() => {
+    if (user && user.isCalendarOnboarded !== true) {
+      const activeCampaigns = campaigns.filter(c => c.status === "active");
+      if (activeCampaigns.length > 0) {
+        setIsCalendarOnboardingOpen(true);
+      }
+    }
+  }, [user, campaigns]);
 
   const getDatesInRange = (startStr: string, endStr: string): string[] => {
     const start = new Date(startStr);
@@ -703,6 +715,11 @@ export default function CalendarPage() {
           }
         }}
         isLoading={isDeleting}
+      />
+
+      <CalendarOnboarding
+        isOpen={isCalendarOnboardingOpen}
+        onClose={() => setIsCalendarOnboardingOpen(false)}
       />
     </div>
   );

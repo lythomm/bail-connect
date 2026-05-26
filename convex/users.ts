@@ -142,3 +142,33 @@ export const resendVerificationCode = mutation({
     return { success: true };
   },
 });
+
+export const completeOnboarding = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Non autorisé");
+    await ctx.db.patch(userId, { isOnboarded: true });
+    return { success: true };
+  },
+});
+
+export const completeCalendarOnboarding = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Non autorisé");
+    await ctx.db.patch(userId, { isCalendarOnboarded: true });
+    return { success: true };
+  },
+});
+
+export const completeCampaignOnboarding = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Non autorisé");
+    await ctx.db.patch(userId, { isCampaignOnboarded: true });
+    return { success: true };
+  },
+});

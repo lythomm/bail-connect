@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import Dialog from "@/components/Dialog";
 import DeleteSlotDialog from "@/components/DeleteSlotDialog";
+import CampaignOnboarding from "@/components/CampaignOnboarding";
 import {
   useReactTable,
   getCoreRowModel,
@@ -111,6 +112,14 @@ export default function CampaignDetail() {
   const updateStatuses = useMutation(api.candidates.updateStatuses);
   const user = useQuery(api.users.current);
   const archiveCampaign = useMutation(api.campaigns.archive);
+
+  const [isCampaignOnboardingOpen, setIsCampaignOnboardingOpen] = useState(false);
+
+  useEffect(() => {
+    if (user && user.isCampaignOnboarded !== true) {
+      setIsCampaignOnboardingOpen(true);
+    }
+  }, [user]);
 
   const allSlots = useQuery(api.appointments.getAllCampaignSlots) || [];
   const createSlotMutation = useMutation(api.appointments.createSlot);
@@ -1735,6 +1744,11 @@ export default function CampaignDetail() {
         onClose={() => setSlotToDelete(null)}
         onConfirm={handleConfirmDeleteSlot}
         isLoading={deleteSlotLoading}
+      />
+
+      <CampaignOnboarding
+        isOpen={isCampaignOnboardingOpen}
+        onClose={() => setIsCampaignOnboardingOpen(false)}
       />
     </div>
   );
