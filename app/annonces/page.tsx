@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Toast, { ToastType } from "@/components/Toast";
-import { Trash2, Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2, Plus } from "lucide-react";
 import Dialog from "@/components/Dialog";
 
 export default function AnnoncesPage() {
@@ -88,15 +88,15 @@ export default function AnnoncesPage() {
             </p>
           </div>
           {campaigns && campaigns.length > 0 && (
-            <Link href="/dashboard/campaigns/new" className="btn-primary whitespace-nowrap self-start sm:self-auto">
-              Créer une annonce
+            <Link href="/dashboard/campaigns/new" className="btn-primary whitespace-nowrap self-start sm:self-auto flex items-center gap-2">
+              <Plus className="w-4 h-4" /> Ajouter un logement
             </Link>
           )}
         </div>
 
         {campaigns === undefined ? (
           <div className="text-center py-12">
-            <span className="text-sm text-[#666666]">Chargement de vos annonces...</span>
+            <span className="text-sm text-[#666666]">Chargement de vos logements...</span>
           </div>
         ) : campaigns.length === 0 ? (
           <div className="gov-callout gov-callout-info">
@@ -204,7 +204,7 @@ export default function AnnoncesPage() {
                 </svg>
               </div>
               <span className="text-sm font-semibold text-[#999999] group-hover:text-[#000091] transition-colors">
-                Créer une annonce
+                Ajouter un logement
               </span>
             </Link>
           </div>

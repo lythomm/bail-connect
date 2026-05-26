@@ -5,13 +5,13 @@ import { api } from "@/convex/_generated/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { 
-  Calendar as CalendarIcon, 
-  Clock, 
-  Home, 
-  User, 
-  Plus, 
-  ChevronRight, 
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  Home,
+  User,
+  Plus,
+  ChevronRight,
   ExternalLink,
   AlertCircle,
   TrendingUp,
@@ -43,9 +43,9 @@ export default function Dashboard() {
 
   // Calculate stats
   const totalCampaigns = campaigns?.length || 0;
-  
+
   const totalPendingCandidates = campaigns?.reduce(
-    (acc, curr) => acc + (curr.stats?.pending || 0), 
+    (acc, curr) => acc + (curr.stats?.pending || 0),
     0
   ) || 0;
 
@@ -60,7 +60,7 @@ export default function Dashboard() {
     <div className="flex-1 flex flex-col bg-[#F6F6F6]">
       {/* Main Content */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-8 space-y-8">
-        
+
         {/* Welcome Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -72,14 +72,14 @@ export default function Dashboard() {
             </p>
           </div>
           <Link href="/dashboard/campaigns/new" className="btn-primary text-sm flex items-center gap-2">
-            <Plus className="w-4 h-4" /> Créer une annonce
+            <Plus className="w-4 h-4" /> Ajouter un logement
           </Link>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-3 gap-2 sm:gap-6">
-          <Link 
-            href="/annonces" 
+          <Link
+            href="/annonces"
             className="bg-white border border-[#E2E8F0] hover:border-[#000091] rounded-lg p-3 sm:p-6 shadow-xs transition-all duration-200 group flex flex-col justify-between"
           >
             <div className="flex items-start sm:items-center justify-between gap-1">
@@ -96,8 +96,8 @@ export default function Dashboard() {
             </div>
           </Link>
 
-          <Link 
-            href="/calendar" 
+          <Link
+            href="/calendar"
             className="bg-white border border-[#E2E8F0] hover:border-[#000091] rounded-lg p-3 sm:p-6 shadow-xs transition-all duration-200 group flex flex-col justify-between"
           >
             <div className="flex items-start sm:items-center justify-between gap-1">
@@ -114,8 +114,8 @@ export default function Dashboard() {
             </div>
           </Link>
 
-          <Link 
-            href="/annonces" 
+          <Link
+            href="/annonces"
             className="bg-white border border-[#E2E8F0] hover:border-[#000091] rounded-lg p-3 sm:p-6 shadow-xs transition-all duration-200 group flex flex-col justify-between"
           >
             <div className="flex items-start sm:items-center justify-between gap-1">
@@ -135,7 +135,7 @@ export default function Dashboard() {
 
         {/* Main Dashboard Content Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           {/* Left Column: Prochaines Visites */}
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white border border-[#E2E8F0] rounded-lg shadow-xs p-6">
@@ -184,8 +184,8 @@ export default function Dashboard() {
                     })}`;
 
                     return (
-                      <div 
-                        key={apt.appointmentId} 
+                      <div
+                        key={apt.appointmentId}
                         className="p-4 border border-[#E2E8F0] rounded-lg hover:bg-[#F5F5FE]/20 transition-colors flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
                       >
                         <div className="space-y-2 flex-1 min-w-0">
@@ -200,7 +200,7 @@ export default function Dashboard() {
                               <Check className="w-2.5 h-2.5" /> Dossier Certifié
                             </span>
                           </div>
-                          
+
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs text-[#666666]">
                             <span className="flex items-center gap-1.5 truncate">
                               <Home className="w-3.5 h-3.5" /> {apt.campaign.title}
@@ -219,12 +219,12 @@ export default function Dashboard() {
                               <Clock className="w-3 h-3" /> {formattedTime}
                             </div>
                           </div>
-                          
+
                           <div className="flex gap-2">
-                            <a 
+                            <a
                               href={apt.candidate.dossierFacileUrl}
-                              target="_blank" 
-                              rel="noopener noreferrer" 
+                              target="_blank"
+                              rel="noopener noreferrer"
                               className="btn-secondary text-[11px] px-3 py-1.5 flex items-center justify-center gap-1"
                               title="Voir DossierFacile"
                             >
@@ -242,7 +242,7 @@ export default function Dashboard() {
 
           {/* Right Column: Actions & Quick Guide */}
           <div className="space-y-6">
-            
+
             {/* Quick Actions Panel */}
             <div className="bg-white border border-[#E2E8F0] rounded-lg shadow-xs p-6">
               <h3 className="text-base font-bold text-[#161616] mb-4 pb-2 border-b border-[#F0F0F0]">
@@ -250,17 +250,17 @@ export default function Dashboard() {
               </h3>
               <ul className="space-y-3">
                 <li>
-                  <Link 
-                    href="/dashboard/campaigns/new" 
+                  <Link
+                    href="/dashboard/campaigns/new"
                     className="w-full flex items-center justify-between p-3 border border-[#E2E8F0] hover:border-[#000091] hover:bg-[#F5F5FE]/40 rounded-lg transition-all text-sm font-semibold text-[#161616] group"
                   >
-                    <span>Créer une annonce</span>
+                    <span>Ajouter un logement</span>
                     <Plus className="w-4 h-4 text-[#666666] group-hover:text-[#000091]" />
                   </Link>
                 </li>
                 <li>
-                  <Link 
-                    href="/calendar" 
+                  <Link
+                    href="/calendar"
                     className="w-full flex items-center justify-between p-3 border border-[#E2E8F0] hover:border-[#000091] hover:bg-[#F5F5FE]/40 rounded-lg transition-all text-sm font-semibold text-[#161616] group"
                   >
                     <span>Gérer les créneaux horaires</span>
@@ -268,8 +268,8 @@ export default function Dashboard() {
                   </Link>
                 </li>
                 <li>
-                  <Link 
-                    href="/profile" 
+                  <Link
+                    href="/profile"
                     className="w-full flex items-center justify-between p-3 border border-[#E2E8F0] hover:border-[#000091] hover:bg-[#F5F5FE]/40 rounded-lg transition-all text-sm font-semibold text-[#161616] group"
                   >
                     <span>Mon profil bailleur</span>

@@ -6,14 +6,9 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   Calendar as CalendarIcon,
-  Clock,
-  User,
-  MapPin,
   ExternalLink,
   Plus,
-  Check,
   CalendarRange,
-  Info,
   Trash2,
   Filter
 } from "lucide-react";
