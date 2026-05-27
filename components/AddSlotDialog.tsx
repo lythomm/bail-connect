@@ -108,6 +108,10 @@ export default function AddSlotDialog({
         setToast({ message: "L'heure de fin doit être après l'heure de début.", type: "error" });
         return;
       }
+      if (start.getTime() < Date.now()) {
+        setToast({ message: "Impossible de créer un créneau dans le passé.", type: "error" });
+        return;
+      }
     }
 
     setIsSubmitting(false);

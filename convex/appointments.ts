@@ -24,6 +24,11 @@ export const createSlot = mutation({
       throw new Error("Unauthorized access to this campaign");
     }
 
+    // Prevent creating past slots
+    if (args.startTime < Date.now()) {
+      throw new ConvexError("Impossible de créer un créneau de visite dans le passé.");
+    }
+
     // Check for overlapping slots
     const existingSlots = await ctx.db
       .query("slots")
@@ -172,12 +177,13 @@ export const getBookingPageData = query({
       return null;
     }
 
-    // Get all slots for this campaign
     const slots = await ctx.db
       .query("slots")
       .withIndex("by_campaignId", (q) => q.eq("campaignId", candidate.campaignId))
-      .order("asc")
       .collect();
+
+    // Sort chronologically by startTime
+    slots.sort((a, b) => a.startTime - b.startTime);
 
     // Check if this candidate already booked a slot
     const existingAppointment = await ctx.db
@@ -233,6 +239,11 @@ export const bookAppointment = mutation({
 
     if (targetSlot.campaignId !== candidate.campaignId) {
       throw new Error("Slot belongs to a different campaign");
+    }
+
+    // Prevent booking past slots (must be in the future)
+    if (targetSlot.startTime < Date.now()) {
+      throw new ConvexError("Impossible de réserver un créneau déjà passé.");
     }
 
     // Check if target slot is full

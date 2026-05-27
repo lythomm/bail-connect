@@ -129,8 +129,14 @@ function BookingContent() {
     time: formatTimeRangeParis(bookedSlot.startTime, bookedSlot.endTime),
   } : null;
 
+  const now = Date.now();
+
   // Filter available slots
-  const availableSlots = slots.filter(s => s.bookedCount < s.maxCapacity || s._id === currentAppointment?.slotId);
+  const availableSlots = slots.filter(
+    (s) =>
+      s.startTime >= now &&
+      (s.bookedCount < s.maxCapacity || s._id === currentAppointment?.slotId)
+  );
 
   // Group slots by day
   const groupedSlots: Record<string, any[]> = {};
