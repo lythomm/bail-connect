@@ -38,18 +38,20 @@ export function formatTimeRangeParis(startTs: number, endTs: number): string {
   return `${formatTimeParis(startTs)} - ${formatTimeParis(endTs)}`;
 }
 
+const dateStrFormatter = new Intl.DateTimeFormat(LOCALE, {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  timeZone: TIMEZONE,
+});
+
 /**
  * Convert a timestamp to a "YYYY-MM-DD" string in Europe/Paris timezone.
  * Replaces `new Date(ts).toISOString().split("T")[0]` which uses UTC.
  */
 export function toParisDateStr(ts: number): string {
   const d = new Date(ts);
-  const parts = new Intl.DateTimeFormat(LOCALE, {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    timeZone: TIMEZONE,
-  }).formatToParts(d);
+  const parts = dateStrFormatter.formatToParts(d);
 
   const year = parts.find((p) => p.type === "year")!.value;
   const month = parts.find((p) => p.type === "month")!.value;
