@@ -90,7 +90,7 @@ Ce document répertorie les cas d'utilisation manquants ou à améliorer dans le
 
 ## 📅 Priorité 3 : Logique Métier et Anti-Spam (Moyen)
 
-### 1. Prévention des Doublons (Amélioration)
+### 1. [FAIT] Prévention des Doublons (Amélioration)
 * **Objectif** : Empêcher un candidat de soumettre plusieurs fois sa candidature pour une même campagne.
 * **Fonctions Convex à modifier** : `candidates.ts:create`
 * **Logique d'implémentation** :
@@ -100,7 +100,7 @@ Ce document répertorie les cas d'utilisation manquants ou à améliorer dans le
      * La même URL DossierFacile (`dossierFacileUrl`).
   2. Si un doublon est détecté, bloquer l'insertion en levant une `ConvexError` spécifique ("L'email, le téléphone ou le lien dossierFacile existe déjà").
 
-### 2. Détection des Conflits d'Agendas Locataires (Nouveau)
+### 2. [FAIT] Détection des Conflits d'Agendas Locataires (Nouveau)
 * **Objectif** : Éviter qu'un locataire planifie des visites sur des créneaux horaires qui se chevauchent sur la plateforme.
 * **Fonctions Convex à modifier** : `appointments.ts:bookAppointment`
 * **Logique d'implémentation** :
@@ -108,7 +108,7 @@ Ce document répertorie les cas d'utilisation manquants ou à améliorer dans le
   2. Vérifier si un de ces rendez-vous possède un créneau dont l'intervalle `[startTime, endTime]` chevauche le créneau cible.
   3. Si un conflit est détecté, refuser la réservation et lever une `ConvexError`.
 
-### 3. Archivage Complet de Campagne (Amélioration)
+### 3. [FAIT] Archivage Complet de Campagne (Amélioration)
 * **Objectif** : Lorsqu'un propriétaire archive une campagne, tous les créneaux et rendez-vous associés doivent être nettoyés, et les candidats informés de la clôture de la campagne.
 * **Fonctions Convex à impacter** : `campaigns.ts:archive`
 * **Logique d'implémentation** :

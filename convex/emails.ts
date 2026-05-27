@@ -274,6 +274,61 @@ export const sendAppointmentCancellationToCandidate = internalAction({
 });
 
 /**
+ * Send an email to a candidate notifying that the campaign has been archived (a tenant was found).
+ */
+export const sendCampaignArchivedCancellation = internalAction({
+  args: {
+    candidateId: v.id("candidates"),
+    campaignTitle: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const info = await ctx.runQuery(internal.emails.getCandidateInvitationInfo, {
+      candidateId: args.candidateId,
+    });
+    if (!info) return;
+
+    const subject = `🏠 Un locataire a été trouvé – ${args.campaignTitle}`;
+    const htmlContent = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #DDDDDD; color: #161616;">
+        <div style="background-color: #000091; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; margin-bottom: 20px;">
+          BailConnect
+        </div>
+        <h2 style="font-size: 20px; margin-bottom: 15px; color: #161616;">Clôture de la recherche de location</h2>
+        <p style="font-size: 14px; line-height: 1.5; color: #3A3A3A;">
+          Bonjour ${info.candidateFirstName} ${info.candidateLastName},
+        </p>
+        <p style="font-size: 14px; line-height: 1.5; color: #3A3A3A;">
+          Nous vous informons que la recherche de locataire pour le logement <strong>${args.campaignTitle}</strong> est désormais clôturée car un locataire a été trouvé.
+        </p>
+        <p style="font-size: 14px; line-height: 1.5; color: #3A3A3A;">
+          En conséquence, les visites prévues ou en attente pour cette annonce sont annulées.
+        </p>
+        <p style="font-size: 14px; line-height: 1.5; color: #3A3A3A;">
+          Nous vous remercions pour votre intérêt et vous souhaitons une excellente continuation dans votre recherche de logement.
+        </p>
+        <hr style="border: 0; border-top: 1px solid #DDDDDD; margin: 30px 0 15px 0;" />
+        <p style="font-size: 11px; color: #666666; text-align: center;">
+          Ceci est un e-mail automatique envoyé par BailConnect. Ne pas répondre.
+        </p>
+      </div>
+    `;
+
+    const emailResult = await sendEmail({
+      from: "BailConnect <noreply@bailconnect.fr>",
+      to: [info.candidateEmail],
+      subject,
+      html: htmlContent,
+    });
+
+    if (!emailResult.success) {
+      console.error("Failed to send campaign archived cancellation email to candidate:", emailResult.error);
+    } else {
+      console.log("Campaign archived cancellation email sent successfully to", info.candidateEmail);
+    }
+  },
+});
+
+/**
  * Send an email to a candidate notifying that their slot date/time has been changed by the landlord.
  */
 export const sendAppointmentRescheduleToCandidate = internalAction({

@@ -2,6 +2,7 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { mutation, query, MutationCtx, internalMutation } from "./_generated/server";
 import { v, ConvexError } from "convex/values";
 import { Id } from "./_generated/dataModel";
+import { internal } from "./_generated/api";
 
 // Helper to slugify a text
 function slugify(text: string): string {
@@ -290,7 +291,54 @@ export const archive = mutation({
     }
 
     await ctx.db.patch(args.id, { status: "archived" });
+
+    // Schedule asynchronous cleanup of slots and appointments, including emails to candidates
+    await ctx.scheduler.runAfter(0, internal.campaigns.cleanupCampaignResources, {
+      campaignId: args.id,
+      campaignTitle: campaign.title,
+    });
+
     return { success: true };
+  },
+});
+
+/**
+ * Internal mutation to clean up slots and appointments for an archived campaign,
+ * sending notification emails to all booked candidates.
+ */
+export const cleanupCampaignResources = internalMutation({
+  args: {
+    campaignId: v.id("campaigns"),
+    campaignTitle: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // 1. Fetch all slots for this campaign
+    const slots = await ctx.db
+      .query("slots")
+      .withIndex("by_campaignId", (q) => q.eq("campaignId", args.campaignId))
+      .collect();
+
+    for (const slot of slots) {
+      // 2. Fetch all appointments for each slot
+      const appointments = await ctx.db
+        .query("appointments")
+        .withIndex("by_slotId", (q) => q.eq("slotId", slot._id))
+        .collect();
+
+      for (const appt of appointments) {
+        // 3. Send cancellation email to candidate
+        await ctx.scheduler.runAfter(0, internal.emails.sendCampaignArchivedCancellation, {
+          candidateId: appt.candidateId,
+          campaignTitle: args.campaignTitle,
+        });
+
+        // 4. Delete appointment
+        await ctx.db.delete(appt._id);
+      }
+
+      // 5. Delete slot
+      await ctx.db.delete(slot._id);
+    }
   },
 });
 
