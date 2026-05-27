@@ -19,6 +19,7 @@ import {
 import Toast, { ToastType } from "@/components/Toast";
 import Dialog from "@/components/Dialog";
 import { formatDateParis, formatTimeParis, formatTimeRangeParis, toParisDateStr } from "@/lib/dateUtils";
+import { formatError } from "@/lib/errors";
 
 function BookingContent() {
   const searchParams = useSearchParams();
@@ -57,7 +58,7 @@ function BookingContent() {
       setIsCancelDialogOpen(false);
       setToast({ message: "Votre rendez-vous a bien été annulé.", type: "success" });
     } catch (err: any) {
-      setToast({ message: err.message || "Erreur lors de l'annulation.", type: "error" });
+      setToast({ message: formatError(err), type: "error" });
     } finally {
       setIsCancelling(false);
     }
@@ -118,7 +119,7 @@ function BookingContent() {
       setToast({ message: "Votre rendez-vous a été enregistré !", type: "success" });
       setIsEditing(false);
     } catch (err: any) {
-      setToast({ message: err.message || "Erreur lors de la réservation.", type: "error" });
+      setToast({ message: formatError(err), type: "error" });
     } finally {
       setIsSubmitting(false);
     }

@@ -1,6 +1,6 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { mutation, query, internalQuery, internalAction } from "./_generated/server";
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { internal } from "./_generated/api";
 
 
@@ -67,6 +67,17 @@ export const create = mutation({
     const campaign = await ctx.db.get(args.campaignId);
     if (!campaign || campaign.status === "archived") {
       throw new Error("Cette campagne n'existe pas ou a été archivée.");
+    }
+
+    // Validation des données candidat
+    if (args.age < 18) {
+      throw new ConvexError("Vous devez avoir au moins 18 ans pour candidater.");
+    }
+    if (args.monthlyIncome < 0) {
+      throw new ConvexError("Revenu net mensuel invalide.");
+    }
+    if (!args.email.includes("@")) {
+      throw new ConvexError("Veuillez saisir une adresse email valide.");
     }
 
     // 2. Generate secure booking token

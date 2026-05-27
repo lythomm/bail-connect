@@ -10,12 +10,13 @@ Ce document répertorie les cas d'utilisation manquants ou à améliorer dans le
 2. **Confidentialité PII** : Les données personnelles des candidats (`firstName`, `lastName`, `email`, `phone`, `dossierFacileUrl`) ne doivent jamais être renvoyées par des requêtes publiques sans validation (ex. exiger un `bookingToken` valide).
 3. **Erreurs Utilisateur** : Lever des exceptions de type `ConvexError` avec des messages clairs en français pour permettre un affichage direct côté client.
 4. **Validation Côté Serveur Obligatoire** : Les vérifications de sécurité, de limites de plan et de cohérence des données doivent impérativement être effectuées par le serveur Convex (mutations/actions) et non pas uniquement reposer sur les gardes et contrôles du frontend.
+5. **Formatage des Erreurs Frontend** : S'assurer que toutes les erreurs capturées côté client lors des appels d'API ou mutations soient bien formatées à l'aide de la fonction `formatError` (provenant de `lib/errors.ts`) afin d'éviter d'exposer des messages techniques ou des stack traces à l'utilisateur final.
 
 ---
 
 ## 🔥 Priorité 1 : Sécurité et Intégrité des Données (Critique)
 
-### 1. Sécurité des Actions Locataires (bookingToken) (Nouveau)
+### 1. [FAIT] Sécurité des Actions Locataires (bookingToken) (Nouveau)
 * **Objectif** : Empêcher des tiers d'accéder aux rendez-vous ou d'annuler des visites en devinant ou volant le `candidateId`.
 * **Fonctions Convex à modifier/créer** :
   1. Schéma : Ajouter un champ `bookingToken: v.string()` sur la table `candidates`.
@@ -29,7 +30,7 @@ Ce document répertorie les cas d'utilisation manquants ou à améliorer dans le
 * **Points de vigilance** :
   * Le jeton `bookingToken` doit être intégré dans le lien de réservation envoyé par e-mail au candidat lors de son acceptation.
 
-### 2. Validation Côté Serveur des Données Candidat (Nouveau)
+### 2. [FAIT] Validation Côté Serveur des Données Candidat (Nouveau)
 * **Objectif** : Valider les informations du candidat lors du dépôt de dossier pour assurer la cohérence et conformité des données de candidature.
 * **Fonctions Convex à modifier** : `candidates.ts:create`
 * **Logique d'implémentation** :

@@ -7,6 +7,7 @@ import { api } from "@/convex/_generated/api";
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import Dialog from "@/components/Dialog";
+import { formatError } from "@/lib/errors";
 
 export default function ApplyPage() {
   const params = useParams();
@@ -176,9 +177,7 @@ export default function ApplyPage() {
       setSubmitted(true);
     } catch (err: any) {
       console.error(err);
-      setError(
-        err.message || "Une erreur est survenue lors de la soumission de votre dossier."
-      );
+      setError(formatError(err));
     } finally {
       setLoading(false);
     }
