@@ -20,6 +20,7 @@ import {
   BellOff,
 } from "lucide-react";
 import Toast, { ToastType } from "@/components/Toast";
+import { formatError } from "@/lib/errors";
 
 export default function ProfilePage() {
   const { isAuthenticated, isLoading } = useConvexAuth();
@@ -87,7 +88,7 @@ export default function ProfilePage() {
     } catch (err: any) {
       console.error(err);
       setToast({
-        message: err.message || "Erreur lors de la résiliation de l'abonnement.",
+        message: formatError(err),
         type: "error",
       });
     } finally {
@@ -116,7 +117,7 @@ export default function ProfilePage() {
         } catch (err: any) {
           console.error(err);
           setToast({
-            message: err.message || "Erreur de validation de l'abonnement.",
+            message: formatError(err),
             type: "error"
           });
         }
@@ -164,7 +165,7 @@ export default function ProfilePage() {
     } catch (err) {
       console.error(err);
       setToast({
-        message: "Erreur lors de la mise à jour du profil.",
+        message: formatError(err),
         type: "error"
       });
     } finally {
@@ -190,7 +191,7 @@ export default function ProfilePage() {
     } catch (err: any) {
       console.error(err);
       setToast({
-        message: err.message || "Une erreur est survenue lors de la redirection vers Stripe.",
+        message: formatError(err),
         type: "error"
       });
     }
@@ -370,7 +371,7 @@ export default function ProfilePage() {
                     });
                     setToast({ message: "Préférences de notifications mises à jour !", type: "success" });
                   } catch (err: any) {
-                    setToast({ message: err.message || "Erreur lors de la sauvegarde.", type: "error" });
+                    setToast({ message: formatError(err), type: "error" });
                   } finally {
                     setIsSavingNotif(false);
                   }

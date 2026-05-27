@@ -46,7 +46,7 @@ Ce document répertorie les cas d'utilisation manquants ou à améliorer dans le
   2. Valider que `maxCapacity` est un entier strictement supérieur à 0.
   3. Si l'une des conditions n'est pas remplie, lever une `ConvexError` spécifique.
 
-### 4. Validation Côté Serveur du Profil Utilisateur (Nouveau)
+### 4. [FAIT] Validation Côté Serveur du Profil Utilisateur (Nouveau)
 * **Objectif** : Valider le format du numéro de téléphone lors des mises à jour de profil du propriétaire.
 * **Fonctions Convex à modifier** : `users.ts:update`
 * **Logique d'implémentation** :

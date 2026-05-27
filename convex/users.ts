@@ -1,6 +1,6 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { query, internalMutation, mutation } from "./_generated/server";
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { internal } from "./_generated/api";
 
 /**
@@ -38,9 +38,17 @@ export const update = mutation({
     if (userId === null) {
       throw new Error("Non autorisé");
     }
+
+    if (args.phone && args.phone.trim() !== "") {
+      const phoneRegex = /^(?:(?:\+|00)33|0)[1-9]\d{8}$/;
+      if (!phoneRegex.test(args.phone.trim())) {
+        throw new ConvexError("Le numéro de téléphone doit être un numéro français valide.");
+      }
+    }
+
     await ctx.db.patch(userId, {
       name: args.name,
-      phone: args.phone,
+      phone: args.phone ? args.phone.trim() : undefined,
     });
     return await ctx.db.get(userId);
   },
