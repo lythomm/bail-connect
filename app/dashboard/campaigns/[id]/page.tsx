@@ -145,6 +145,7 @@ export default function CampaignDetail() {
   const [shareTab, setShareTab] = useState<"desc" | "msg">("desc");
   const [slotToDelete, setSlotToDelete] = useState<string | null>(null);
   const [deleteSlotLoading, setDeleteSlotLoading] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   const isPremium = campaign?.adType === "pass" || user?.tier === "pro";
 
@@ -825,7 +826,31 @@ export default function CampaignDetail() {
                 </div>
               )}
               {campaign.description && (
-                <p className="text-sm text-[#475569] max-w-3xl leading-relaxed">{campaign.description}</p>
+                <p className="text-sm text-[#475569] max-w-3xl leading-relaxed whitespace-pre-wrap">
+                  {campaign.description.length > 100 && !isDescriptionExpanded ? (
+                    <>
+                      {campaign.description.slice(0, 100)}...{" "}
+                      <button
+                        onClick={() => setIsDescriptionExpanded(true)}
+                        className="text-xs font-bold text-[#000091] hover:underline focus:outline-none cursor-pointer inline-flex items-center"
+                      >
+                        voir plus
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      {campaign.description}{" "}
+                      {campaign.description.length > 100 && (
+                        <button
+                          onClick={() => setIsDescriptionExpanded(false)}
+                          className="text-xs font-bold text-[#000091] hover:underline focus:outline-none cursor-pointer inline-flex items-center ml-1"
+                        >
+                          voir moins
+                        </button>
+                      )}
+                    </>
+                  )}
+                </p>
               )}
             </div>
             <div className="shrink-0 self-start flex flex-wrap gap-2">
@@ -1571,8 +1596,8 @@ export default function CampaignDetail() {
             <button
               onClick={() => setShareTab("desc")}
               className={`pb-2.5 px-1 text-xs font-bold transition-all relative cursor-pointer ${shareTab === "desc"
-                  ? "text-[#000091]"
-                  : "text-[#64748B] hover:text-[#0F172A]"
+                ? "text-[#000091]"
+                : "text-[#64748B] hover:text-[#0F172A]"
                 }`}
             >
               Dans la description
@@ -1583,8 +1608,8 @@ export default function CampaignDetail() {
             <button
               onClick={() => setShareTab("msg")}
               className={`pb-2.5 px-1 text-xs font-bold transition-all relative cursor-pointer ${shareTab === "msg"
-                  ? "text-[#000091]"
-                  : "text-[#64748B] hover:text-[#0F172A]"
+                ? "text-[#000091]"
+                : "text-[#64748B] hover:text-[#0F172A]"
                 }`}
             >
               En réponse par message
