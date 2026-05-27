@@ -66,7 +66,7 @@ export default function WelcomeOnboarding({ isOpen, onClose }: WelcomeOnboarding
         {step === 2 && (
           <div className="space-y-4 w-full text-left animate-fade-in">
             <h3 className="text-base font-extrabold text-[#161616] text-center mb-2">
-              Comment fonctionne Bail-Connect ?
+              Comment fonctionne BailConnect ?
             </h3>
 
             <div className="space-y-4">

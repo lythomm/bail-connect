@@ -5,16 +5,14 @@ import { useConvexAuth } from "convex/react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
 
 export default function SignInPage() {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const { signIn } = useAuthActions();
   const router = useRouter();
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -30,18 +28,11 @@ export default function SignInPage() {
     setError(null);
     setLoading(true);
 
-    if (isSignUp && password !== confirmPassword) {
-      setError("Les mots de passe ne correspondent pas.");
-      setLoading(false);
-      return;
-    }
-
     try {
       await signIn("password", {
         email: email.trim(),
         password,
-        flow: isSignUp ? "signUp" : "signIn",
-        ...(isSignUp ? { name: name.trim() } : {}),
+        flow: "signIn",
       });
 
       // Successfully authenticated, middleware/router redirects to dashboard
@@ -89,7 +80,7 @@ export default function SignInPage() {
         {/* Form Container */}
         <div className="gov-card">
           <div className="gov-card-header">
-            {isSignUp ? "Créer un compte bailleur" : "Connexion bailleur"}
+            Connexion bailleur
           </div>
 
           <div className="gov-card-body">
@@ -100,25 +91,6 @@ export default function SignInPage() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {isSignUp && (
-                <div>
-                  <label htmlFor="name" className="form-label">
-                    Prénom
-                  </label>
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    autoComplete="given-name"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="form-input"
-                    placeholder="Jean"
-                  />
-                </div>
-              )}
-
               <div>
                 <label htmlFor="email" className="form-label">
                   Adresse email
@@ -162,65 +134,21 @@ export default function SignInPage() {
                 </div>
               </div>
 
-              {isSignUp && (
-                <div>
-                  <label htmlFor="confirm-password" className="form-label">
-                    Confirmer le mot de passe
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="confirm-password"
-                      name="confirm-password"
-                      type={showPassword ? "text" : "password"}
-                      autoComplete="new-password"
-                      required
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="form-input pr-10"
-                      placeholder="••••••••"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#666666] hover:text-[#161616]"
-                    >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-
-
               <div>
                 <button
                   type="submit"
                   disabled={loading}
                   className="btn-primary w-full"
                 >
-                  {loading
-                    ? "Chargement..."
-                    : isSignUp
-                      ? "S'inscrire"
-                      : "Se connecter"}
+                  {loading ? "Chargement..." : "Se connecter"}
                 </button>
               </div>
             </form>
 
             <div className="mt-6 text-center border-t border-[#DDDDDD] pt-6">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSignUp(!isSignUp);
-                  setError(null);
-                  setName("");
-                }}
-                className="btn-tertiary text-sm"
-              >
-                {isSignUp
-                  ? "Vous avez déjà un compte ? Se connecter"
-                  : "Pas encore de compte ? S'inscrire"}
-              </button>
+              <Link href="/register" className="btn-tertiary text-sm">
+                Pas encore de compte ? S'inscrire
+              </Link>
             </div>
           </div>
         </div>

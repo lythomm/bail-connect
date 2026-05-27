@@ -48,7 +48,7 @@ export default function Navbar() {
     };
   }, [isMobileMenuOpen]);
 
-  const excludedPaths = ["/signin", "/verify-email", "/cgu", "/cgv", "/confidentialite", "/mentions-legales"];
+  const excludedPaths = ["/signin", "/register", "/verify-email", "/cgu", "/cgv", "/confidentialite", "/mentions-legales"];
   const isExcluded =
     excludedPaths.includes(pathname) ||
     pathname?.startsWith("/apply") ||

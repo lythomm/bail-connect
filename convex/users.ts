@@ -203,3 +203,26 @@ export const checkAndRecordScrape = mutation({
     return { success: true };
   },
 });
+
+export const checkPhoneUnique = query({
+  args: { phone: v.string() },
+  handler: async (ctx, args) => {
+    const cleaned = args.phone.replace(/[\s.-]/g, "");
+    if (!cleaned) {
+      return { isValid: false, isUnique: false, error: "Le numéro de téléphone est requis." };
+    }
+    const phoneRegex = /^(?:(?:\+|00)33|0)[1-9]\d{8}$/;
+    if (!phoneRegex.test(cleaned)) {
+      return { isValid: false, isUnique: false, error: "Format du numéro de téléphone invalide." };
+    }
+    const existing = await ctx.db
+      .query("users")
+      .withIndex("phone", (q) => q.eq("phone", cleaned))
+      .first();
+    return {
+      isValid: true,
+      isUnique: existing === null,
+      error: existing ? "Ce numéro de téléphone est déjà utilisé." : null,
+    };
+  },
+});

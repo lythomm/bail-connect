@@ -107,4 +107,11 @@ export default defineSchema({
     sent: v.boolean(),
     createdAt: v.number(),
   }).index("by_userId_sent", ["userId", "sent"]),
+
+  phoneVerifications: defineTable({
+    phone: v.string(),
+    code: v.string(),
+    verified: v.boolean(),
+    expiresAt: v.number(),
+  }).index("by_phone", ["phone"]),
 });

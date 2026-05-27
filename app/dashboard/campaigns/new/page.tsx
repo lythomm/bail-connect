@@ -31,6 +31,7 @@ export default function NewCampaign() {
   const [creationMode, setCreationMode] = useState<"choice" | "manual" | "import">("choice");
   const [importUrl, setImportUrl] = useState("");
   const [importLoading, setImportLoading] = useState(false);
+  const [importMethod, setImportMethod] = useState<"bookmarklet" | "url">("bookmarklet");
 
   const cleanErrorMessage = (errMessage: string): string => {
     if (!errMessage) return "Une erreur est survenue.";
@@ -112,6 +113,55 @@ export default function NewCampaign() {
       setCreationMode("choice");
     }
   }, [creationMode, user]);
+
+  // Handle importData parameter from Bookmarklet
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const importDataRaw = params.get("importData");
+      if (importDataRaw && user) {
+        // Clean URL parameter immediately to avoid processing again on reload
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+        if (user.tier !== "pro") {
+          setError("L'importation d'annonce par favori est réservée aux membres PRO.");
+          setShowProModal(true);
+          return;
+        }
+
+        try {
+          const data = JSON.parse(decodeURIComponent(importDataRaw));
+          if (data) {
+            setTitle(data.titre || "");
+
+            let constructedAddress = "";
+            if (data.ville && data.codePostal) {
+              constructedAddress = `${data.ville} (${data.codePostal})`;
+            } else if (data.ville) {
+              constructedAddress = data.ville;
+            } else if (data.codePostal) {
+              constructedAddress = data.codePostal;
+            }
+            setAddress(constructedAddress);
+
+            setRentAmount(data.prixLoyer ? data.prixLoyer.toString() : "");
+            setDescription(data.description || "");
+
+            setToast({
+              message: "Annonce importée depuis votre favori avec succès ! Veuillez vérifier les informations.",
+              type: "success",
+            });
+
+            setCreationMode("manual");
+            setCurrentStep(1);
+          }
+        } catch (err) {
+          console.error("Failed to parse import data:", err);
+          setError("Impossible de décoder les données de l'annonce.");
+        }
+      }
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -438,6 +488,9 @@ export default function NewCampaign() {
   }
 
   if (creationMode === "import") {
+    const appOrigin = typeof window !== "undefined" ? window.location.origin : "https://bail-connect.fr";
+    const bookmarkletCode = `javascript:(function(){var sels=['[data-testid*=\\'EllipsisTextBox-button\\']','[data-testid*=\\'description\\'] button','[data-qa-id*=\\'description\\'] button','.item-description button','.Description button'];sels.forEach(function(s){var els=document.querySelectorAll(s);els.forEach(function(el){try{el.click()}catch(e){}})});var btns=document.querySelectorAll('button, span, a');for(var i=0;i<btns.length;i++){var txt=(btns[i].innerText||'').replace(/\\s+/g,' ').trim();if(/^(Voir plus|Lire la suite|Afficher plus)$/i.test(txt)){try{btns[i].click()}catch(e){}}}setTimeout(function(){var t='',e='',r='',a='',n='',o='',c='',i=document.getElementById('__NEXT_DATA__');var titleEl=document.querySelector('.item-title');if(titleEl){var clone=titleEl.cloneNode(true);var prEl=clone.querySelector('.item-price');if(prEl)clone.removeChild(prEl);t=clone.innerText.trim()}else{t=document.querySelector('[data-qa-id=adview_title] p')?.innerText||document.querySelector('[data-testid=cdp-main-description-title]')?.innerText||document.querySelector('h1')?.innerText||document.title||''}if(i){try{var p=JSON.parse(i.textContent)?.props?.pageProps?.ad;p&&(p.subject&&(t=p.subject),p.body&&(r=p.body),p.price&&p.price[0]&&(e=p.price[0].toString()),(p.attributes||[]).forEach((function(t){'square'===t.key&&(a=t.value),'rooms'===t.key&&(n=t.value),'zipcode'===t.key&&(c=t.value),'city'===t.key&&(o=t.value)})))}catch(t){}}if(!e){var l=document.querySelector('[data-qa-id=adview_price] p')||document.querySelector('[data-qa-id=adview_price]')||document.querySelector('[data-testid=cdp-price] span[aria-hidden=true]')||document.querySelector('[data-testid=cdp-price] span[class*=css-1b9ytm]')||document.querySelector('.item-price')||document.querySelector('[class*=Price]');if(l){var s=l.innerText.replace(/[^0-9]/g,'');s&&(e=s)}}if(!r){var u=document.querySelector('[data-qa-id=adview_description_container]')||document.querySelector('[data-testid=cdp-main-description-expandable-text]')||document.querySelector('.item-description div p')||document.querySelector('.item-description p')||document.querySelector('#readme-content')||document.querySelector('[class*=Description]');u&&(r=u.innerText)}if(r){r=r.replace(/\\s*(Voir moins|Voir plus|Lire la suite|Afficher moins)$/i,'')}if(!a){var g=document.querySelector('[data-qa-id=criteria_item_square] div:nth-child(2) p')||document.querySelector('[data-qa-id=criteria_item_square]');if(g){var s=g.innerText.replace(/[^0-9]/g,'');s&&(a=s)}else{var kf=document.querySelector('[data-testid=cdp-hardfacts-keyfacts]')?.innerText||document.querySelector('.item-tags')?.innerText||'';var sm=kf.match(/(\\d+(?:[.,]\\d+)?)\\s*m²/i);sm&&(a=sm[1].replace(',','.'))}}if(!n){var h=document.querySelector('[data-qa-id=criteria_item_rooms] div:nth-child(2) p')||document.querySelector('[data-qa-id=criteria_item_rooms]');if(h){var s=h.innerText.replace(/[^0-9]/g,'');s&&(n=s)}else{var kf=document.querySelector('[data-testid=cdp-hardfacts-keyfacts]')?.innerText||document.querySelector('.item-tags')?.innerText||'';var rm=kf.match(/(\\d+)\\s*pièce/i);rm&&(n=rm[1])}}if(!o||!c){var k=document.querySelector('a[href*=\\'#map\\']');if(k){var m=k.innerText.match(/([a-zA-Z\\s\\-]+)\\s+(\\d{5})/);m&&(o=m[1].trim(),c=m[2].trim())}else{var adEl=document.querySelector('[data-testid=cdp-location-address] span')||document.querySelector('[data-testid=cdp-location-address]')||document.querySelector('.item-description h2');if(adEl){var adT=adEl.innerText;var zM=adT.match(/(\\d{5})/);zM&&(c=zM[1]);var cM=adT.match(/([a-zA-Z\\s\\-]+)\\s*\\((\\d{5})\\)/)||adT.match(/([a-zA-Z\\s\\-]+)\\s*\\(\\d{5}\\)/);if(cM){var city=cM[1].trim();if(city.includes(',')){var pt=city.split(',');city=pt[pt.length-1].trim()}o=city}}}}var d={titre:t,description:r,prixLoyer:e?parseFloat(e):0,surface:a?parseFloat(a):0,pieces:n?parseInt(n):0,ville:o,codePostal:c};window.open('${appOrigin}/dashboard/campaigns/new?importData='+encodeURIComponent(JSON.stringify(d)),'BailConnectImport')},150)})();`;
+
     return (
       <div className="flex-1 flex flex-col bg-[#F6F6F6]">
         <main className="flex-1 max-w-2xl w-full mx-auto px-6 py-8">
@@ -461,75 +514,75 @@ export default function NewCampaign() {
           </button>
 
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-[#161616]">Importer depuis un lien</h1>
+            <h1 className="text-2xl font-bold text-[#161616]">Importer votre annonce</h1>
             <p className="text-sm text-[#666666] mt-1">
-              Copiez-collez l&apos;URL de votre annonce immobilière (Leboncoin, SeLoger, PAP, Bien&apos;ici, etc.).
+              Importez instantanément vos logements existants depuis Leboncoin, SeLoger ou PaP.
             </p>
           </div>
 
           <div className="gov-card">
             <div className="gov-card-header flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#000091]" />
-              <span>Importation intelligente</span>
+              <Sparkles className="w-4 h-4 text-[#B35C00]" />
+              <span>Importation par Bouton-Favori</span>
             </div>
-            <div className="gov-card-body">
+            <div className="gov-card-body space-y-6">
               {error && (
-                <div className="gov-callout gov-callout-warning mb-6 text-sm">
+                <div className="gov-callout gov-callout-warning text-sm">
                   <strong>Erreur :</strong> {error}
                 </div>
               )}
 
-              <form onSubmit={handleImport} className="space-y-6">
-                <div>
-                  <label htmlFor="importUrl" className="form-label">
-                    Lien de l&apos;annonce *
-                  </label>
-                  <input
-                    id="importUrl"
-                    type="url"
-                    required
-                    disabled={importLoading}
-                    value={importUrl}
-                    onChange={(e) => setImportUrl(e.target.value)}
-                    className="form-input"
-                    placeholder="https://www.leboncoin.fr/ad/locations/..."
+              <div className="space-y-4">
+                <h3 className="text-sm font-bold text-[#161616]">Étape 1 : Ajoutez le bouton d&apos;import à votre barre de favoris</h3>
+                <p className="text-xs text-[#666666]">
+                  Glissez et déposez le bouton orange ci-dessous directement dans la <strong>barre de favoris</strong> de votre navigateur.
+                </p>
+
+                <div className="py-4 flex flex-col items-center justify-center border-2 border-dashed border-[#DDDDDD] rounded-xl bg-[#FAF9F6]">
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: `<a href="${bookmarkletCode}" onclick="event.preventDefault(); alert('Pour installer ce bouton, glissez-le et déposez-le dans la barre des favoris de votre navigateur (raccourcis en haut).');" class="inline-flex items-center gap-2 px-6 py-3 bg-[#B35C00] hover:bg-[#8f4a00] text-white font-bold rounded-lg shadow-md cursor-grab active:cursor-grabbing border border-[#B35C00] select-none transition-all duration-150 transform hover:-translate-y-0.5"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>Importer dans Bail Connect</a>`
+                    }}
                   />
-                  <span className="text-xs text-[#666666] mt-1 block">
-                    Assurez-vous que l&apos;annonce est publique et accessible.
+                  <span className="text-[10px] text-[#888888] mt-3 flex items-center gap-1 select-none">
+                    ← Glissez-déposez ce bouton vers le haut ↑
                   </span>
                 </div>
+              </div>
 
-                <div className="flex gap-4 pt-4 border-t border-[#DDDDDD]">
-                  <button
-                    type="button"
-                    disabled={importLoading}
-                    onClick={() => {
-                      setError(null);
-                      setCreationMode("choice");
-                    }}
-                    className="btn-secondary flex-1"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={importLoading}
-                    className="btn-primary flex-1 flex items-center justify-center gap-2"
-                  >
-                    {importLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Importation en cours...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4" />
-                        <span>Lancer l&apos;import</span>
-                      </>
-                    )}
-                  </button>
+              <div className="border-t border-[#EEEEEE] pt-6 space-y-4">
+                <h3 className="text-sm font-bold text-[#161616]">Étape 2 : Importez en 1 clic</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                  <div className="border border-[#EEEEEE] rounded-lg p-3 bg-white">
+                    <div className="w-6 h-6 rounded-full bg-[#E3E3FD] text-[#000091] flex items-center justify-center font-bold text-xs mx-auto mb-2">1</div>
+                    <h4 className="text-xs font-bold text-[#161616] mb-1">Ouvrez l&apos;annonce</h4>
+                    <p className="text-[10px] text-[#666666]">Allez sur Leboncoin ou SeLoger sur votre annonce.</p>
+                  </div>
+                  <div className="border border-[#EEEEEE] rounded-lg p-3 bg-white">
+                    <div className="w-6 h-6 rounded-full bg-[#E3E3FD] text-[#000091] flex items-center justify-center font-bold text-xs mx-auto mb-2">2</div>
+                    <h4 className="text-xs font-bold text-[#161616] mb-1">Cliquez sur le favori</h4>
+                    <p className="text-[10px] text-[#666666]">Cliquez sur le favori &quot;Importer dans Bail Connect&quot;.</p>
+                  </div>
+                  <div className="border border-[#EEEEEE] rounded-lg p-3 bg-white">
+                    <div className="w-6 h-6 rounded-full bg-[#E3E3FD] text-[#000091] flex items-center justify-center font-bold text-xs mx-auto mb-2">3</div>
+                    <h4 className="text-xs font-bold text-[#161616] mb-1">C&apos;est prêt !</h4>
+                    <p className="text-[10px] text-[#666666]">Vous serez redirigé ici avec les données préremplies.</p>
+                  </div>
                 </div>
-              </form>
+              </div>
+
+              <div className="flex gap-4 pt-4 border-t border-[#DDDDDD]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setError(null);
+                    setCreationMode("choice");
+                  }}
+                  className="btn-secondary w-full"
+                >
+                  Retour aux choix
+                </button>
+              </div>
             </div>
           </div>
         </main>

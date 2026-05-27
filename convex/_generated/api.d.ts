@@ -20,6 +20,7 @@ import type * as notifications from "../notifications.js";
 import type * as resend from "../resend.js";
 import type * as stripe from "../stripe.js";
 import type * as stripeMutations from "../stripeMutations.js";
+import type * as twilio from "../twilio.js";
 import type * as users from "../users.js";
 
 import type {
@@ -41,6 +42,7 @@ declare const fullApi: ApiFromModules<{
   resend: typeof resend;
   stripe: typeof stripe;
   stripeMutations: typeof stripeMutations;
+  twilio: typeof twilio;
   users: typeof users;
 }>;
 
