@@ -238,21 +238,21 @@ export const bookAppointment = mutation({
     }
 
     if (candidate.status !== "accepted") {
-      throw new Error("Candidate is not accepted for booking");
+      throw new ConvexError("Le candidat n'a pas été accepté pour cette campagne.");
     }
 
     const campaign = await ctx.db.get(candidate.campaignId);
     if (!campaign || campaign.status === "archived") {
-      throw new Error("Campaign is archived");
+      throw new ConvexError("Cette campagne n'existe pas ou a été archivée.");
     }
 
     const targetSlot = await ctx.db.get(args.slotId);
     if (!targetSlot) {
-      throw new Error("Target slot not found");
+      throw new ConvexError("Le créneau de visite demandé est introuvable.");
     }
 
     if (targetSlot.campaignId !== candidate.campaignId) {
-      throw new Error("Slot belongs to a different campaign");
+      throw new ConvexError("Ce créneau n'appartient pas à la même campagne de location.");
     }
 
     // Prevent booking past slots (must be in the future)
@@ -262,7 +262,7 @@ export const bookAppointment = mutation({
 
     // Check if target slot is full
     if (targetSlot.bookedCount >= targetSlot.maxCapacity) {
-      throw new Error("This slot is already full");
+      throw new ConvexError("Ce créneau de visite est complet.");
     }
 
     // Check if candidate already has an appointment
@@ -270,6 +270,42 @@ export const bookAppointment = mutation({
       .query("appointments")
       .withIndex("by_candidateId", (q) => q.eq("candidateId", args.candidateId))
       .unique();
+
+    // Check for conflicting appointments
+    const allMatchingCandidates = await ctx.db
+      .query("candidates")
+      .filter((q) =>
+        q.or(
+          q.eq(q.field("email"), candidate.email),
+          q.eq(q.field("phone"), candidate.phone)
+        )
+      )
+      .collect();
+
+    const candidateIds = allMatchingCandidates.map((c) => c._id);
+    for (const cId of candidateIds) {
+      // If it's a reschedule, we ignore the current candidate's existing appointment
+      if (existingAppt && cId === args.candidateId) {
+        continue;
+      }
+
+      const appt = await ctx.db
+        .query("appointments")
+        .withIndex("by_candidateId", (q) => q.eq("candidateId", cId))
+        .unique();
+
+      if (appt) {
+        const slot = await ctx.db.get(appt.slotId);
+        if (slot) {
+          // Check if slot overlaps with targetSlot (Overlap formula: A < D && C < B)
+          if (slot.startTime < targetSlot.endTime && targetSlot.startTime < slot.endTime) {
+            throw new ConvexError(
+              "Vous avez déjà un autre rendez-vous de visite planifié sur un créneau horaire qui chevauche celui-ci."
+            );
+          }
+        }
+      }
+    }
 
     let isReschedule = false;
 
