@@ -43,6 +43,8 @@ export default defineSchema({
     adType: v.optional(v.union(v.literal("free"), v.literal("pass"))),
     status: v.optional(v.union(v.literal("active"), v.literal("archived"))),
     stripeSessionId: v.optional(v.string()),
+    passExpiresAt: v.optional(v.number()),
+    passExpiredNotificationPending: v.optional(v.boolean()),
     createdAt: v.number(),
   }).index("by_slug", ["slug"])
     .index("by_code", ["code"])

@@ -30,6 +30,7 @@ export const createPaidCampaign = internalMutation({
       address: args.address,
       adType: "pass",
       stripeSessionId: args.stripeSessionId,
+      passExpiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days
     });
   },
 });
@@ -54,6 +55,7 @@ export const markCampaignAsPaid = internalMutation({
       await ctx.db.patch(campaignId, {
         adType: "pass",
         stripeSessionId: args.stripeSessionId,
+        passExpiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days
       });
     }
   },
@@ -81,6 +83,24 @@ export const markUserAsPro = internalMutation({
   },
 });
 
+async function cleanupProCampaignsOnDowngrade(ctx: any, userId: any) {
+  const campaigns = await ctx.db
+    .query("campaigns")
+    .withIndex("by_userId", (q: any) => q.eq("userId", userId))
+    .collect();
+
+  const proCampaigns = campaigns.filter(
+    (c: any) => c.adType === "pass" && (c.stripeSessionId === undefined || c.stripeSessionId === null)
+  );
+
+  for (const campaign of proCampaigns) {
+    await ctx.db.patch(campaign._id, {
+      adType: "free",
+      passExpiresAt: undefined,
+    });
+  }
+}
+
 export const downgradeUser = internalMutation({
   args: {
     userId: v.id("users"),
@@ -94,6 +114,7 @@ export const downgradeUser = internalMutation({
       tier: "free",
       stripeSubscriptionId: undefined,
     });
+    await cleanupProCampaignsOnDowngrade(ctx, args.userId);
   },
 });
 
@@ -159,6 +180,7 @@ export const downgradeUserBySubscriptionId = internalMutation({
         tier: "free",
         stripeSubscriptionId: undefined,
       });
+      await cleanupProCampaignsOnDowngrade(ctx, user._id);
     }
   },
 });

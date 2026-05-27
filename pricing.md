@@ -8,7 +8,8 @@ Ce document répertorie les prix et caractéristiques de chaque formule de l'app
 * **Limite d'utilisation** : Un propriétaire ne peut avoir qu'**une seule** annonce gratuite active à la fois.
 
 ## 2. Pass Annonce (Premium par annonce)
-* **Tarif** : 19 € (Achat unique par annonce)
+* **Tarif** : 19 € (Valable pendant 30 jours par annonce)
+* **Expiration** : À l'expiration des 30 jours, l'annonce repasse automatiquement en formule gratuite.
 * **Avantages** :
   * Nombre de candidatures illimité (déblocage immédiat de toutes les candidatures masquées).
   * Envoi automatique de SMS de rappel aux candidats.

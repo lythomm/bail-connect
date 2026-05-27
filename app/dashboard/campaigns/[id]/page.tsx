@@ -23,7 +23,8 @@ import {
   Filter,
   MapPin,
   Share2,
-  AlertCircle
+  AlertCircle,
+  Sparkles
 } from "lucide-react";
 import Dialog from "@/components/Dialog";
 import DeleteSlotDialog from "@/components/DeleteSlotDialog";
@@ -123,6 +124,20 @@ export default function CampaignDetail() {
     }
   }, [user]);
 
+  const [isPassExpiredDialogOpen, setIsPassExpiredDialogOpen] = useState(false);
+  const clearPassExpiredNotificationPending = useMutation(api.campaigns.clearPassExpiredNotificationPending);
+  const hasTriggeredExpiredNotification = useRef(false);
+
+  useEffect(() => {
+    if (campaign && campaign.passExpiredNotificationPending && !hasTriggeredExpiredNotification.current) {
+      hasTriggeredExpiredNotification.current = true;
+      setIsPassExpiredDialogOpen(true);
+      clearPassExpiredNotificationPending({ id: campaign._id }).catch((err) => {
+        console.error("Failed to clear passExpiredNotificationPending:", err);
+      });
+    }
+  }, [campaign, clearPassExpiredNotificationPending]);
+
   const allSlots = useQuery(api.appointments.getAllCampaignSlots) || [];
   const deleteSlotMutation = useMutation(api.appointments.deleteSlot);
 
@@ -189,8 +204,7 @@ export default function CampaignDetail() {
     return new Set(sorted.slice(0, 10).map((c) => c._id));
   }, [candidates]);
 
-  const handleModalPaymentSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleRenewPass = async () => {
     if (!campaignId) return;
     setModalLoading(true);
 
@@ -212,6 +226,32 @@ export default function CampaignDetail() {
       });
       setModalLoading(false);
     }
+  };
+
+  const handleProUpgradeSubmit = async () => {
+    setModalLoading(true);
+    try {
+      const { url } = await createCheckoutSession({
+        type: "pro",
+      });
+      if (url) {
+        window.location.href = url;
+      } else {
+        throw new Error("Impossible de générer le lien de paiement.");
+      }
+    } catch (err: any) {
+      console.error(err);
+      setToast({
+        message: err.message || "Une erreur est survenue lors de la redirection vers Stripe.",
+        type: "error",
+      });
+      setModalLoading(false);
+    }
+  };
+
+  const handleModalPaymentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await handleRenewPass();
   };
 
   const handleArchiveCampaign = async () => {
@@ -1666,6 +1706,85 @@ export default function CampaignDetail() {
         isOpen={isCampaignOnboardingOpen}
         onClose={() => setIsCampaignOnboardingOpen(false)}
       />
+
+      {/* Pass Expired Dialog */}
+      <Dialog
+        isOpen={isPassExpiredDialogOpen}
+        onClose={() => setIsPassExpiredDialogOpen(false)}
+        title="Votre Pass Annonce a expiré"
+        size="md"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-[#475569] leading-relaxed">
+            Votre <strong>Pass Annonce</strong> pour le logement <strong>{campaign?.title}</strong> vient d'expirer après sa durée de validité de 30 jours.
+          </p>
+
+          <div className="bg-[#FFF6E3] border border-[#FFE9B3] p-4 rounded-xl flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-[#B35900] shrink-0 mt-0.5" />
+            <div>
+              <h4 className="text-xs font-bold text-[#B35900] uppercase tracking-wider">
+                Vos candidatures sont en sécurité
+              </h4>
+              <p className="text-xs text-[#804000] mt-1 leading-relaxed">
+                Pas d'inquiétude ! Tous vos dossiers et candidats reçus sont conservés et ne sont pas supprimés.
+              </p>
+            </div>
+          </div>
+
+          <p className="text-xs text-[#666666] leading-relaxed">
+            Pour continuer à gérer cette annonce en toute sérénité et débloquer la visibilité des autres dossiers, vous pouvez :
+          </p>
+
+          <div className="space-y-3 pt-2">
+            <button
+              onClick={handleRenewPass}
+              disabled={modalLoading}
+              className="w-full flex items-center justify-between p-3.5 border border-[#DDDDDD] hover:border-[#000091] rounded-xl text-left transition-all hover:bg-[#F5F5FE]/30 group cursor-pointer"
+            >
+              <div>
+                <span className="font-bold text-xs text-[#161616] block">
+                  Renouveler le Pass Annonce
+                </span>
+                <span className="text-[10px] text-[#666666] mt-0.5 block">
+                  Paiement unique de 19 € pour 30 jours supplémentaires.
+                </span>
+              </div>
+              <span className="font-bold text-xs text-[#000091] group-hover:underline flex items-center gap-1">
+                19 €
+              </span>
+            </button>
+
+            <button
+              onClick={handleProUpgradeSubmit}
+              disabled={modalLoading}
+              className="w-full flex items-center justify-between p-3.5 border border-[#DDDDDD] hover:border-[#000091] rounded-xl text-left transition-all hover:bg-[#F5F5FE]/30 group cursor-pointer"
+            >
+              <div className="pr-4">
+                <span className="font-bold text-xs text-[#161616] flex items-center gap-1.5">
+                  Souscrire à l'abonnement Pro <Sparkles className="w-3.5 h-3.5 text-[#B35C00] shrink-0" />
+                </span>
+                <span className="text-[10px] text-[#666666] mt-0.5 block leading-normal">
+                  49 €/mois. Logements et Pass Annonces illimités pour tous vos biens actuels et futurs.
+                </span>
+              </div>
+              <span className="font-bold text-xs text-[#000091] group-hover:underline flex items-center gap-1 shrink-0">
+                49 €<span className="text-[10px] font-normal text-[#666666]">/m</span>
+              </span>
+            </button>
+          </div>
+
+          <div className="pt-4 border-t border-[#F0F0F0] flex justify-end">
+            <button
+              type="button"
+              onClick={() => setIsPassExpiredDialogOpen(false)}
+              className="btn-secondary text-xs px-4 py-2 cursor-pointer"
+              disabled={modalLoading}
+            >
+              Plus tard
+            </button>
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 }

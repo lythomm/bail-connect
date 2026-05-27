@@ -871,11 +871,11 @@ export default function NewCampaign() {
                         >
                           <div>
                             <div className="flex justify-between items-start mb-2">
-                              <span className="font-bold text-sm text-[#161616]">Pass Annonce</span>
+                              <span className="font-bold text-sm text-[#161616]">Pass Annonce (30 jours)</span>
                               <span className="font-bold text-sm text-[#000091]">19 €</span>
                             </div>
                             <p className="text-[11px] text-[#666666] leading-relaxed">
-                              <b>Candidats illimités</b> pour l&apos;annonce, <b>rappels automatiques</b> et <b>planification des visites</b>.
+                              Valable 30 jours. <b>Candidats illimités</b> pour l&apos;annonce, <b>rappels automatiques</b> et <b>planification des visites</b>.
                             </p>
                           </div>
                           {adType === "pass" && (
@@ -939,7 +939,7 @@ export default function NewCampaign() {
                             ? "Pass Annonce (Inclus avec l'Abonnement Pro)"
                             : adType === "free"
                               ? "Annonce Gratuite"
-                              : "Pass Annonce (19 €)"}
+                              : "Pass Annonce 30 jours (19 €)"}
                         </dd>
                       </div>
                     </dl>
@@ -959,10 +959,10 @@ export default function NewCampaign() {
                         </div>
                         <div>
                           <h4 className="text-sm font-bold text-[#161616]">
-                            Paiement unique de 19 €
+                            Paiement unique de 19 € (valable 30 jours)
                           </h4>
                           <p className="text-xs text-[#666666] mt-1 leading-relaxed">
-                            Vous allez être redirigé vers le portail de paiement Stripe pour finaliser la transaction de manière 100% sécurisée.
+                            Vous allez être redirigé vers le portail de paiement Stripe pour finaliser la transaction de manière 100% sécurisée. À l'issue des 30 jours, l'annonce repasse en formule gratuite.
                           </p>
                         </div>
                       </div>

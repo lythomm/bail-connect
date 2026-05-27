@@ -65,15 +65,16 @@ Ce document répertorie les cas d'utilisation manquants ou à améliorer dans le
   2. Si l'utilisateur est sur le plan `free` (tier non `pro`), compter ses campagnes actives (`status === "active" && adType === "free"`).
   3. Si ce nombre dépasse la limite autorisée (ex: 1 seule annonce active gratuite), refuser la création et lever une `ConvexError` ("Vous avez atteint la limite d'annonces actives pour le plan gratuit").
 
-### 2. Nettoyage suite à Rétrogradation (Nouveau)
-* **Objectif** : Archiver ou désactiver les annonces gratuites excédentaires lorsqu'un utilisateur passe de Pro à Gratuit.
+### 2. [FAIT] Nettoyage suite à Rétrogradation (Nouveau)
+* **Objectif** : Rebasculer en gratuit les annonces créées via l'abonnement Pro lorsqu'un utilisateur passe de Pro à Gratuit (sans les archiver pour lui permettre de les conserver et éventuellement de les payer à l'unité).
 * **Fonctions Convex à modifier** : `stripeMutations.ts:downgradeUser` et `stripeMutations.ts:downgradeUserBySubscriptionId`
 * **Logique d'implémentation** :
-  1. Lors de l'exécution de la rétrogradation d'un utilisateur vers le plan `free`, récupérer toutes ses campagnes actives.
-  2. Conserver la campagne active la plus récente et modifier le statut de toutes les autres campagnes actives gratuites en `archived` (ou bloquer leur visibilité).
-  * *Note* : Les campagnes créées avec un pass individuel payant (`adType === "pass"`) doivent rester actives jusqu'à leur expiration propre.
+  1. Lors de la rétrogradation vers le plan `free`, récupérer toutes les campagnes de l'utilisateur.
+  2. Identifier les campagnes `"pass"` créées sous l'abonnement (c'est-à-dire qui n'ont pas de `stripeSessionId` lié à un achat de pass individuel).
+  3. Mettre à jour ces campagnes en `adType: "free"`.
+  4. Laisser actives et intactes les campagnes possédant un pass individuel payé (`stripeSessionId` non nul) jusqu'à leur propre expiration.
 
-### 3. Limite de Validité du Pass Annonce (Nouveau)
+### 3. [FAIT] Limite de Validité du Pass Annonce (Nouveau)
 * **Objectif** : Faire expirer le pass premium individuel d'une annonce au bout de 30 jours pour qu'elle repasse en mode gratuit.
 * **Fonctions Convex à modifier/créer** :
   * Schéma : Ajouter un champ `passExpiresAt: v.optional(v.number())` dans la table `campaigns`.
@@ -84,14 +85,6 @@ Ce document répertorie les cas d'utilisation manquants ou à améliorer dans le
   * Mettre à jour le document ([pricing.md](file:///c:/Users/Thomas/workspace/myProjects/bail-connect/pricing.md)) pour y refléter cette durée de validité de 30 jours pour le pass.
 * **Points de vigilance** :
   * Si la campagne repasse en gratuit et que l'utilisateur dépasse ainsi la limite d'annonces gratuites autorisées, ne rien faire et la garder telle quelle, sauf si l'utilisateur souhaite repayer un abonnement pro ou pass.
-
-### 4. Résiliation Différée (Amélioration)
-* **Objectif** : Éviter de priver immédiatement l'utilisateur de son accès Pro s'il a déjà payé sa période en cours.
-* **Fonctions Convex à modifier** : `stripe.ts:cancelSubscription`
-* **Logique d'implémentation** :
-  1. Remplacer la suppression immédiate de l'abonnement Stripe (`DELETE`) par une mise à jour de l'abonnement avec l'attribut `cancel_at_period_end = true`.
-  2. Supprimer l'appel immédiat à `downgradeUser` dans la mutation.
-  3. Laisser le webhook Stripe (`stripeWebhook` pour l'événement `customer.subscription.deleted`) effectuer la rétrogradation et l'exécution de `downgradeUserBySubscriptionId` de manière asynchrone lorsque l'abonnement expire réellement.
 
 ---
 

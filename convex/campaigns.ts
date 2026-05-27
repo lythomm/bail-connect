@@ -1,5 +1,5 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { mutation, query, MutationCtx } from "./_generated/server";
+import { mutation, query, MutationCtx, internalMutation } from "./_generated/server";
 import { v, ConvexError } from "convex/values";
 import { Id } from "./_generated/dataModel";
 
@@ -27,6 +27,7 @@ export async function insertCampaignInternal(
     address?: string;
     adType: "free" | "pass";
     stripeSessionId?: string;
+    passExpiresAt?: number;
   }
 ) {
   const baseSlug = slugify(args.title) || "listing";
@@ -63,6 +64,7 @@ export async function insertCampaignInternal(
     adType: args.adType,
     status: "active",
     stripeSessionId: args.stripeSessionId,
+    passExpiresAt: args.passExpiresAt,
     createdAt: Date.now(),
   });
 }
@@ -289,5 +291,59 @@ export const archive = mutation({
 
     await ctx.db.patch(args.id, { status: "archived" });
     return { success: true };
+  },
+});
+
+/**
+ * Internal mutation to expire campaigns with active passes that have exceeded their validity duration.
+ * Converts their adType from "pass" to "free".
+ */
+export const expireCampaignPasses = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const campaignsToExpire = await ctx.db
+      .query("campaigns")
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("adType"), "pass"),
+          q.lt(q.field("passExpiresAt"), now)
+        )
+      )
+      .collect();
+
+    for (const campaign of campaignsToExpire) {
+      await ctx.db.patch(campaign._id, {
+        adType: "free",
+        passExpiresAt: undefined,
+        passExpiredNotificationPending: true,
+      });
+    }
+
+    return campaignsToExpire.length;
+  },
+});
+
+/**
+ * Clear the pending pass expired notification flag.
+ */
+export const clearPassExpiredNotificationPending = mutation({
+  args: { id: v.id("campaigns") },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Unauthorized");
+    }
+
+    const campaign = await ctx.db.get(args.id);
+    if (!campaign || campaign.userId !== userId) {
+      throw new Error("Unauthorized access to this campaign");
+    }
+
+    await ctx.db.patch(args.id, {
+      passExpiredNotificationPending: undefined,
+    });
+
+    return true;
   },
 });

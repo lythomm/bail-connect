@@ -568,7 +568,7 @@ export default function Home() {
                   <p className="text-sm text-[#666666] mt-1">Parfait pour louer rapidement un bien en toute sérénité.</p>
                   <div className="mt-6 flex items-baseline">
                     <span className="text-4xl font-black text-[#161616]">19€</span>
-                    <span className="text-sm text-[#666666] ml-2">/ annonce</span>
+                    <span className="text-sm text-[#666666] ml-2">/ annonce (valable 30 jours)</span>
                   </div>
 
                   <ul className="mt-8 space-y-4">
