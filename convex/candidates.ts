@@ -80,6 +80,23 @@ export const create = mutation({
       throw new ConvexError("Veuillez saisir une adresse email valide.");
     }
 
+    // Check for duplicate candidates in the same campaign
+    const existingCandidates = await ctx.db
+      .query("candidates")
+      .withIndex("by_campaignId", (q) => q.eq("campaignId", args.campaignId))
+      .collect();
+
+    const isDuplicate = existingCandidates.some(
+      (c) =>
+        c.email.trim().toLowerCase() === args.email.trim().toLowerCase() ||
+        c.phone.trim() === args.phone.trim() ||
+        c.dossierFacileUrl.trim() === cleanUrl
+    );
+
+    if (isDuplicate) {
+      throw new ConvexError("L'email, le téléphone ou le lien dossierFacile existe déjà");
+    }
+
     // 2. Generate secure booking token
     const token = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
       ? crypto.randomUUID()
