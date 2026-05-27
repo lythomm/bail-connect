@@ -152,10 +152,13 @@ export const getCampaignSlots = query({
  * Fetch candidate details and their campaign's slots for booking (Public View).
  */
 export const getBookingPageData = query({
-  args: { candidateId: v.id("candidates") },
+  args: {
+    candidateId: v.id("candidates"),
+    bookingToken: v.string(),
+  },
   handler: async (ctx, args) => {
     const candidate = await ctx.db.get(args.candidateId);
-    if (!candidate) {
+    if (!candidate || candidate.bookingToken !== args.bookingToken) {
       return null;
     }
 
@@ -216,11 +219,12 @@ export const bookAppointment = mutation({
   args: {
     slotId: v.id("slots"),
     candidateId: v.id("candidates"),
+    bookingToken: v.string(),
   },
   handler: async (ctx, args) => {
     const candidate = await ctx.db.get(args.candidateId);
-    if (!candidate) {
-      throw new Error("Candidate not found");
+    if (!candidate || candidate.bookingToken !== args.bookingToken) {
+      throw new Error("Accès refusé : jeton de réservation invalide.");
     }
 
     if (candidate.status !== "accepted") {
@@ -411,11 +415,12 @@ export const getAllCampaignSlots = query({
 export const cancelAppointment = mutation({
   args: {
     candidateId: v.id("candidates"),
+    bookingToken: v.string(),
   },
   handler: async (ctx, args) => {
     const candidate = await ctx.db.get(args.candidateId);
-    if (!candidate) {
-      throw new Error("Candidate not found");
+    if (!candidate || candidate.bookingToken !== args.bookingToken) {
+      throw new Error("Accès refusé : jeton de réservation invalide.");
     }
 
     if (candidate.status !== "accepted") {

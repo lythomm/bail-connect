@@ -69,7 +69,12 @@ export const create = mutation({
       throw new Error("Cette campagne n'existe pas ou a été archivée.");
     }
 
-    // 2. Insert candidate with default "pending" status
+    // 2. Generate secure booking token
+    const token = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+    // 3. Insert candidate with default "pending" status
     const candidateId = await ctx.db.insert("candidates", {
       campaignId: args.campaignId,
       firstName: args.firstName.trim(),
@@ -83,6 +88,7 @@ export const create = mutation({
       hasGuarantor: args.hasGuarantor,
       dossierFacileUrl: cleanUrl,
       nameTrigram: args.nameTrigram.trim().toUpperCase(),
+      bookingToken: token,
       createdAt: Date.now(),
     });
 

@@ -23,10 +23,13 @@ import { formatDateParis, formatTimeParis, formatTimeRangeParis, toParisDateStr 
 function BookingContent() {
   const searchParams = useSearchParams();
   const candidateId = searchParams.get("candidateId");
+  const bookingToken = searchParams.get("bookingToken");
 
   const data = useQuery(
     api.appointments.getBookingPageData,
-    candidateId ? { candidateId: candidateId as any } : "skip"
+    candidateId && bookingToken
+      ? { candidateId: candidateId as any, bookingToken: bookingToken }
+      : "skip"
   );
 
   const bookMutation = useMutation(api.appointments.bookAppointment);
@@ -46,6 +49,7 @@ function BookingContent() {
     try {
       await cancelMutation({
         candidateId: candidateId as any,
+        bookingToken: bookingToken || "",
       });
       setSuccessAppt(null);
       setSelectedSlotId(null);
@@ -59,13 +63,13 @@ function BookingContent() {
     }
   };
 
-  if (!candidateId) {
+  if (!candidateId || !bookingToken) {
     return (
       <div className="max-w-md w-full mx-auto bg-white border border-[#E2E8F0] rounded-2xl p-8 text-center shadow-xs">
         <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
         <h1 className="text-xl font-bold text-[#161616] mb-2">Lien invalide</h1>
         <p className="text-sm text-[#666666]">
-          Aucun identifiant de candidat n&apos;a été fourni. Veuillez vérifier le lien reçu par e-mail.
+          Identifiant de candidat ou jeton de réservation manquant. Veuillez vérifier le lien reçu par e-mail.
         </p>
       </div>
     );
@@ -101,6 +105,7 @@ function BookingContent() {
       await bookMutation({
         slotId: selectedSlotId as any,
         candidateId: candidateId as any,
+        bookingToken: bookingToken || "",
       });
 
       const selectedSlot = slots.find(s => s._id === selectedSlotId);

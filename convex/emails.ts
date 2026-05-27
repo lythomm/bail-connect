@@ -18,6 +18,7 @@ export const getCandidateInvitationInfo = internalQuery({
       candidateEmail: candidate.email,
       candidateFirstName: candidate.firstName,
       candidateLastName: candidate.lastName,
+      bookingToken: candidate.bookingToken,
       campaignTitle: campaign.title,
       campaignAddress: campaign.address,
     };
@@ -39,7 +40,7 @@ export const sendCandidateInvitation = internalAction({
     }
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-    const bookingUrl = `${siteUrl}/calendar/book?candidateId=${args.candidateId}`;
+    const bookingUrl = `${siteUrl}/calendar/book?candidateId=${args.candidateId}&bookingToken=${info.bookingToken}`;
 
     const subject = `Votre dossier a été retenu pour ${info.campaignTitle}`;
     const htmlContent = `
@@ -222,7 +223,7 @@ export const sendAppointmentCancellationToCandidate = internalAction({
     const timeStr = formatTimeParis(args.slotStartTime);
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-    const bookingUrl = `${siteUrl}/calendar/book?candidateId=${args.candidateId}`;
+    const bookingUrl = `${siteUrl}/calendar/book?candidateId=${args.candidateId}&bookingToken=${info.bookingToken}`;
 
     const subject = `❌ Visite annulée – ${args.campaignTitle}`;
     const htmlContent = `

@@ -72,6 +72,7 @@ export default defineSchema({
     hasGuarantor: v.boolean(),
     dossierFacileUrl: v.string(),
     nameTrigram: v.string(), // First 3 letters of full name, or custom trigram
+    bookingToken: v.string(),
     createdAt: v.number(),
   }).index("by_campaignId", ["campaignId"]),
 
