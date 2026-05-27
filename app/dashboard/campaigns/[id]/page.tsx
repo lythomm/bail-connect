@@ -148,6 +148,7 @@ export default function CampaignDetail() {
   const [modalLoading, setModalLoading] = useState(false);
   const [archiveLoading, setArchiveLoading] = useState(false);
   const [isArchiveConfirmOpen, setIsArchiveConfirmOpen] = useState(false);
+  const [chosenCandidateId, setChosenCandidateId] = useState<string>("none");
 
   const [isAddSlotOpen, setIsAddSlotOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
@@ -258,7 +259,10 @@ export default function CampaignDetail() {
     if (!campaignId) return;
     setArchiveLoading(true);
     try {
-      await archiveCampaign({ id: campaignId });
+      await archiveCampaign({
+        id: campaignId,
+        chosenCandidateId: chosenCandidateId === "none" ? undefined : (chosenCandidateId as Id<"candidates">),
+      });
       setToast({
         message: "L'annonce a été archivée avec succès.",
         type: "success"
@@ -1468,6 +1472,31 @@ export default function CampaignDetail() {
           <p className="text-sm text-[#475569] leading-relaxed">
             Félicitations ! Souhaitez-vous marquer l'annonce <strong>{campaign?.title}</strong> comme louée ?
           </p>
+
+          <div className="space-y-1.5 pt-1">
+            <label htmlFor="chosen-candidate" className="block text-xs font-bold text-[#3A3A3A]">
+              Sélectionnez le locataire retenu (Optionnel)
+            </label>
+            <select
+              id="chosen-candidate"
+              value={chosenCandidateId}
+              onChange={(e) => setChosenCandidateId(e.target.value)}
+              className="w-full text-xs border border-[#CCCCCC] rounded-md p-2 bg-white focus:outline-none focus:border-[#000091] transition-all cursor-pointer"
+            >
+              <option value="none">
+                Aucun candidat de la liste (ex: trouvé en dehors de BailConnect)
+              </option>
+              {candidates?.map((c) => (
+                <option key={c._id} value={c._id}>
+                  {c.firstName} {c.lastName} ({c.nameTrigram})
+                </option>
+              ))}
+            </select>
+            <p className="text-[10px] text-[#666666] leading-normal">
+              Le candidat sélectionné ne recevra pas l'e-mail automatique de clôture de l'annonce.
+            </p>
+          </div>
+
           <div className="bg-[#E6F3EA] border border-[#B9DFC5] p-4 rounded-xl flex items-start gap-3">
             <CheckCircle2 className="w-5 h-5 text-[#18753C] shrink-0 mt-0.5" />
             <div>

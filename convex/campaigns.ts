@@ -274,7 +274,10 @@ export const listWithStats = query({
  * Archive a campaign (mark status as archived).
  */
 export const archive = mutation({
-  args: { id: v.id("campaigns") },
+  args: {
+    id: v.id("campaigns"),
+    chosenCandidateId: v.optional(v.id("candidates")),
+  },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
@@ -296,6 +299,7 @@ export const archive = mutation({
     await ctx.scheduler.runAfter(0, internal.campaigns.cleanupCampaignResources, {
       campaignId: args.id,
       campaignTitle: campaign.title,
+      chosenCandidateId: args.chosenCandidateId,
     });
 
     return { success: true };
@@ -310,6 +314,7 @@ export const cleanupCampaignResources = internalMutation({
   args: {
     campaignId: v.id("campaigns"),
     campaignTitle: v.string(),
+    chosenCandidateId: v.optional(v.id("candidates")),
   },
   handler: async (ctx, args) => {
     // 1. Fetch all slots for this campaign
@@ -326,11 +331,14 @@ export const cleanupCampaignResources = internalMutation({
         .collect();
 
       for (const appt of appointments) {
-        // 3. Send cancellation email to candidate
-        await ctx.scheduler.runAfter(0, internal.emails.sendCampaignArchivedCancellation, {
-          candidateId: appt.candidateId,
-          campaignTitle: args.campaignTitle,
-        });
+        // Do not send the email to the chosen tenant
+        if (appt.candidateId !== args.chosenCandidateId) {
+          // 3. Send cancellation email to candidate
+          await ctx.scheduler.runAfter(0, internal.emails.sendCampaignArchivedCancellation, {
+            candidateId: appt.candidateId,
+            campaignTitle: args.campaignTitle,
+          });
+        }
 
         // 4. Delete appointment
         await ctx.db.delete(appt._id);

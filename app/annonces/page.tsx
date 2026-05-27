@@ -1,46 +1,20 @@
 "use client";
 
-import { useQuery, useConvexAuth, useMutation } from "convex/react";
+import { useQuery, useConvexAuth } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Toast, { ToastType } from "@/components/Toast";
-import { Loader2, CheckCircle2, Plus } from "lucide-react";
-import Dialog from "@/components/Dialog";
+import { Plus } from "lucide-react";
 
 export default function AnnoncesPage() {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const campaigns = useQuery(api.campaigns.listWithStats);
   const user = useQuery(api.users.current);
   const router = useRouter();
-  const archiveCampaign = useMutation(api.campaigns.archive);
-  const [archiveLoadingId, setArchiveLoadingId] = useState<string | null>(null);
-  const [archiveConfirmId, setArchiveConfirmId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
-
-  const campaignToArchive = campaigns?.find(c => c._id === archiveConfirmId);
-
-  const handleArchiveCampaign = async (id: any) => {
-    setArchiveLoadingId(id);
-    try {
-      await archiveCampaign({ id });
-      setToast({
-        message: "L'annonce a été archivée avec succès.",
-        type: "success"
-      });
-      setArchiveConfirmId(null);
-    } catch (err: any) {
-      console.error(err);
-      setToast({
-        message: err.message || "Une erreur est survenue lors de l'archivage de l'annonce.",
-        type: "error"
-      });
-    } finally {
-      setArchiveLoadingId(null);
-    }
-  };
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -181,14 +155,6 @@ export default function AnnoncesPage() {
                   >
                     Voir les candidats
                   </Link>
-                  <button
-                    onClick={() => setArchiveConfirmId(campaign._id)}
-                    title="Marquer comme loué"
-                    className="text-xs font-bold text-[#18753C] hover:bg-[#E6F3EA] border border-[#B9DFC5] px-3 py-2 rounded-sm cursor-pointer transition-all duration-150 flex items-center gap-1.5 focus:outline-none"
-                  >
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#18753C]" />
-                    <span>Loué</span>
-                  </button>
                 </div>
               </div>
             ))}
@@ -217,58 +183,6 @@ export default function AnnoncesPage() {
           onClose={() => setToast(null)}
         />
       )}
-
-      {/* Archive Campaign Confirmation Dialog */}
-      <Dialog
-        isOpen={archiveConfirmId !== null}
-        onClose={() => setArchiveConfirmId(null)}
-        title="J'ai trouvé mon locataire ?"
-        size="md"
-      >
-        <div className="space-y-4">
-          <p className="text-sm text-[#475569] leading-relaxed">
-            Félicitations ! Souhaitez-vous marquer l'annonce <strong>{campaignToArchive?.title}</strong> comme louée ?
-          </p>
-          <div className="bg-[#E6F3EA] border border-[#B9DFC5] p-4 rounded-xl flex items-start gap-3">
-            <CheckCircle2 className="w-5 h-5 text-[#18753C] shrink-0 mt-0.5" />
-            <div>
-              <h4 className="text-xs font-bold text-[#18753C] uppercase tracking-wider">
-                Archivage de l'annonce
-              </h4>
-              <p className="text-xs text-[#1e5a35] mt-1 leading-relaxed">
-                Cette annonce ne sera plus visible publiquement et les candidatures seront fermées.
-              </p>
-            </div>
-          </div>
-          <div className="pt-4 border-t border-[#F0F0F0] flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={() => setArchiveConfirmId(null)}
-              className="btn-secondary text-xs px-4 py-2 cursor-pointer"
-              disabled={archiveLoadingId !== null}
-            >
-              Annuler
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (archiveConfirmId) {
-                  handleArchiveCampaign(archiveConfirmId);
-                }
-              }}
-              disabled={archiveLoadingId !== null}
-              className="btn-primary text-xs px-4 py-2 cursor-pointer bg-[#18753C] text-white hover:bg-[#135c2f] rounded font-bold flex items-center gap-1.5 border border-[#B9DFC5]"
-            >
-              {archiveLoadingId !== null ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <CheckCircle2 className="w-3.5 h-3.5" />
-              )}
-              <span>Confirmer</span>
-            </button>
-          </div>
-        </div>
-      </Dialog>
     </div>
   );
 }
