@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import Toast, { ToastType } from "@/components/Toast";
 import Dialog from "@/components/Dialog";
+import { formatDateParis, formatTimeParis, formatTimeRangeParis, toParisDateStr } from "@/lib/dateUtils";
 
 function BookingContent() {
   const searchParams = useSearchParams();
@@ -104,19 +105,8 @@ function BookingContent() {
 
       const selectedSlot = slots.find(s => s._id === selectedSlotId);
       if (selectedSlot) {
-        const dateStr = new Date(selectedSlot.startTime).toLocaleDateString("fr-FR", {
-          weekday: "long",
-          day: "numeric",
-          month: "long",
-          year: "numeric"
-        });
-        const timeStr = `${new Date(selectedSlot.startTime).toLocaleTimeString("fr-FR", {
-          hour: "2-digit",
-          minute: "2-digit"
-        })} - ${new Date(selectedSlot.endTime).toLocaleTimeString("fr-FR", {
-          hour: "2-digit",
-          minute: "2-digit"
-        })}`;
+        const dateStr = formatDateParis(selectedSlot.startTime, { year: "numeric" });
+        const timeStr = formatTimeRangeParis(selectedSlot.startTime, selectedSlot.endTime);
         setSuccessAppt({ date: dateStr, time: timeStr });
       }
 
@@ -135,19 +125,8 @@ function BookingContent() {
     : null;
 
   const bookedSlotDetails = bookedSlot ? {
-    date: new Date(bookedSlot.startTime).toLocaleDateString("fr-FR", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }),
-    time: `${new Date(bookedSlot.startTime).toLocaleTimeString("fr-FR", {
-      hour: "2-digit",
-      minute: "2-digit"
-    })} - ${new Date(bookedSlot.endTime).toLocaleTimeString("fr-FR", {
-      hour: "2-digit",
-      minute: "2-digit"
-    })}`
+    date: formatDateParis(bookedSlot.startTime, { year: "numeric" }),
+    time: formatTimeRangeParis(bookedSlot.startTime, bookedSlot.endTime),
   } : null;
 
   // Filter available slots
@@ -156,12 +135,7 @@ function BookingContent() {
   // Group slots by day
   const groupedSlots: Record<string, any[]> = {};
   availableSlots.forEach(s => {
-    const dayLabel = new Date(s.startTime).toLocaleDateString("fr-FR", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric"
-    });
+    const dayLabel = formatDateParis(s.startTime, { year: "numeric" });
     if (!groupedSlots[dayLabel]) {
       groupedSlots[dayLabel] = [];
     }
@@ -366,13 +340,7 @@ function BookingContent() {
                     {groupedSlots[dayLabel].map(slot => {
                       const isSelected = selectedSlotId === slot._id;
                       const isCurrentlyBooked = currentAppointment?.slotId === slot._id;
-                      const timeString = `${new Date(slot.startTime).toLocaleTimeString("fr-FR", {
-                        hour: "2-digit",
-                        minute: "2-digit"
-                      })} - ${new Date(slot.endTime).toLocaleTimeString("fr-FR", {
-                        hour: "2-digit",
-                        minute: "2-digit"
-                      })}`;
+                      const timeString = formatTimeRangeParis(slot.startTime, slot.endTime);
 
                       return (
                         <button

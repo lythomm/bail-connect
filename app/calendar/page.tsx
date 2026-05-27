@@ -17,6 +17,7 @@ import Toast, { ToastType } from "@/components/Toast";
 import Dialog from "@/components/Dialog";
 import DeleteSlotDialog from "@/components/DeleteSlotDialog";
 import CalendarOnboarding from "@/components/CalendarOnboarding";
+import { toParisDateStr, formatTimeRangeParis } from "@/lib/dateUtils";
 
 export default function CalendarPage() {
   const { isAuthenticated, isLoading } = useConvexAuth();
@@ -216,13 +217,9 @@ export default function CalendarPage() {
   );
 
   // Filter slots for the selected day in side panel
-  const slotsOnSelectedDay = filteredSlots.filter(slot => {
-    const d = new Date(slot.startTime);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}` === selectedDateStr;
-  });
+  const slotsOnSelectedDay = filteredSlots.filter(slot =>
+    toParisDateStr(slot.startTime) === selectedDateStr
+  );
 
   const formattedSelectedDayLabel = (() => {
     if (selectedDates.size > 1) {
@@ -333,13 +330,9 @@ export default function CalendarPage() {
                           const isPast = dayDate.getTime() < todayDate.getTime();
 
                           // Find slots and bookings on this day
-                          const daySlots = filteredSlots.filter(slot => {
-                            const d = new Date(slot.startTime);
-                            const y = d.getFullYear();
-                            const m = String(d.getMonth() + 1).padStart(2, "0");
-                            const dDay = String(d.getDate()).padStart(2, "0");
-                            return `${y}-${m}-${dDay}` === dateStr;
-                          });
+                          const daySlots = filteredSlots.filter(slot =>
+                            toParisDateStr(slot.startTime) === dateStr
+                          );
 
                           const totalBooked = daySlots.reduce((acc, s) => acc + (s.candidates?.length || 0), 0);
 
@@ -550,13 +543,7 @@ export default function CalendarPage() {
                     ) : (
                       <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
                         {slotsOnSelectedDay.map((slot) => {
-                          const timeString = `${new Date(slot.startTime).toLocaleTimeString("fr-FR", {
-                            hour: "2-digit",
-                            minute: "2-digit"
-                          })} - ${new Date(slot.endTime).toLocaleTimeString("fr-FR", {
-                            hour: "2-digit",
-                            minute: "2-digit"
-                          })}`;
+                          const timeString = formatTimeRangeParis(slot.startTime, slot.endTime);
 
                           return (
                             <div key={slot._id} className="border border-[#E2E8F0] rounded-lg p-3 bg-[#F9F9F9] space-y-3">

@@ -2,6 +2,7 @@ import { internalAction, internalMutation, internalQuery } from "./_generated/se
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { sendEmail } from "./resend";
+import { formatDateParis, formatTimeParis, getParisHour } from "../lib/dateUtils";
 
 // ─── Queries ────────────────────────────────────────────────────────────────
 
@@ -217,9 +218,8 @@ export const sendBookingNotification = internalAction({
       return;
     }
 
-    const d = new Date(info.slotStartTime);
-    const dateStr = d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Paris" });
-    const timeStr = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" });
+    const dateStr = formatDateParis(info.slotStartTime, { year: "numeric" });
+    const timeStr = formatTimeParis(info.slotStartTime);
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
@@ -295,9 +295,8 @@ export const sendCancellationNotification = internalAction({
       return;
     }
 
-    const d = new Date(info.slotStartTime);
-    const dateStr = d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Paris" });
-    const timeStr = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" });
+    const dateStr = formatDateParis(info.slotStartTime, { year: "numeric" });
+    const timeStr = formatTimeParis(info.slotStartTime);
 
     const subject = `❌ Visite annulée – ${info.campaignTitle}`;
     const html = `
@@ -357,9 +356,8 @@ export const sendRescheduleNotification = internalAction({
       return;
     }
 
-    const d = new Date(info.slotStartTime);
-    const dateStr = d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Paris" });
-    const timeStr = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" });
+    const dateStr = formatDateParis(info.slotStartTime, { year: "numeric" });
+    const timeStr = formatTimeParis(info.slotStartTime);
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
@@ -417,8 +415,8 @@ export const sendRescheduleNotification = internalAction({
 export const sendPendingDigests = internalAction({
   args: {},
   handler: async (ctx) => {
-    // Use Paris local hour (UTC+2 in summer, UTC+1 in winter) — approximate with UTC+2
-    const nowHour = (new Date().getUTCHours() + 2) % 24;
+    // Use Paris local hour — handles CET/CEST automatically via Intl
+    const nowHour = getParisHour();
 
     const users = await ctx.runQuery(internal.notifications.getUsersForDigestHour, {
       hour: nowHour,

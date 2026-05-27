@@ -38,6 +38,7 @@ import {
   Row,
 } from "@tanstack/react-table";
 import Toast, { ToastType } from "@/components/Toast";
+import { toParisDateStr, formatDateParis, formatTimeParis } from "@/lib/dateUtils";
 
 function TrigramCell({
   trigram,
@@ -422,7 +423,7 @@ export default function CampaignDetail() {
   const groupedSlots = useMemo(() => {
     const groups: Record<string, typeof campaignSlots> = {};
     sortedCampaignSlots.forEach((slot) => {
-      const dateStr = new Date(slot.startTime).toISOString().split("T")[0];
+      const dateStr = toParisDateStr(slot.startTime);
       if (!groups[dateStr]) {
         groups[dateStr] = [];
       }
@@ -1129,12 +1130,7 @@ export default function CampaignDetail() {
               <div className="space-y-6">
                 {Object.entries(groupedSlots).sort(([a], [b]) => a.localeCompare(b)).map(([dateStr, slots]) => {
                   const dateObj = new Date(dateStr);
-                  const formattedDate = dateObj.toLocaleDateString("fr-FR", {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric"
-                  });
+                  const formattedDate = formatDateParis(dateObj.getTime(), { year: "numeric" });
                   const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 
                   return (
@@ -1145,14 +1141,8 @@ export default function CampaignDetail() {
                       </div>
                       <div className="divide-y divide-[#E2E8F0]">
                         {slots.map((slot) => {
-                          const startTimeStr = new Date(slot.startTime).toLocaleTimeString("fr-FR", {
-                            hour: "2-digit",
-                            minute: "2-digit"
-                          });
-                          const endTimeStr = new Date(slot.endTime).toLocaleTimeString("fr-FR", {
-                            hour: "2-digit",
-                            minute: "2-digit"
-                          });
+                          const startTimeStr = formatTimeParis(slot.startTime);
+                          const endTimeStr = formatTimeParis(slot.endTime);
                           const bookedCount = slot.candidates?.length || 0;
 
                           return (
