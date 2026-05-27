@@ -42,18 +42,18 @@ export const sendCandidateInvitation = internalAction({
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
     const bookingUrl = `${siteUrl}/calendar/book?candidateId=${args.candidateId}&bookingToken=${info.bookingToken}`;
 
-    const subject = `Votre dossier a été retenu pour ${info.campaignTitle}`;
+    const subject = `📅 Planifiez votre visite – ${info.campaignTitle}`;
     const htmlContent = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #DDDDDD; color: #161616;">
         <div style="background-color: #000091; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; margin-bottom: 20px;">
           BailConnect
         </div>
-        <h2 style="font-size: 20px; margin-bottom: 15px; color: #161616;">Félicitations, votre dossier a été retenu !</h2>
+        <h2 style="font-size: 20px; margin-bottom: 15px; color: #161616;">Votre dossier est accepté pour une visite !</h2>
         <p style="font-size: 14px; line-height: 1.5; color: #3A3A3A;">
           Bonjour ${info.candidateFirstName} ${info.candidateLastName},
         </p>
         <p style="font-size: 14px; line-height: 1.5; color: #3A3A3A;">
-          Le propriétaire de l'annonce <strong>${info.campaignTitle}</strong> a retenu votre dossier de candidature. 
+          Le propriétaire de l'annonce <strong>${info.campaignTitle}</strong> a accepté votre dossier de candidature. 
           ${info.campaignAddress ? `Le logement est situé à l'adresse suivante : <strong>${info.campaignAddress}</strong>.<br/><br/>` : ""}
           Vous pouvez dès maintenant choisir un créneau de visite sur son calendrier.
         </p>
@@ -324,6 +324,58 @@ export const sendCampaignArchivedCancellation = internalAction({
       console.error("Failed to send campaign archived cancellation email to candidate:", emailResult.error);
     } else {
       console.log("Campaign archived cancellation email sent successfully to", info.candidateEmail);
+    }
+  },
+});
+
+/**
+ * Send an email to the chosen candidate congratulating them.
+ */
+export const sendCampaignArchivedCongratulations = internalAction({
+  args: {
+    candidateId: v.id("candidates"),
+    campaignTitle: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const info = await ctx.runQuery(internal.emails.getCandidateInvitationInfo, {
+      candidateId: args.candidateId,
+    });
+    if (!info) return;
+
+    const subject = `🎉 Félicitations, votre dossier a été retenu ! – ${args.campaignTitle}`;
+    const htmlContent = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #DDDDDD; color: #161616;">
+        <div style="background-color: #000091; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; margin-bottom: 20px;">
+          BailConnect
+        </div>
+        <h2 style="font-size: 20px; margin-bottom: 15px; color: #161616;">Votre candidature a été retenue !</h2>
+        <p style="font-size: 14px; line-height: 1.5; color: #3A3A3A;">
+          Bonjour ${info.candidateFirstName} ${info.candidateLastName},
+        </p>
+        <p style="font-size: 14px; line-height: 1.5; color: #3A3A3A;">
+          Nous avons le plaisir de vous annoncer que votre candidature pour le logement <strong>${args.campaignTitle}</strong> a été retenue par le propriétaire !
+        </p>
+        <p style="font-size: 14px; line-height: 1.5; color: #3A3A3A;">
+          Le propriétaire va vous contacter prochainement pour convenir des modalités de signature du bail et de remise des clés si ce n'est pas déjà fait.
+        </p>
+        <hr style="border: 0; border-top: 1px solid #DDDDDD; margin: 30px 0 15px 0;" />
+        <p style="font-size: 11px; color: #666666; text-align: center;">
+          Ceci est un e-mail automatique envoyé par BailConnect. Ne pas répondre.
+        </p>
+      </div>
+    `;
+
+    const emailResult = await sendEmail({
+      from: "BailConnect <noreply@bailconnect.fr>",
+      to: [info.candidateEmail],
+      subject,
+      html: htmlContent,
+    });
+
+    if (!emailResult.success) {
+      console.error("Failed to send congratulations email to chosen candidate:", emailResult.error);
+    } else {
+      console.log("Congratulations email sent successfully to", info.candidateEmail);
     }
   },
 });

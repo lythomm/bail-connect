@@ -317,6 +317,17 @@ export const cleanupCampaignResources = internalMutation({
     chosenCandidateId: v.optional(v.id("candidates")),
   },
   handler: async (ctx, args) => {
+    // Send congratulations email to chosen candidate if they exist in the DB
+    if (args.chosenCandidateId) {
+      const chosenCandidate = await ctx.db.get(args.chosenCandidateId);
+      if (chosenCandidate) {
+        await ctx.scheduler.runAfter(0, internal.emails.sendCampaignArchivedCongratulations, {
+          candidateId: args.chosenCandidateId,
+          campaignTitle: args.campaignTitle,
+        });
+      }
+    }
+
     // 1. Fetch all slots for this campaign
     const slots = await ctx.db
       .query("slots")
