@@ -8,6 +8,7 @@ import Link from "next/link";
 import { CreditCard, Lock, CheckCircle2, Loader2, HelpCircle, Plus, Sparkles } from "lucide-react";
 import Toast, { ToastType } from "@/components/Toast";
 import Dialog from "@/components/Dialog";
+import { getBookmarkletCode } from "./bookmarklet";
 
 export default function NewCampaign() {
   const { isAuthenticated, isLoading } = useConvexAuth();
@@ -473,11 +474,11 @@ export default function NewCampaign() {
                   {user?.tier !== "pro" && <Lock className="w-3.5 h-3.5 text-[#B35C00]/80" />}
                 </h3>
                 <p className="text-xs text-[#666666] max-w-[200px]">
-                  Collez un lien Leboncoin, SeLoger, PAP, etc. pour préremplir l&apos;annonce.
+                  Importez en 1 clic depuis Leboncoin, SeLoger ou PAP grâce à notre bouton-favori.
                 </p>
               </div>
               <div className={`text-xs font-semibold mt-4 ${user?.tier === "pro" ? "text-[#000091]" : "text-[#B35C00]"}`}>
-                {user?.tier === "pro" ? "Importer un lien →" : "Débloquer avec PRO 🔒"}
+                {user?.tier === "pro" ? "Importer avec le favori →" : "Débloquer avec PRO 🔒"}
               </div>
             </div>
           </div>
@@ -489,7 +490,7 @@ export default function NewCampaign() {
 
   if (creationMode === "import") {
     const appOrigin = typeof window !== "undefined" ? window.location.origin : "https://bail-connect.fr";
-    const bookmarkletCode = `javascript:(function(){var sels=['[data-testid*=\\'EllipsisTextBox-button\\']','[data-testid*=\\'description\\'] button','[data-qa-id*=\\'description\\'] button','.item-description button','.Description button'];sels.forEach(function(s){var els=document.querySelectorAll(s);els.forEach(function(el){try{el.click()}catch(e){}})});var btns=document.querySelectorAll('button, span, a');for(var i=0;i<btns.length;i++){var txt=(btns[i].innerText||'').replace(/\\s+/g,' ').trim();if(/^(Voir plus|Lire la suite|Afficher plus)$/i.test(txt)){try{btns[i].click()}catch(e){}}}setTimeout(function(){var t='',e='',r='',a='',n='',o='',c='',i=document.getElementById('__NEXT_DATA__');var titleEl=document.querySelector('.item-title');if(titleEl){var clone=titleEl.cloneNode(true);var prEl=clone.querySelector('.item-price');if(prEl)clone.removeChild(prEl);t=clone.innerText.trim()}else{t=document.querySelector('[data-qa-id=adview_title] p')?.innerText||document.querySelector('[data-testid=cdp-main-description-title]')?.innerText||document.querySelector('h1')?.innerText||document.title||''}if(i){try{var p=JSON.parse(i.textContent)?.props?.pageProps?.ad;p&&(p.subject&&(t=p.subject),p.body&&(r=p.body),p.price&&p.price[0]&&(e=p.price[0].toString()),(p.attributes||[]).forEach((function(t){'square'===t.key&&(a=t.value),'rooms'===t.key&&(n=t.value),'zipcode'===t.key&&(c=t.value),'city'===t.key&&(o=t.value)})))}catch(t){}}if(!e){var l=document.querySelector('[data-qa-id=adview_price] p')||document.querySelector('[data-qa-id=adview_price]')||document.querySelector('[data-testid=cdp-price] span[aria-hidden=true]')||document.querySelector('[data-testid=cdp-price] span[class*=css-1b9ytm]')||document.querySelector('.item-price')||document.querySelector('[class*=Price]');if(l){var s=l.innerText.replace(/[^0-9]/g,'');s&&(e=s)}}if(!r){var u=document.querySelector('[data-qa-id=adview_description_container]')||document.querySelector('[data-testid=cdp-main-description-expandable-text]')||document.querySelector('.item-description div p')||document.querySelector('.item-description p')||document.querySelector('#readme-content')||document.querySelector('[class*=Description]');u&&(r=u.innerText)}if(r){r=r.replace(/\\s*(Voir moins|Voir plus|Lire la suite|Afficher moins)$/i,'')}if(!a){var g=document.querySelector('[data-qa-id=criteria_item_square] div:nth-child(2) p')||document.querySelector('[data-qa-id=criteria_item_square]');if(g){var s=g.innerText.replace(/[^0-9]/g,'');s&&(a=s)}else{var kf=document.querySelector('[data-testid=cdp-hardfacts-keyfacts]')?.innerText||document.querySelector('.item-tags')?.innerText||'';var sm=kf.match(/(\\d+(?:[.,]\\d+)?)\\s*m²/i);sm&&(a=sm[1].replace(',','.'))}}if(!n){var h=document.querySelector('[data-qa-id=criteria_item_rooms] div:nth-child(2) p')||document.querySelector('[data-qa-id=criteria_item_rooms]');if(h){var s=h.innerText.replace(/[^0-9]/g,'');s&&(n=s)}else{var kf=document.querySelector('[data-testid=cdp-hardfacts-keyfacts]')?.innerText||document.querySelector('.item-tags')?.innerText||'';var rm=kf.match(/(\\d+)\\s*pièce/i);rm&&(n=rm[1])}}if(!o||!c){var k=document.querySelector('a[href*=\\'#map\\']');if(k){var m=k.innerText.match(/([a-zA-Z\\s\\-]+)\\s+(\\d{5})/);m&&(o=m[1].trim(),c=m[2].trim())}else{var adEl=document.querySelector('[data-testid=cdp-location-address] span')||document.querySelector('[data-testid=cdp-location-address]')||document.querySelector('.item-description h2');if(adEl){var adT=adEl.innerText;var zM=adT.match(/(\\d{5})/);zM&&(c=zM[1]);var cM=adT.match(/([a-zA-Z\\s\\-]+)\\s*\\((\\d{5})\\)/)||adT.match(/([a-zA-Z\\s\\-]+)\\s*\\(\\d{5}\\)/);if(cM){var city=cM[1].trim();if(city.includes(',')){var pt=city.split(',');city=pt[pt.length-1].trim()}o=city}}}}var d={titre:t,description:r,prixLoyer:e?parseFloat(e):0,surface:a?parseFloat(a):0,pieces:n?parseInt(n):0,ville:o,codePostal:c};window.open('${appOrigin}/dashboard/campaigns/new?importData='+encodeURIComponent(JSON.stringify(d)),'BailConnectImport')},150)})();`;
+    const bookmarkletCode = getBookmarkletCode(appOrigin);
 
     return (
       <div className="flex-1 flex flex-col bg-[#F6F6F6]">
