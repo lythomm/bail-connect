@@ -172,3 +172,34 @@ export const completeCampaignOnboarding = mutation({
     return { success: true };
   },
 });
+
+export const checkAndRecordScrape = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Non autorisé");
+    }
+
+    const user = await ctx.db.get(userId);
+    if (!user) {
+      throw new Error("Utilisateur introuvable");
+    }
+
+    if (user.tier !== "pro") {
+      throw new Error("Cette fonctionnalité nécessite un abonnement PRO");
+    }
+
+    const now = Date.now();
+    const minInterval = 10000; // 10 secondes
+    if (user.lastScrapeTime && now - user.lastScrapeTime < minInterval) {
+      const waitSeconds = Math.ceil((minInterval - (now - user.lastScrapeTime)) / 1000);
+      throw new Error(`Veuillez patienter encore ${waitSeconds} seconde(s) avant le prochain import.`);
+    }
+
+    await ctx.db.patch(userId, {
+      lastScrapeTime: now,
+    });
+    return { success: true };
+  },
+});

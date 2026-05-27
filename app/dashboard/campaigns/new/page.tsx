@@ -5,7 +5,7 @@ import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { CreditCard, Lock, CheckCircle2, Loader2, HelpCircle } from "lucide-react";
+import { CreditCard, Lock, CheckCircle2, Loader2, HelpCircle, Plus, Sparkles } from "lucide-react";
 import Toast, { ToastType } from "@/components/Toast";
 import Dialog from "@/components/Dialog";
 
@@ -14,6 +14,7 @@ export default function NewCampaign() {
   const user = useQuery(api.users.current);
   const createCampaign = useMutation(api.campaigns.create);
   const createCheckoutSession = useAction(api.stripe.createCheckoutSession);
+  const scrapeAnnonce = useAction(api.importAnnonce.scrape);
   const router = useRouter();
   const campaigns = useQuery(api.campaigns.list, isAuthenticated ? {} : "skip");
 
@@ -25,6 +26,68 @@ export default function NewCampaign() {
   const [adType, setAdType] = useState<"free" | "pass">("free");
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [showAddressInfo, setShowAddressInfo] = useState(false);
+  const [showProModal, setShowProModal] = useState(false);
+
+  const [creationMode, setCreationMode] = useState<"choice" | "manual" | "import">("choice");
+  const [importUrl, setImportUrl] = useState("");
+  const [importLoading, setImportLoading] = useState(false);
+
+  const cleanErrorMessage = (errMessage: string): string => {
+    if (!errMessage) return "Une erreur est survenue.";
+    if (errMessage.includes("Uncaught Error: ")) {
+      const parts = errMessage.split("Uncaught Error: ");
+      const rest = parts[parts.length - 1];
+      return rest.split(/\s+at\s+/)[0].trim();
+    }
+    const serverErrorMatch = errMessage.match(/Server Error\s*(.*)/i);
+    if (serverErrorMatch && serverErrorMatch[1]) {
+      const rest = serverErrorMatch[1];
+      return rest.split(/\s+at\s+/)[0].trim();
+    }
+    return errMessage;
+  };
+
+  const handleImport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!importUrl.trim()) {
+      setError("Veuillez saisir une URL.");
+      return;
+    }
+    setError(null);
+    setImportLoading(true);
+    try {
+      const data = await scrapeAnnonce({ url: importUrl.trim() });
+      if (data) {
+        setTitle(data.titre || "");
+
+        let constructedAddress = "";
+        if (data.ville && data.codePostal) {
+          constructedAddress = `${data.ville} (${data.codePostal})`;
+        } else if (data.ville) {
+          constructedAddress = data.ville;
+        } else if (data.codePostal) {
+          constructedAddress = data.codePostal;
+        }
+        setAddress(constructedAddress);
+
+        setRentAmount(data.prixLoyer ? data.prixLoyer.toString() : "");
+        setDescription(data.description || "");
+
+        setToast({
+          message: "Annonce importée avec succès ! Veuillez vérifier les informations.",
+          type: "success",
+        });
+
+        setCreationMode("manual");
+        setCurrentStep(1);
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(cleanErrorMessage(err.message) || "Impossible d'importer l'annonce. Vérifiez l'URL et réessayez.");
+    } finally {
+      setImportLoading(false);
+    }
+  };
 
   const hasFreeCampaign = campaigns?.some(c => c.adType === "free" || !c.adType) ?? false;
 
@@ -42,6 +105,13 @@ export default function NewCampaign() {
       setAdType("pass");
     }
   }, [user]);
+
+  // Protect import mode
+  useEffect(() => {
+    if (creationMode === "import" && user && user.tier !== "pro") {
+      setCreationMode("choice");
+    }
+  }, [creationMode, user]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -138,7 +208,7 @@ export default function NewCampaign() {
       router.push(`/dashboard/campaigns/new/success?campaign_id=${campaignId}`);
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Une erreur est survenue lors de la création.");
+      setError(cleanErrorMessage(err.message) || "Une erreur est survenue lors de la création.");
     } finally {
       setLoading(false);
     }
@@ -167,9 +237,89 @@ export default function NewCampaign() {
       }
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Une erreur est survenue lors de la redirection vers Stripe.");
+      setError(cleanErrorMessage(err.message) || "Une erreur est survenue lors de la redirection vers Stripe.");
       setPaymentLoading(false);
     }
+  };
+
+  const handleUpgradeToPro = async () => {
+    setError(null);
+    setPaymentLoading(true);
+    try {
+      const { url } = await createCheckoutSession({
+        type: "pro",
+      });
+      if (url) {
+        window.location.href = url;
+      } else {
+        throw new Error("Impossible de générer le lien de paiement pour l'abonnement PRO.");
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(cleanErrorMessage(err.message) || "Une erreur est survenue lors de la redirection vers Stripe.");
+      setPaymentLoading(false);
+    }
+  };
+
+  const renderProModal = () => {
+    if (!showProModal) return null;
+    return (
+      <Dialog
+        isOpen={showProModal}
+        onClose={() => setShowProModal(false)}
+        title="Débloquer l'Import Automatique 🔒"
+        size="md"
+        footer={
+          <div className="flex flex-col sm:flex-row gap-3 w-full">
+            <button
+              type="button"
+              onClick={() => setShowProModal(false)}
+              className="btn-secondary w-full sm:w-auto text-center justify-center cursor-pointer"
+              disabled={paymentLoading}
+            >
+              Annuler
+            </button>
+            <button
+              type="button"
+              onClick={handleUpgradeToPro}
+              className="btn-primary w-full sm:flex-1 text-center justify-center flex items-center gap-2 cursor-pointer bg-[#B35C00] hover:bg-[#8f4a00] border-[#B35C00]"
+              disabled={paymentLoading}
+            >
+              {paymentLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Redirection...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  <span>Mettre à niveau</span>
+                </>
+              )}
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-4 text-left">
+          <p className="text-sm leading-relaxed text-[#3A3A3A]">
+            L'importation automatique d'annonces est une fonctionnalité exclusive réservée aux membres <strong>PRO</strong>.
+          </p>
+          <div className="bg-[#FFF8F0] border border-[#FFE0B2] p-4 rounded-xl space-y-2">
+            <h4 className="text-xs font-bold text-[#B35C00] uppercase tracking-wider flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5" /> Avantages de l'abonnement PRO
+            </h4>
+            <ul className="text-xs text-[#5D4037] space-y-1.5 list-disc pl-4">
+              <li><strong>Import automatique</strong> depuis Leboncoin, SeLoger, PAP, Bien'ici, etc.</li>
+              <li>Création de logements avec le PASS et traitement de candidatures <strong>illimités</strong>.</li>
+              <li>Activation automatique du statut <strong>Premium</strong> pour toutes vos annonces.</li>
+            </ul>
+          </div>
+          <p className="text-xs leading-relaxed text-[#666666]">
+            En cliquant ci-dessous, vous serez redirigé vers Stripe pour souscrire à l'abonnement PRO. Vous pourrez annuler à tout moment en un clic depuis votre profil.
+          </p>
+        </div>
+      </Dialog>
+    );
   };
 
   if (isLoading) {
@@ -180,13 +330,231 @@ export default function NewCampaign() {
     );
   }
 
+  if (creationMode === "choice") {
+    return (
+      <div className="flex-1 flex flex-col bg-[#F6F6F6]">
+        <main className="flex-1 max-w-2xl w-full mx-auto px-6 py-8">
+          <button
+            onClick={() => router.replace("/annonces")}
+            className="inline-flex items-center gap-2 text-sm text-[#000091] hover:text-[#0b0b7d] font-medium mb-5 group transition-colors focus:outline-none cursor-pointer"
+          >
+            <svg
+              className="w-4 h-4 transform group-hover:-translate-x-0.5 transition-transform"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            <span>Retour</span>
+          </button>
+
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-[#161616]">Comment souhaitez-vous ajouter votre logement ?</h1>
+            <p className="text-sm text-[#666666] mt-1">
+              Gagnez du temps en important votre annonce existante ou configurez-la manuellement.
+            </p>
+          </div>
+
+          {error && (
+            <div className="gov-callout gov-callout-warning mb-6 text-sm">
+              <strong>Erreur :</strong> {error}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+            <div
+              onClick={() => {
+                setError(null);
+                setCreationMode("manual");
+                setCurrentStep(1);
+              }}
+              className="border border-[#DDDDDD] bg-white rounded-xl p-6 cursor-pointer hover:border-[#000091] hover:shadow-md transition-all flex flex-col items-center text-center justify-between min-h-[220px] select-none"
+            >
+              <div className="flex flex-col items-center mt-4">
+                <div className="w-12 h-12 rounded-full bg-[#EEEEEE] flex items-center justify-center mb-4 text-[#161616]">
+                  <Plus className="w-6 h-6" />
+                </div>
+                <h3 className="font-bold text-base text-[#161616] mb-2">Saisie manuelle</h3>
+                <p className="text-xs text-[#666666] max-w-[200px]">
+                  Configurez votre annonce étape par étape à partir de zéro.
+                </p>
+              </div>
+              <div className="text-xs font-semibold text-[#000091] mt-4">Commencer →</div>
+            </div>
+
+            <div
+              onClick={() => {
+                setError(null);
+                if (user?.tier !== "pro") {
+                  setShowProModal(true);
+                } else {
+                  setCreationMode("import");
+                }
+              }}
+              className={`border rounded-xl p-6 cursor-pointer hover:shadow-md transition-all flex flex-col items-center text-center justify-between min-h-[220px] select-none relative overflow-hidden ${user?.tier === "pro"
+                ? "border-[#DDDDDD] bg-white hover:border-[#000091]"
+                : "border-[#E2E8F0] bg-[#FAF9F6]/80 hover:border-[#B35C00]"
+                }`}
+            >
+              {user?.tier === "pro" ? (
+                <div className="absolute top-2 right-2 bg-[#E3E3FD] text-[#000091] px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">
+                  Rapide ✨
+                </div>
+              ) : (
+                <div className="absolute top-2 right-2 bg-[#FFF3E0] text-[#B35C00] px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                  <Lock className="w-2.5 h-2.5" /> PRO
+                </div>
+              )}
+              <div className="flex flex-col items-center mt-4">
+                {user?.tier === "pro" ? (
+                  <div className="w-12 h-12 rounded-full bg-[#E3E3FD] flex items-center justify-center mb-4 text-[#000091]">
+                    <Sparkles className="w-5 h-5 animate-pulse" />
+                  </div>
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-[#FFF3E0] flex items-center justify-center mb-4 text-[#B35C00] relative">
+                    <Sparkles className="w-5 h-5 opacity-60" />
+                    <Lock className="w-3.5 h-3.5 absolute bottom-0 right-0 bg-[#FFF3E0] rounded-full p-0.5 border border-[#FFF3E0] text-[#B35C00]" />
+                  </div>
+                )}
+                <h3 className="font-bold text-base text-[#161616] mb-2 flex items-center gap-1.5 justify-center">
+                  Import automatique
+                  {user?.tier !== "pro" && <Lock className="w-3.5 h-3.5 text-[#B35C00]/80" />}
+                </h3>
+                <p className="text-xs text-[#666666] max-w-[200px]">
+                  Collez un lien Leboncoin, SeLoger, PAP, etc. pour préremplir l&apos;annonce.
+                </p>
+              </div>
+              <div className={`text-xs font-semibold mt-4 ${user?.tier === "pro" ? "text-[#000091]" : "text-[#B35C00]"}`}>
+                {user?.tier === "pro" ? "Importer un lien →" : "Débloquer avec PRO 🔒"}
+              </div>
+            </div>
+          </div>
+        </main>
+        {renderProModal()}
+      </div>
+    );
+  }
+
+  if (creationMode === "import") {
+    return (
+      <div className="flex-1 flex flex-col bg-[#F6F6F6]">
+        <main className="flex-1 max-w-2xl w-full mx-auto px-6 py-8">
+          <button
+            onClick={() => {
+              setError(null);
+              setCreationMode("choice");
+            }}
+            className="inline-flex items-center gap-2 text-sm text-[#000091] hover:text-[#0b0b7d] font-medium mb-5 group transition-colors focus:outline-none cursor-pointer"
+          >
+            <svg
+              className="w-4 h-4 transform group-hover:-translate-x-0.5 transition-transform"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            <span>Retour aux choix</span>
+          </button>
+
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-[#161616]">Importer depuis un lien</h1>
+            <p className="text-sm text-[#666666] mt-1">
+              Copiez-collez l&apos;URL de votre annonce immobilière (Leboncoin, SeLoger, PAP, Bien&apos;ici, etc.).
+            </p>
+          </div>
+
+          <div className="gov-card">
+            <div className="gov-card-header flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#000091]" />
+              <span>Importation intelligente</span>
+            </div>
+            <div className="gov-card-body">
+              {error && (
+                <div className="gov-callout gov-callout-warning mb-6 text-sm">
+                  <strong>Erreur :</strong> {error}
+                </div>
+              )}
+
+              <form onSubmit={handleImport} className="space-y-6">
+                <div>
+                  <label htmlFor="importUrl" className="form-label">
+                    Lien de l&apos;annonce *
+                  </label>
+                  <input
+                    id="importUrl"
+                    type="url"
+                    required
+                    disabled={importLoading}
+                    value={importUrl}
+                    onChange={(e) => setImportUrl(e.target.value)}
+                    className="form-input"
+                    placeholder="https://www.leboncoin.fr/ad/locations/..."
+                  />
+                  <span className="text-xs text-[#666666] mt-1 block">
+                    Assurez-vous que l&apos;annonce est publique et accessible.
+                  </span>
+                </div>
+
+                <div className="flex gap-4 pt-4 border-t border-[#DDDDDD]">
+                  <button
+                    type="button"
+                    disabled={importLoading}
+                    onClick={() => {
+                      setError(null);
+                      setCreationMode("choice");
+                    }}
+                    className="btn-secondary flex-1"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={importLoading}
+                    className="btn-primary flex-1 flex items-center justify-center gap-2"
+                  >
+                    {importLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Importation en cours...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4" />
+                        <span>Lancer l&apos;import</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </main>
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
+        {renderProModal()}
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 flex flex-col bg-[#F6F6F6]">
       {/* Main Form */}
       <main className="flex-1 max-w-2xl w-full mx-auto px-6 py-8">
         {/* Retour button */}
         <button
-          onClick={() => router.replace("/annonces")}
+          onClick={() => {
+            setError(null);
+            setCreationMode("choice");
+          }}
           className="inline-flex items-center gap-2 text-sm text-[#000091] hover:text-[#0b0b7d] font-medium mb-5 group transition-colors focus:outline-none cursor-pointer"
         >
           <svg
@@ -429,8 +797,8 @@ export default function NewCampaign() {
                         <div
                           onClick={() => setAdType("free")}
                           className={`border rounded-xl p-4 cursor-pointer transition-all flex flex-col justify-between h-full select-none ${adType === "free"
-                              ? "border-[#000091] bg-[#F5F5FE]/40 ring-1 ring-[#000091]"
-                              : "border-[#DDDDDD] hover:border-[#000091]"
+                            ? "border-[#000091] bg-[#F5F5FE]/40 ring-1 ring-[#000091]"
+                            : "border-[#DDDDDD] hover:border-[#000091]"
                             }`}
                         >
                           <div>
@@ -453,8 +821,8 @@ export default function NewCampaign() {
                         <div
                           onClick={() => setAdType("pass")}
                           className={`border rounded-xl p-4 cursor-pointer transition-all flex flex-col justify-between h-full select-none ${adType === "pass"
-                              ? "border-[#000091] bg-[#F5F5FE]/40 ring-1 ring-[#000091]"
-                              : "border-[#DDDDDD] hover:border-[#000091]"
+                            ? "border-[#000091] bg-[#F5F5FE]/40 ring-1 ring-[#000091]"
+                            : "border-[#DDDDDD] hover:border-[#000091]"
                             }`}
                         >
                           <div>
@@ -629,6 +997,7 @@ export default function NewCampaign() {
           </div>
         </Dialog>
       )}
+      {renderProModal()}
     </div>
   );
 }

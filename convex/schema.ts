@@ -27,6 +27,7 @@ export default defineSchema({
     isOnboarded: v.optional(v.boolean()),
     isCalendarOnboarded: v.optional(v.boolean()),
     isCampaignOnboarded: v.optional(v.boolean()),
+    lastScrapeTime: v.optional(v.number()),
   }).index("email", ["email"])
     .index("phone", ["phone"])
     .index("by_stripeSubscriptionId", ["stripeSubscriptionId"]),

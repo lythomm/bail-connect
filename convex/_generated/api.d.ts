@@ -15,6 +15,7 @@ import type * as candidates from "../candidates.js";
 import type * as crons from "../crons.js";
 import type * as emails from "../emails.js";
 import type * as http from "../http.js";
+import type * as importAnnonce from "../importAnnonce.js";
 import type * as notifications from "../notifications.js";
 import type * as resend from "../resend.js";
 import type * as stripe from "../stripe.js";
@@ -35,6 +36,7 @@ declare const fullApi: ApiFromModules<{
   crons: typeof crons;
   emails: typeof emails;
   http: typeof http;
+  importAnnonce: typeof importAnnonce;
   notifications: typeof notifications;
   resend: typeof resend;
   stripe: typeof stripe;
