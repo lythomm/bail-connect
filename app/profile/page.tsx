@@ -18,6 +18,7 @@ import {
   Loader2,
   Bell,
   BellOff,
+  AlertCircle,
 } from "lucide-react";
 import Toast, { ToastType } from "@/components/Toast";
 import { formatError } from "@/lib/errors";
@@ -49,6 +50,7 @@ export default function ProfilePage() {
 
   // Cancellation States
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [cancelStep, setCancelStep] = useState(1);
   const [cancellationReason, setCancellationReason] = useState("");
   const [cancellationFeedback, setCancellationFeedback] = useState("");
   const [isCancelling, setIsCancelling] = useState(false);
@@ -434,7 +436,10 @@ export default function ProfilePage() {
                       Vous disposez de toutes les fonctionnalités PRO. Si vous ne souhaitez plus utiliser ces avantages, vous pouvez résilier votre abonnement.
                     </p>
                     <button
-                      onClick={() => setCancelModalOpen(true)}
+                      onClick={() => {
+                        setCancelStep(1);
+                        setCancelModalOpen(true);
+                      }}
                       className="w-full text-center py-2.5 px-4 border border-[#CE0500] text-[#CE0500] hover:bg-[#FCE8E6] text-xs font-bold rounded-xl transition-all cursor-pointer animate-scale-in"
                     >
                       Résilier mon abonnement
@@ -477,80 +482,119 @@ export default function ProfilePage() {
             </div>
 
             {/* Modal Body */}
-            <form onSubmit={handleCancelSubscription}>
-              <div className="p-6 space-y-4">
-                <p className="text-xs text-[#666666] leading-relaxed">
-                  Nous sommes désolés de vous voir partir. Aidez-nous à nous améliorer en indiquant la raison de votre résiliation :
-                </p>
+            {cancelStep === 1 ? (
+              <div className="flex flex-col">
+                <div className="p-6 space-y-4">
+                  <div className="bg-[#FCE8E6] border border-[#F8C0BC] p-4 rounded-xl flex items-start gap-3 animate-scale-in">
+                    <AlertCircle className="w-5 h-5 text-[#CE0500] shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-xs font-bold text-[#CE0500] uppercase tracking-wider">
+                        Avertissement important
+                      </h4>
+                      <p className="text-xs text-[#a60400] mt-1 leading-relaxed font-semibold">
+                        Attention : toutes les annonces que vous avez créées durant votre abonnement Pro vont repasser au tiers gratuit.
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-[#666666] leading-relaxed">
+                    Les dossiers de candidats au-delà du 10ème seront masqués, mais ils resteront sauvegardés en toute sécurité.
+                  </p>
+                </div>
 
-                <div className="space-y-2">
-                  {[
-                    "C'est trop cher",
-                    "Je n'ai plus d'annonce de location active",
-                    "L'outil est trop complexe ou difficile à utiliser",
-                    "J'ai trouvé une autre solution",
-                    "Autre raison (préciser ci-dessous)"
-                  ].map((reasonOption) => (
-                    <label
-                      key={reasonOption}
-                      className="flex items-start gap-2.5 p-2 rounded-lg border border-[#EEEEEE] hover:bg-[#F6F6F6] cursor-pointer text-xs text-[#3A3A3A] transition-colors"
-                    >
-                      <input
-                        type="radio"
-                        name="cancellationReason"
-                        required
-                        value={reasonOption}
-                        checked={cancellationReason === reasonOption}
-                        onChange={(e) => setCancellationReason(e.target.value)}
-                        className="mt-0.5 accent-[#000091] cursor-pointer"
-                      />
-                      <span>{reasonOption}</span>
+                {/* Modal Footer */}
+                <div className="p-4 border-t border-[#E2E8F0] bg-[#F8FAFC] flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setCancelModalOpen(false)}
+                    className="btn-secondary flex-1 py-2 rounded-xl text-xs cursor-pointer"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCancelStep(2)}
+                    className="btn-primary flex-1 py-2 rounded-xl text-xs bg-[#CE0500] hover:bg-[#a60400] text-white font-bold border-[#CE0500] cursor-pointer"
+                  >
+                    Continuer
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleCancelSubscription}>
+                <div className="p-6 space-y-4">
+                  <p className="text-xs text-[#666666] leading-relaxed">
+                    Nous sommes désolés de vous voir partir. Aidez-nous à nous améliorer en indiquant la raison de votre résiliation :
+                  </p>
+
+                  <div className="space-y-2">
+                    {[
+                      "C'est trop cher",
+                      "Je n'ai plus d'annonce de location active",
+                      "L'outil est trop complexe ou difficile à utiliser",
+                      "J'ai trouvé une autre solution",
+                      "Autre raison (préciser ci-dessous)"
+                    ].map((reasonOption) => (
+                      <label
+                        key={reasonOption}
+                        className="flex items-start gap-2.5 p-2 rounded-lg border border-[#EEEEEE] hover:bg-[#F6F6F6] cursor-pointer text-xs text-[#3A3A3A] transition-colors"
+                      >
+                        <input
+                          type="radio"
+                          name="cancellationReason"
+                          required
+                          value={reasonOption}
+                          checked={cancellationReason === reasonOption}
+                          onChange={(e) => setCancellationReason(e.target.value)}
+                          className="mt-0.5 accent-[#000091] cursor-pointer"
+                        />
+                        <span>{reasonOption}</span>
+                      </label>
+                    ))}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="feedback" className="block text-xs font-bold text-[#3A3A3A]">
+                      Commentaire ou suggestion (Optionnel)
                     </label>
-                  ))}
+                    <textarea
+                      id="feedback"
+                      rows={4}
+                      value={cancellationFeedback}
+                      onChange={(e) => setCancellationFeedback(e.target.value)}
+                      placeholder="Dites-nous en plus pour nous aider à nous améliorer..."
+                      className="w-full text-xs border border-[#CCCCCC] rounded-md p-2 bg-white focus:outline-none focus:border-[#000091] transition-all resize-none"
+                      disabled={isCancelling}
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label htmlFor="feedback" className="block text-xs font-bold text-[#3A3A3A]">
-                    Commentaire ou suggestion (Optionnel)
-                  </label>
-                  <textarea
-                    id="feedback"
-                    rows={4}
-                    value={cancellationFeedback}
-                    onChange={(e) => setCancellationFeedback(e.target.value)}
-                    placeholder="Dites-nous en plus pour nous aider à nous améliorer..."
-                    className="w-full text-xs border border-[#CCCCCC] rounded-md p-2 bg-white focus:outline-none focus:border-[#000091] transition-all resize-none"
+                {/* Modal Footer */}
+                <div className="p-4 border-t border-[#E2E8F0] bg-[#F8FAFC] flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setCancelStep(1)}
                     disabled={isCancelling}
-                  />
+                    className="btn-secondary flex-1 py-2 rounded-xl text-xs cursor-pointer"
+                  >
+                    Retour
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isCancelling || !cancellationReason}
+                    className="btn-primary flex-1 py-2 rounded-xl text-xs bg-[#CE0500] hover:bg-[#a60400] text-white font-bold flex items-center justify-center gap-1.5 border-[#CE0500] cursor-pointer"
+                  >
+                    {isCancelling ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Résiliation...</span>
+                      </>
+                    ) : (
+                      <span>Confirmer</span>
+                    )}
+                  </button>
                 </div>
-              </div>
-
-              {/* Modal Footer */}
-              <div className="p-4 border-t border-[#E2E8F0] bg-[#F8FAFC] flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setCancelModalOpen(false)}
-                  disabled={isCancelling}
-                  className="btn-secondary flex-1 py-2 rounded-xl text-xs"
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  disabled={isCancelling || !cancellationReason}
-                  className="btn-primary flex-1 py-2 rounded-xl text-xs bg-[#CE0500] hover:bg-[#a60400] text-white font-bold flex items-center justify-center gap-1.5 border-[#CE0500]"
-                >
-                  {isCancelling ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Résiliation...</span>
-                    </>
-                  ) : (
-                    <span>Confirmer</span>
-                  )}
-                </button>
-              </div>
-            </form>
+              </form>
+            )}
           </div>
         </div>
       )}
