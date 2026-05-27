@@ -75,7 +75,7 @@ export default function NewCampaign() {
       }
     } catch (err: any) {
       console.error(err);
-      setError(cleanErrorMessage(err.message) || "Impossible d'importer l'annonce. Vérifiez l'URL et réessayez.");
+      setError(formatError(err));
     } finally {
       setImportLoading(false);
     }
@@ -249,7 +249,7 @@ export default function NewCampaign() {
       router.push(`/dashboard/campaigns/new/success?campaign_id=${campaignId}`);
     } catch (err: any) {
       console.error(err);
-      setError(cleanErrorMessage(err.message) || "Une erreur est survenue lors de la création.");
+      setError(formatError(err));
     } finally {
       setLoading(false);
     }
@@ -278,7 +278,7 @@ export default function NewCampaign() {
       }
     } catch (err: any) {
       console.error(err);
-      setError(cleanErrorMessage(err.message) || "Une erreur est survenue lors de la redirection vers Stripe.");
+      setError(formatError(err));
       setPaymentLoading(false);
     }
   };
@@ -297,7 +297,7 @@ export default function NewCampaign() {
       }
     } catch (err: any) {
       console.error(err);
-      setError(cleanErrorMessage(err.message) || "Une erreur est survenue lors de la redirection vers Stripe.");
+      setError(formatError(err));
       setPaymentLoading(false);
     }
   };

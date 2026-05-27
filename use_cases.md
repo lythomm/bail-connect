@@ -57,7 +57,7 @@ Ce document répertorie les cas d'utilisation manquants ou à améliorer dans le
 
 ## ⚡ Priorité 2 : Modèle Économique et Limites (Important)
 
-### 1. Limites du Plan Gratuit (Nouveau)
+### 1. [FAIT] Limites du Plan Gratuit (Nouveau)
 * **Objectif** : Limiter le nombre de campagnes actives pour les utilisateurs n'ayant pas d'abonnement Pro ou de pass actif.
 * **Fonctions Convex à modifier** : `campaigns.ts:create`
 * **Logique d'implémentation** :

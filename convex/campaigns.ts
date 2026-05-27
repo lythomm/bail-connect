@@ -1,6 +1,6 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { mutation, query, MutationCtx } from "./_generated/server";
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { Id } from "./_generated/dataModel";
 
 // Helper to slugify a text
@@ -183,11 +183,30 @@ export const create = mutation({
       throw new Error("You must be signed in to create a campaign");
     }
 
+    const user = await ctx.db.get(userId);
     let adType = args.adType || "free";
+
     if (adType === "pass") {
-      const user = await ctx.db.get(userId);
       if (user?.tier !== "pro") {
         throw new Error("Vous devez payer ou être membre Pro pour créer une annonce premium.");
+      }
+    } else {
+      // adType === "free"
+      if (!user || user.tier !== "pro") {
+        const userCampaigns = await ctx.db
+          .query("campaigns")
+          .withIndex("by_userId", (q) => q.eq("userId", userId))
+          .collect();
+
+        const activeFreeCount = userCampaigns.filter(
+          (c) =>
+            (c.status === "active" || c.status === undefined) &&
+            (c.adType === "free" || c.adType === undefined)
+        ).length;
+
+        if (activeFreeCount >= 1) {
+          throw new ConvexError("Vous avez atteint la limite d'annonces actives pour le plan gratuit.");
+        }
       }
     }
 
