@@ -9,6 +9,7 @@ import { CreditCard, Lock, CheckCircle2, Loader2, HelpCircle, Plus, Sparkles } f
 import Toast, { ToastType } from "@/components/Toast";
 import Dialog from "@/components/Dialog";
 import { getBookmarkletCode } from "./bookmarklet";
+import { formatError } from "@/lib/errors";
 
 export default function NewCampaign() {
   const { isAuthenticated, isLoading } = useConvexAuth();
@@ -35,18 +36,7 @@ export default function NewCampaign() {
   const [importMethod, setImportMethod] = useState<"bookmarklet" | "url">("bookmarklet");
 
   const cleanErrorMessage = (errMessage: string): string => {
-    if (!errMessage) return "Une erreur est survenue.";
-    if (errMessage.includes("Uncaught Error: ")) {
-      const parts = errMessage.split("Uncaught Error: ");
-      const rest = parts[parts.length - 1];
-      return rest.split(/\s+at\s+/)[0].trim();
-    }
-    const serverErrorMatch = errMessage.match(/Server Error\s*(.*)/i);
-    if (serverErrorMatch && serverErrorMatch[1]) {
-      const rest = serverErrorMatch[1];
-      return rest.split(/\s+at\s+/)[0].trim();
-    }
-    return errMessage;
+    return formatError(errMessage);
   };
 
   const handleImport = async (e: React.FormEvent) => {

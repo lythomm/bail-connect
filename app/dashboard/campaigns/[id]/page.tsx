@@ -28,6 +28,7 @@ import {
 import Dialog from "@/components/Dialog";
 import DeleteSlotDialog from "@/components/DeleteSlotDialog";
 import CampaignOnboarding from "@/components/CampaignOnboarding";
+import AddSlotDialog from "@/components/AddSlotDialog";
 import {
   useReactTable,
   getCoreRowModel,
@@ -123,7 +124,6 @@ export default function CampaignDetail() {
   }, [user]);
 
   const allSlots = useQuery(api.appointments.getAllCampaignSlots) || [];
-  const createSlotMutation = useMutation(api.appointments.createSlot);
   const deleteSlotMutation = useMutation(api.appointments.deleteSlot);
 
   const createCheckoutSession = useAction(api.stripe.createCheckoutSession);
@@ -135,12 +135,6 @@ export default function CampaignDetail() {
   const [isArchiveConfirmOpen, setIsArchiveConfirmOpen] = useState(false);
 
   const [isAddSlotOpen, setIsAddSlotOpen] = useState(false);
-  const [newSlotDate, setNewSlotDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
-  const [newSlotStart, setNewSlotStart] = useState("10:00");
-  const [newSlotEnd, setNewSlotEnd] = useState("10:30");
-  const [newSlotCapacity, setNewSlotCapacity] = useState(1);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isNoSlotsWarningOpen, setIsNoSlotsWarningOpen] = useState(false);
   const [shareTab, setShareTab] = useState<"desc" | "msg">("desc");
@@ -384,37 +378,7 @@ export default function CampaignDetail() {
     }
   };
 
-  const handleAddSlot = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!campaignId) return;
 
-    try {
-      const start = new Date(`${newSlotDate}T${newSlotStart}`);
-      const end = new Date(`${newSlotDate}T${newSlotEnd}`);
-
-      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        setToast({ message: "Veuillez entrer des heures valides.", type: "error" });
-        return;
-      }
-
-      if (end.getTime() <= start.getTime()) {
-        setToast({ message: "L'heure de fin doit être après l'heure de début.", type: "error" });
-        return;
-      }
-
-      await createSlotMutation({
-        campaignId: campaignId,
-        startTime: start.getTime(),
-        endTime: end.getTime(),
-        maxCapacity: newSlotCapacity,
-      });
-
-      setToast({ message: "Créneau ajouté avec succès !", type: "success" });
-      setIsAddSlotOpen(false);
-    } catch (err: any) {
-      setToast({ message: err.message || "Erreur lors de la création.", type: "error" });
-    }
-  };
 
   const sortedCampaignSlots = useMemo(() => {
     return [...campaignSlots].sort((a, b) => a.startTime - b.startTime);
@@ -1501,77 +1465,14 @@ export default function CampaignDetail() {
         </div>
       </Dialog>
 
-      {/* Slot creation Dialog */}
-      <Dialog
+      <AddSlotDialog
         isOpen={isAddSlotOpen}
         onClose={() => setIsAddSlotOpen(false)}
-        title="Ajouter un créneau de visite"
-        size="md"
-      >
-        <form onSubmit={handleAddSlot} className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-[#3A3A3A] mb-1.5">Date de visite</label>
-            <input
-              type="date"
-              value={newSlotDate}
-              onChange={(e) => setNewSlotDate(e.target.value)}
-              className="w-full text-sm border border-[#CCCCCC] rounded-md px-3 py-2 bg-white focus:outline-none focus:border-[#000091]"
-              required
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-[#3A3A3A] mb-1.5">Heure début</label>
-              <input
-                type="time"
-                value={newSlotStart}
-                onChange={(e) => setNewSlotStart(e.target.value)}
-                className="w-full text-sm border border-[#CCCCCC] rounded-md px-3 py-2 bg-white focus:outline-none focus:border-[#000091]"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-[#3A3A3A] mb-1.5">Heure fin</label>
-              <input
-                type="time"
-                value={newSlotEnd}
-                onChange={(e) => setNewSlotEnd(e.target.value)}
-                className="w-full text-sm border border-[#CCCCCC] rounded-md px-3 py-2 bg-white focus:outline-none focus:border-[#000091]"
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-[#3A3A3A] mb-1.5">Capacité maximale (nombre de visiteurs)</label>
-            <input
-              type="number"
-              min="1"
-              value={newSlotCapacity}
-              onChange={(e) => setNewSlotCapacity(parseInt(e.target.value) || 1)}
-              className="w-full text-sm border border-[#CCCCCC] rounded-md px-3 py-2 bg-white focus:outline-none focus:border-[#000091]"
-              required
-            />
-          </div>
-
-          <div className="pt-4 border-t border-[#F0F0F0] flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={() => setIsAddSlotOpen(false)}
-              className="btn-secondary text-xs px-4 py-2 cursor-pointer"
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              className="btn-primary text-xs px-4 py-2 cursor-pointer bg-[#000091] text-white hover:bg-[#0b0b7d] rounded font-bold"
-            >
-              Créer le créneau
-            </button>
-          </div>
-        </form>
-      </Dialog>
+        campaignId={campaignId}
+        campaigns={[]}
+        onSuccess={() => setIsAddSlotOpen(false)}
+        setToast={setToast}
+      />
 
       {/* Share Campaign Dialog */}
       <Dialog

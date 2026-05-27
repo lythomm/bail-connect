@@ -3,7 +3,7 @@
 import { useConvexAuth, useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Calendar as CalendarIcon,
   ExternalLink,
@@ -14,7 +14,7 @@ import {
   Info
 } from "lucide-react";
 import Toast, { ToastType } from "@/components/Toast";
-import Dialog from "@/components/Dialog";
+import AddSlotDialog from "@/components/AddSlotDialog";
 import DeleteSlotDialog from "@/components/DeleteSlotDialog";
 import CalendarOnboarding from "@/components/CalendarOnboarding";
 import { toParisDateStr, formatTimeRangeParis } from "@/lib/dateUtils";
@@ -98,22 +98,8 @@ export default function CalendarPage() {
   // Query all slots for the landlord
   const allSlots = useQuery(api.appointments.getAllCampaignSlots) || [];
 
-  const createSlotMutation = useMutation(api.appointments.createSlot);
   const deleteSlotMutation = useMutation(api.appointments.deleteSlot);
-
-  // Custom slot creator state
-  const [newSlotCampaignId, setNewSlotCampaignId] = useState<string>("");
-  const [newSlotStart, setNewSlotStart] = useState("10:00");
-  const [newSlotEnd, setNewSlotEnd] = useState("10:30");
-  const [newSlotCapacity, setNewSlotCapacity] = useState(1);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
-
-  // Synchronize campaign selection for slot creator
-  useEffect(() => {
-    if (campaigns.length > 0 && !newSlotCampaignId) {
-      setNewSlotCampaignId(campaigns[0]._id);
-    }
-  }, [campaigns, newSlotCampaignId]);
 
   // Generate next 6 months starting from current month
   const monthsList = Array.from({ length: 6 }, (_, i) => {
@@ -134,57 +120,6 @@ export default function CalendarPage() {
       </div>
     );
   }
-
-  const handleAddSlot = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newSlotCampaignId) {
-      setToast({ message: "Veuillez sélectionner une annonce d'abord.", type: "error" });
-      return;
-    }
-
-    try {
-      const datesArray = Array.from(selectedDates);
-      if (datesArray.length === 0) {
-        datesArray.push(selectedDateStr);
-      }
-
-      for (const dStr of datesArray) {
-        const start = new Date(`${dStr}T${newSlotStart}`);
-        const end = new Date(`${dStr}T${newSlotEnd}`);
-        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-          setToast({ message: "Veuillez entrer des heures valides.", type: "error" });
-          return;
-        }
-        if (end.getTime() <= start.getTime()) {
-          setToast({ message: "L'heure de fin doit être après l'heure de début.", type: "error" });
-          return;
-        }
-      }
-
-      await Promise.all(
-        datesArray.map(async (dStr) => {
-          const start = new Date(`${dStr}T${newSlotStart}`);
-          const end = new Date(`${dStr}T${newSlotEnd}`);
-          await createSlotMutation({
-            campaignId: newSlotCampaignId as any,
-            startTime: start.getTime(),
-            endTime: end.getTime(),
-            maxCapacity: newSlotCapacity,
-          });
-        })
-      );
-
-      setToast({
-        message: datesArray.length > 1
-          ? `Créneaux ajoutés avec succès pour ${datesArray.length} jours !`
-          : "Créneau ajouté avec succès !",
-        type: "success"
-      });
-      setIsAddSlotOpen(false);
-    } catch (err: any) {
-      setToast({ message: err.message || "Erreur lors de la création.", type: "error" });
-    }
-  };
 
   const handleDeleteSlot = (slotId: string) => {
     setSlotIdToDelete(slotId);
@@ -212,14 +147,29 @@ export default function CalendarPage() {
   };
 
   // Filter slots based on selected campaigns
-  const filteredSlots = allSlots.filter(slot =>
-    selectedCampaignIds.includes(slot.campaignId)
-  );
+  const filteredSlots = useMemo(() => {
+    return allSlots.filter(slot =>
+      selectedCampaignIds.includes(slot.campaignId)
+    );
+  }, [allSlots, selectedCampaignIds]);
+
+  // Group slots by date string to avoid costly Intl.DateTimeFormat in render loops
+  const slotsByDateStr = useMemo(() => {
+    const map: Record<string, typeof filteredSlots> = {};
+    filteredSlots.forEach(slot => {
+      const dStr = toParisDateStr(slot.startTime);
+      if (!map[dStr]) {
+        map[dStr] = [];
+      }
+      map[dStr].push(slot);
+    });
+    return map;
+  }, [filteredSlots]);
 
   // Filter slots for the selected day in side panel
-  const slotsOnSelectedDay = filteredSlots.filter(slot =>
-    toParisDateStr(slot.startTime) === selectedDateStr
-  );
+  const slotsOnSelectedDay = useMemo(() => {
+    return slotsByDateStr[selectedDateStr] || [];
+  }, [slotsByDateStr, selectedDateStr]);
 
   const formattedSelectedDayLabel = (() => {
     if (selectedDates.size > 1) {
@@ -330,9 +280,7 @@ export default function CalendarPage() {
                           const isPast = dayDate.getTime() < todayDate.getTime();
 
                           // Find slots and bookings on this day
-                          const daySlots = filteredSlots.filter(slot =>
-                            toParisDateStr(slot.startTime) === dateStr
-                          );
+                          const daySlots = slotsByDateStr[dateStr] || [];
 
                           const totalBooked = daySlots.reduce((acc, s) => acc + (s.candidates?.length || 0), 0);
 
@@ -613,85 +561,14 @@ export default function CalendarPage() {
         />
       )}
 
-      <Dialog
+      <AddSlotDialog
         isOpen={isAddSlotOpen}
         onClose={() => setIsAddSlotOpen(false)}
-        title="Ajouter un créneau de visite"
-        size="md"
-      >
-        <form onSubmit={handleAddSlot} className="space-y-4">
-          <div className="bg-[#F5F5FE] p-3 rounded-md border border-[#000091]/10 mb-4">
-            <span className="text-xs font-bold text-[#000091]">
-              {selectedDates.size > 1
-                ? `${selectedDates.size} jours sélectionnés pour l'ajout de créneau`
-                : `Jour de visite : ${formattedSelectedDayLabel}`}
-            </span>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-[#3A3A3A] mb-1.5">Bien concerné</label>
-            <select
-              value={newSlotCampaignId}
-              onChange={(e) => setNewSlotCampaignId(e.target.value)}
-              className="w-full text-sm border border-[#CCCCCC] rounded-md px-3 py-2 bg-white focus:outline-none focus:border-[#000091] font-semibold"
-            >
-              {campaigns.map((c) => (
-                <option key={c._id} value={c._id}>
-                  {c.title}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-[#3A3A3A] mb-1.5">Heure début</label>
-              <input
-                type="time"
-                value={newSlotStart}
-                onChange={(e) => setNewSlotStart(e.target.value)}
-                className="w-full text-sm border border-[#CCCCCC] rounded-md px-3 py-2 bg-white focus:outline-none focus:border-[#000091]"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-[#3A3A3A] mb-1.5">Heure fin</label>
-              <input
-                type="time"
-                value={newSlotEnd}
-                onChange={(e) => setNewSlotEnd(e.target.value)}
-                className="w-full text-sm border border-[#CCCCCC] rounded-md px-3 py-2 bg-white focus:outline-none focus:border-[#000091]"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-[#3A3A3A] mb-1.5">Capacité maximale (nombre de visiteur)</label>
-            <input
-              type="number"
-              min="1"
-              value={newSlotCapacity}
-              onChange={(e) => setNewSlotCapacity(parseInt(e.target.value) || 1)}
-              className="w-full text-sm border border-[#CCCCCC] rounded-md px-3 py-2 bg-white focus:outline-none focus:border-[#000091]"
-            />
-          </div>
-
-          <div className="pt-4 border-t border-[#F0F0F0] flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={() => setIsAddSlotOpen(false)}
-              className="btn-secondary text-xs px-4 py-2 cursor-pointer"
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              className="btn-primary text-xs px-4 py-2 cursor-pointer"
-            >
-              Créer le créneau
-            </button>
-          </div>
-        </form>
-      </Dialog>
+        preSelectedDates={Array.from(selectedDates)}
+        campaigns={campaigns}
+        onSuccess={() => setIsAddSlotOpen(false)}
+        setToast={setToast}
+      />
 
       <DeleteSlotDialog
         isOpen={slotIdToDelete !== null}

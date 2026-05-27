@@ -1,6 +1,6 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { internal } from "./_generated/api";
 
 /**
@@ -22,6 +22,20 @@ export const createSlot = mutation({
     const campaign = await ctx.db.get(args.campaignId);
     if (!campaign || campaign.userId !== userId) {
       throw new Error("Unauthorized access to this campaign");
+    }
+
+    // Check for overlapping slots
+    const existingSlots = await ctx.db
+      .query("slots")
+      .withIndex("by_campaignId", (q) => q.eq("campaignId", args.campaignId))
+      .collect();
+
+    const hasOverlap = existingSlots.some(
+      (slot) => slot.startTime < args.endTime && slot.endTime > args.startTime
+    );
+
+    if (hasOverlap) {
+      throw new ConvexError("Un créneau de visite existe déjà sur cette plage horaire.");
     }
 
     const slotId = await ctx.db.insert("slots", {
