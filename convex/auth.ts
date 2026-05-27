@@ -44,15 +44,28 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
         }
       }
 
+      // Generate email verification OTP
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const codeExpires = Date.now() + 15 * 60 * 1000; // 15 minutes
+
       await db.patch(args.userId, {
         tier: "free",
         name,
         phone,
         phoneVerificationTime: phone ? Date.now() : undefined,
-        emailVerificationTime: Date.now(),
+        emailVerificationCode: verificationCode,
+        emailVerificationCodeExpires: codeExpires,
         digestHour: 18,
         notificationPreference: "daily",
       });
+
+      // Schedule verification email
+      if (email) {
+        await ctx.scheduler.runAfter(0, internal.emails.sendOTPCode, {
+          email,
+          code: verificationCode,
+        });
+      }
     },
   },
 });

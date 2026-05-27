@@ -104,7 +104,7 @@ export default function SignInPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="form-input"
-                  placeholder="exemple@dossierfacile.fr"
+                  placeholder="exemple@bailconnect.fr"
                 />
               </div>
 

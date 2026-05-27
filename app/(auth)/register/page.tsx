@@ -110,7 +110,7 @@ export default function RegisterPage() {
       if (!isValid) return;
     }
     if (step === 3 && !validateStep3()) return;
-    
+
     setStep((prev) => Math.min(prev + 1, totalSteps));
   };
 
@@ -140,7 +140,7 @@ export default function RegisterPage() {
         phone: phone.trim(),
       });
 
-      router.push("/dashboard");
+      router.push("/verify-email");
     } catch (err: any) {
       console.error(err);
       let userFriendlyMessage = err.message || "Une erreur est survenue lors de l'inscription.";
@@ -216,19 +216,18 @@ export default function RegisterPage() {
               <span className="text-[#000091]">Étape {step} sur {totalSteps}</span>
               <span>{Math.round((step / totalSteps) * 100)}% complété</span>
             </div>
-            
+
             {/* Stepper indicators */}
             <div className="grid grid-cols-4 gap-2 mb-4">
               {[1, 2, 3, 4].map((i) => (
-                <div 
-                  key={i} 
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    i < step 
-                      ? "bg-[#000091]" 
-                      : i === step 
-                      ? "bg-[#000091]/70 animate-pulse" 
-                      : "bg-[#E3E3FD]"
-                  }`}
+                <div
+                  key={i}
+                  className={`h-2 rounded-full transition-all duration-300 ${i < step
+                      ? "bg-[#000091]"
+                      : i === step
+                        ? "bg-[#000091]/70 animate-pulse"
+                        : "bg-[#E3E3FD]"
+                    }`}
                 />
               ))}
             </div>
@@ -335,7 +334,7 @@ export default function RegisterPage() {
                       if (error) setError(null);
                     }}
                     className="form-input"
-                    placeholder="exemple@dossierfacile.fr"
+                    placeholder="exemple@bailconnect.fr"
                     autoFocus
                   />
                 </div>
@@ -418,7 +417,7 @@ export default function RegisterPage() {
                     Retour
                   </button>
                 )}
-                
+
                 <button
                   type="submit"
                   disabled={loading || validatingPhone}

@@ -542,7 +542,7 @@ export default function NewCampaign() {
                 <div className="py-4 flex flex-col items-center justify-center border-2 border-dashed border-[#DDDDDD] rounded-xl bg-[#FAF9F6]">
                   <div
                     dangerouslySetInnerHTML={{
-                      __html: `<a href="${bookmarkletCode}" onclick="event.preventDefault(); alert('Pour installer ce bouton, glissez-le et déposez-le dans la barre des favoris de votre navigateur (raccourcis en haut).');" class="inline-flex items-center gap-2 px-6 py-3 bg-[#B35C00] hover:bg-[#8f4a00] text-white font-bold rounded-lg shadow-md cursor-grab active:cursor-grabbing border border-[#B35C00] select-none transition-all duration-150 transform hover:-translate-y-0.5"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>Importer dans Bail Connect</a>`
+                      __html: `<a href="${bookmarkletCode}" onclick="event.preventDefault(); alert('Pour installer ce bouton, glissez-le et déposez-le dans la barre des favoris de votre navigateur (raccourcis en haut).');" class="inline-flex items-center gap-2 px-6 py-3 bg-[#B35C00] hover:bg-[#8f4a00] text-white font-bold rounded-lg shadow-md cursor-grab active:cursor-grabbing border border-[#B35C00] select-none transition-all duration-150 transform hover:-translate-y-0.5"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>Importer dans BailConnect</a>`
                     }}
                   />
                   <span className="text-[10px] text-[#888888] mt-3 flex items-center gap-1 select-none">
@@ -562,7 +562,7 @@ export default function NewCampaign() {
                   <div className="border border-[#EEEEEE] rounded-lg p-3 bg-white">
                     <div className="w-6 h-6 rounded-full bg-[#E3E3FD] text-[#000091] flex items-center justify-center font-bold text-xs mx-auto mb-2">2</div>
                     <h4 className="text-xs font-bold text-[#161616] mb-1">Cliquez sur le favori</h4>
-                    <p className="text-[10px] text-[#666666]">Cliquez sur le favori &quot;Importer dans Bail Connect&quot;.</p>
+                    <p className="text-[10px] text-[#666666]">Cliquez sur le favori &quot;Importer dans BailConnect&quot;.</p>
                   </div>
                   <div className="border border-[#EEEEEE] rounded-lg p-3 bg-white">
                     <div className="w-6 h-6 rounded-full bg-[#E3E3FD] text-[#000091] flex items-center justify-center font-bold text-xs mx-auto mb-2">3</div>
