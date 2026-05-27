@@ -29,6 +29,16 @@ export const createSlot = mutation({
       throw new ConvexError("Impossible de créer un créneau de visite dans le passé.");
     }
 
+    // Validate slot time parameters
+    if (args.startTime >= args.endTime) {
+      throw new ConvexError("La date de début doit être antérieure à la date de fin.");
+    }
+
+    // Validate capacity
+    if (!Number.isInteger(args.maxCapacity) || args.maxCapacity <= 0) {
+      throw new ConvexError("La capacité maximale doit être un nombre entier supérieur à 0.");
+    }
+
     // Check for overlapping slots
     const existingSlots = await ctx.db
       .query("slots")
@@ -456,6 +466,86 @@ export const cancelAppointment = mutation({
     });
 
     await ctx.db.delete(existingAppt._id);
+    return true;
+  },
+});
+
+/**
+ * Update an existing visit slot for a campaign.
+ */
+export const updateSlot = mutation({
+  args: {
+    slotId: v.id("slots"),
+    startTime: v.optional(v.number()),
+    endTime: v.optional(v.number()),
+    maxCapacity: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Unauthorized");
+    }
+
+    const slot = await ctx.db.get(args.slotId);
+    if (!slot) {
+      throw new Error("Slot not found");
+    }
+
+    const campaign = await ctx.db.get(slot.campaignId);
+    if (!campaign || campaign.userId !== userId) {
+      throw new Error("Unauthorized access to this campaign");
+    }
+
+    const newStartTime = args.startTime !== undefined ? args.startTime : slot.startTime;
+    const newEndTime = args.endTime !== undefined ? args.endTime : slot.endTime;
+    const newMaxCapacity = args.maxCapacity !== undefined ? args.maxCapacity : slot.maxCapacity;
+
+    // Prevent defining a slot in the past if startTime is modified
+    if (args.startTime !== undefined && args.startTime < Date.now()) {
+      throw new ConvexError("Impossible de définir un créneau de visite dans le passé.");
+    }
+
+    // Validate startTime < endTime
+    if (newStartTime >= newEndTime) {
+      throw new ConvexError("La date de début doit être antérieure à la date de fin.");
+    }
+
+    // Validate capacity is positive integer
+    if (!Number.isInteger(newMaxCapacity) || newMaxCapacity <= 0) {
+      throw new ConvexError("La capacité maximale doit être un nombre entier supérieur à 0.");
+    }
+
+    // Validate capacity is not below current bookedCount
+    if (newMaxCapacity < slot.bookedCount) {
+      throw new ConvexError("La nouvelle capacité est inférieure au nombre de réservations existantes.");
+    }
+
+    // If start time has changed, notify booked candidates
+    const startTimeChanged = args.startTime !== undefined && args.startTime !== slot.startTime;
+
+    // Update slot
+    await ctx.db.patch(args.slotId, {
+      startTime: newStartTime,
+      endTime: newEndTime,
+      maxCapacity: newMaxCapacity,
+    });
+
+    if (startTimeChanged) {
+      const appointments = await ctx.db
+        .query("appointments")
+        .withIndex("by_slotId", (q) => q.eq("slotId", args.slotId))
+        .collect();
+
+      for (const appt of appointments) {
+        await ctx.scheduler.runAfter(0, internal.emails.sendAppointmentRescheduleToCandidate, {
+          candidateId: appt.candidateId,
+          campaignTitle: campaign.title,
+          oldSlotStartTime: slot.startTime,
+          newSlotStartTime: newStartTime,
+        });
+      }
+    }
+
     return true;
   },
 });

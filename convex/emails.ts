@@ -274,6 +274,82 @@ export const sendAppointmentCancellationToCandidate = internalAction({
 });
 
 /**
+ * Send an email to a candidate notifying that their slot date/time has been changed by the landlord.
+ */
+export const sendAppointmentRescheduleToCandidate = internalAction({
+  args: {
+    candidateId: v.id("candidates"),
+    campaignTitle: v.string(),
+    oldSlotStartTime: v.number(),
+    newSlotStartTime: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const info = await ctx.runQuery(internal.emails.getCandidateInvitationInfo, {
+      candidateId: args.candidateId,
+    });
+    if (!info) return;
+
+    const oldDateStr = formatDateParis(args.oldSlotStartTime);
+    const oldTimeStr = formatTimeParis(args.oldSlotStartTime);
+    const newDateStr = formatDateParis(args.newSlotStartTime);
+    const newTimeStr = formatTimeParis(args.newSlotStartTime);
+
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const bookingUrl = `${siteUrl}/calendar/book?candidateId=${args.candidateId}&bookingToken=${info.bookingToken}`;
+
+    const subject = `📅 Visite déplacée – ${args.campaignTitle}`;
+    const htmlContent = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #DDDDDD; color: #161616;">
+        <div style="background-color: #000091; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; margin-bottom: 20px;">
+          BailConnect
+        </div>
+        <h2 style="font-size: 20px; margin-bottom: 15px; color: #161616;">Votre visite a été modifiée</h2>
+        <p style="font-size: 14px; line-height: 1.5; color: #3A3A3A;">
+          Bonjour ${info.candidateFirstName} ${info.candidateLastName},
+        </p>
+        <p style="font-size: 14px; line-height: 1.5; color: #3A3A3A;">
+          Le propriétaire de l'annonce <strong>${args.campaignTitle}</strong> a modifié l'horaire de votre visite.
+        </p>
+        <p style="font-size: 14px; line-height: 1.5; color: #3A3A3A;">
+          La visite initialement prévue le ${oldDateStr} à ${oldTimeStr} est maintenant programmée le :<br/>
+          <strong>${newDateStr} à ${newTimeStr}</strong>.
+        </p>
+        <p style="font-size: 14px; line-height: 1.5; color: #3A3A3A;">
+          Si cet horaire ne vous convient pas, vous pouvez modifier ou annuler votre rendez-vous en cliquant sur le lien ci-dessous.
+        </p>
+        <div style="margin: 30px 0; text-align: center;">
+          <a href="${bookingUrl}" 
+             style="display: inline-block; background-color: #000091; color: white; padding: 12px 24px; text-decoration: none; font-weight: bold; font-size: 14px; border-radius: 4px;">
+            Gérer mon rendez-vous
+          </a>
+        </div>
+        <p style="font-size: 13px; line-height: 1.5; color: #666666;">
+          Si le bouton ci-dessus ne fonctionne pas, copiez-collez ce lien dans votre navigateur :<br/>
+          <a href="${bookingUrl}" style="color: #000091; word-break: break-all;">${bookingUrl}</a>
+        </p>
+        <hr style="border: 0; border-top: 1px solid #DDDDDD; margin: 30px 0 15px 0;" />
+        <p style="font-size: 11px; color: #666666; text-align: center;">
+          Ceci est un e-mail automatique envoyé par BailConnect. Ne pas répondre.
+        </p>
+      </div>
+    `;
+
+    const emailResult = await sendEmail({
+      from: "BailConnect <noreply@bailconnect.fr>",
+      to: [info.candidateEmail],
+      subject,
+      html: htmlContent,
+    });
+
+    if (!emailResult.success) {
+      console.error("Failed to send slot reschedule email to candidate:", emailResult.error);
+    } else {
+      console.log("Slot reschedule email sent successfully to", info.candidateEmail);
+    }
+  },
+});
+
+/**
  * Send support request to contact@bailconnect.fr
  */
 export const sendSupportEmail = action({

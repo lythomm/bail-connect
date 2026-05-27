@@ -38,7 +38,7 @@ Ce document répertorie les cas d'utilisation manquants ou à améliorer dans le
   2. Valider que `monthlyIncome >= 0` (lever une `ConvexError` "Revenu invalide").
   3. Valider que l'email est dans un format valide (contient `@`).
 
-### 3. Validation des Paramètres de Créneau (Nouveau)
+### 3. [FAIT] Validation des Paramètres de Créneau (Nouveau)
 * **Objectif** : Empêcher la création de plages horaires de visite incohérentes ou abusives.
 * **Fonctions Convex à modifier** : `appointments.ts:createSlot` et `appointments.ts:updateSlot`
 * **Logique d'implémentation** :
