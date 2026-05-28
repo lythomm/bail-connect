@@ -10,8 +10,8 @@ export default function CalendarLayout({
 }) {
   const pathname = usePathname();
 
-  // Do not enforce email verification for public booking pages
-  if (pathname?.startsWith("/calendar/book")) {
+  // Do not enforce email verification for public booking and withdraw pages
+  if (pathname?.startsWith("/calendar/book") || pathname?.startsWith("/calendar/withdraw")) {
     return <>{children}</>;
   }
 

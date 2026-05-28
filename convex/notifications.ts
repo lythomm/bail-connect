@@ -429,3 +429,62 @@ export const sendPendingDigests = internalAction({
     }
   },
 });
+
+/**
+ * Send an immediate withdrawal notification email to the landlord.
+ */
+export const sendWithdrawalNotification = internalAction({
+  args: {
+    candidateFirstName: v.string(),
+    candidateLastName: v.string(),
+    campaignTitle: v.string(),
+    landlordUserId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const landlordEmail = await ctx.runQuery(internal.notifications.getUserEmail, {
+      userId: args.landlordUserId,
+    });
+    if (!landlordEmail) {
+      console.error("Landlord email not found for withdrawal notification");
+      return;
+    }
+
+    const subject = `⚠️ Désistement de candidat – ${args.campaignTitle}`;
+    const html = `
+      <div style="font-family: sans-serif; max-width: 620px; margin: 0 auto; padding: 20px; border: 1px solid #DDDDDD; color: #161616;">
+        <div style="background-color: #000091; color: white; padding: 15px 20px; font-weight: bold; font-size: 18px; margin-bottom: 24px;">
+          BailConnect
+        </div>
+        <h2 style="font-size: 20px; margin-bottom: 6px; color: #161616;">Retrait de candidature</h2>
+        <p style="font-size: 14px; color: #666666; margin-bottom: 20px;">Annonce : <strong>${args.campaignTitle}</strong></p>
+
+        <div style="background: #F6F6F6; border-left: 4px solid #D63031; padding: 16px; border-radius: 2px; margin-bottom: 24px;">
+          <p style="margin: 0; font-size: 14px; color: #161616;">
+            Le candidat <strong>${args.candidateFirstName} ${args.candidateLastName}</strong> a retiré sa candidature pour votre annonce.
+          </p>
+          <p style="margin: 8px 0 0 0; font-size: 12px; color: #666666;">
+            Son dossier et ses éventuels rendez-vous de visite ont été supprimés de la plateforme.
+          </p>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #DDDDDD; margin: 30px 0 15px 0;" />
+        <p style="font-size: 11px; color: #666666; text-align: center;">
+          Email automatique BailConnect. Ne pas répondre directement à cet email.
+        </p>
+      </div>
+    `;
+
+    const emailResult = await sendEmail({
+      from: "BailConnect <notifications@bailconnect.fr>",
+      to: [landlordEmail],
+      subject,
+      html,
+    });
+
+    if (emailResult.success) {
+      console.log(`Withdrawal notification sent to ${landlordEmail} for ${args.campaignTitle}`);
+    } else {
+      console.error("Withdrawal notification email failed:", emailResult.error);
+    }
+  },
+});

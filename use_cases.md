@@ -135,7 +135,7 @@ Ce document répertorie les cas d'utilisation manquants ou à améliorer dans le
 * **Points de vigilance** :
   * Ne pas modifier le `bookedCount` existant lors de la mise à jour de la capacité.
 
-### 2. Retrait de Candidature (Nouveau)
+### 2. [FAIT] Retrait de Candidature (Nouveau)
 * **Objectif** : Permettre à un candidat de retirer son dossier (par exemple, s'il a trouvé un autre logement). La modification des informations saisies reste interdite.
 * **Fonctions Convex à créer** : `candidates.ts:withdraw`
 * **Arguments** : `candidateId`, `bookingToken`.

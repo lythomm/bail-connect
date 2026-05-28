@@ -415,3 +415,57 @@ export const seedCandidates = mutation({
 });
 */
 
+/**
+ * Withdraw a candidate application.
+ */
+export const withdraw = mutation({
+  args: {
+    candidateId: v.id("candidates"),
+    bookingToken: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const candidate = await ctx.db.get(args.candidateId);
+    if (!candidate || candidate.bookingToken !== args.bookingToken) {
+      throw new ConvexError("Accès refusé : jeton de retrait invalide.");
+    }
+
+    const campaign = await ctx.db.get(candidate.campaignId);
+    if (!campaign) {
+      throw new ConvexError("Campagne introuvable.");
+    }
+
+    // Find any appointment for this candidate
+    const existingAppt = await ctx.db
+      .query("appointments")
+      .withIndex("by_candidateId", (q) => q.eq("candidateId", args.candidateId))
+      .unique();
+
+    if (existingAppt) {
+      const slot = await ctx.db.get(existingAppt.slotId);
+      if (slot) {
+        // Decrement bookedCount
+        await ctx.db.patch(slot._id, {
+          bookedCount: Math.max(0, slot.bookedCount - 1),
+        });
+      }
+      // Delete appointment
+      await ctx.db.delete(existingAppt._id);
+    }
+
+    // Send withdrawal email notification to landlord ONLY if candidate status was accepted
+    if (candidate.status === "accepted") {
+      await ctx.scheduler.runAfter(0, internal.notifications.sendWithdrawalNotification, {
+        candidateFirstName: candidate.firstName,
+        candidateLastName: candidate.lastName,
+        campaignTitle: campaign.title,
+        landlordUserId: campaign.userId,
+      });
+    }
+
+    // Delete candidate
+    await ctx.db.delete(args.candidateId);
+
+    return true;
+  },
+});
+
