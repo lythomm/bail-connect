@@ -68,23 +68,44 @@ test.describe('Auth - Mot de passe oublié', () => {
       await page.waitForTimeout(500);
     }
     expect(resetToken).not.toBeNull();
-    // 6. Saisie du nouveau mot de passe
+
+    // 6. Test des validations de formulaire (erreur de saisie)
     await forgotPasswordPage.gotoReset(resetToken!);
 
+    // Cas A : Mot de passe trop court
+    await forgotPasswordPage.newPasswordInput.fill('short');
+    await forgotPasswordPage.confirmPasswordInput.fill('short');
+    await forgotPasswordPage.resetSubmitButton.click();
+    await expect(page.locator('text=Le mot de passe doit contenir au moins 8 caractères.')).toBeVisible();
+
+    // Cas B : Mots de passe ne correspondent pas
+    await forgotPasswordPage.newPasswordInput.fill(testUser.newPassword);
+    await forgotPasswordPage.confirmPasswordInput.fill('DifferentPassword123!');
+    await forgotPasswordPage.resetSubmitButton.click();
+    await expect(page.locator('text=Les mots de passe ne correspondent pas.')).toBeVisible();
+
+    // Cas C : Saisie correcte et validation
     await forgotPasswordPage.newPasswordInput.fill(testUser.newPassword);
     await forgotPasswordPage.confirmPasswordInput.fill(testUser.newPassword);
     await forgotPasswordPage.resetSubmitButton.click();
 
-    // 6. La validation connecte l'utilisateur et le redirige directement sur le Dashboard
+    // 7. La validation connecte l'utilisateur et le redirige directement sur le Dashboard
     await page.waitForURL('**/dashboard');
     await expect(page.locator('text=Ravi de vous revoir')).toBeVisible();
 
-    // 7. Déconnexion et reconnexion avec le NOUVEAU mot de passe pour valider le changement
+    // 8. Déconnexion et reconnexion avec le NOUVEAU mot de passe pour valider le changement
     await dashboardPage.logout();
     await page.waitForURL('**/');
 
     await signInPage.login(testUser.email, testUser.newPassword);
     await page.waitForURL('**/dashboard');
     await expect(page.locator('text=Ravi de vous revoir')).toBeVisible();
+  });
+
+  test('Devrait afficher une erreur si le token de réinitialisation est invalide ou expiré', async ({ page }) => {
+    const forgotPasswordPage = new ForgotPasswordPage(page);
+    await forgotPasswordPage.gotoReset('invalid_token_123');
+    await expect(page.locator('text=Lien invalide ou expiré')).toBeVisible();
+    await expect(page.locator('text=Faire une nouvelle demande')).toBeVisible();
   });
 });
