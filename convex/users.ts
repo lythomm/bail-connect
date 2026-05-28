@@ -2,6 +2,7 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { query, internalMutation, mutation } from "./_generated/server";
 import { v, ConvexError } from "convex/values";
 import { internal } from "./_generated/api";
+import { sha256 } from "js-sha256";
 
 /**
  * Fetch the currently authenticated user's record.
@@ -234,3 +235,66 @@ export const checkPhoneUnique = query({
     };
   },
 });
+
+export const getEmailFromResetCode = query({
+  args: { code: v.string() },
+  handler: async (ctx, args) => {
+    // Nettoyer et valider le format de l'argument (rule 16)
+    if (!/^[a-zA-Z0-9-]+$/.test(args.code)) {
+      return null;
+    }
+
+    const codeHash = sha256(args.code);
+    const verificationCode = await ctx.db
+      .query("authVerificationCodes")
+      .withIndex("code", (q) => q.eq("code", codeHash))
+      .unique();
+
+    if (!verificationCode) {
+      return null;
+    }
+
+    if (verificationCode.expirationTime < Date.now()) {
+      return null;
+    }
+
+    const account = await ctx.db.get(verificationCode.accountId);
+    if (!account) {
+      return null;
+    }
+
+    return account.providerAccountId; // Retourne l'e-mail
+  },
+});
+
+export const saveResetTokenForTest = mutation({
+  args: { email: v.string(), token: v.string() },
+  handler: async (ctx, args) => {
+    const isDev = process.env.CONVEX_DEPLOY_ENVIRONMENT === "development" || !process.env.PROD;
+    if (!isDev) {
+      throw new Error("Action non autorisée en production");
+    }
+
+    const email = args.email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new Error("Format d'e-mail invalide.");
+    }
+    if (email.includes("/") || email.includes("?") || email.includes("%")) {
+      throw new Error("Caractères interdits détectés.");
+    }
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("email", (q) => q.eq("email", email))
+      .first();
+
+    if (user) {
+      await ctx.db.patch(user._id, {
+        passwordResetCode: args.token,
+      });
+    }
+  },
+});
+
+

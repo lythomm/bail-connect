@@ -30,3 +30,30 @@ export const getVerificationCode = query({
     return user?.emailVerificationCode ?? null;
   },
 });
+
+export const getPasswordResetCode = query({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    const isDev = process.env.CONVEX_DEPLOY_ENVIRONMENT === "development" || !process.env.PROD;
+    if (!isDev) {
+      throw new Error("Action non autorisée en production");
+    }
+
+    const email = args.email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new Error("Format d'e-mail invalide.");
+    }
+    if (email.includes("/") || email.includes("?") || email.includes("%")) {
+      throw new Error("Caractères interdits détectés.");
+    }
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("email", (q) => q.eq("email", email))
+      .first();
+
+    return user?.passwordResetCode ?? null;
+  },
+});
+

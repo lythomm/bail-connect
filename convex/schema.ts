@@ -24,6 +24,7 @@ export default defineSchema({
     digestHour: v.optional(v.number()), // 0-23, default 18
     emailVerificationCode: v.optional(v.string()),
     emailVerificationCodeExpires: v.optional(v.number()),
+    passwordResetCode: v.optional(v.string()),
     isOnboarded: v.optional(v.boolean()),
     isCalendarOnboarded: v.optional(v.boolean()),
     isCampaignOnboarded: v.optional(v.boolean()),
