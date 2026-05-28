@@ -17,6 +17,7 @@ import {
   Clock,
   Plus,
   Trash2,
+  Pencil,
   ExternalLink,
   CalendarRange,
   Check,
@@ -30,6 +31,7 @@ import Dialog from "@/components/Dialog";
 import DeleteSlotDialog from "@/components/DeleteSlotDialog";
 import CampaignOnboarding from "@/components/CampaignOnboarding";
 import AddSlotDialog from "@/components/AddSlotDialog";
+import EditSlotDialog from "@/components/EditSlotDialog";
 import {
   useReactTable,
   getCoreRowModel,
@@ -151,6 +153,8 @@ export default function CampaignDetail() {
   const [chosenCandidateId, setChosenCandidateId] = useState<string>("none");
 
   const [isAddSlotOpen, setIsAddSlotOpen] = useState(false);
+  const [isEditSlotOpen, setIsEditSlotOpen] = useState(false);
+  const [slotToEdit, setSlotToEdit] = useState<any | null>(null);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isNoSlotsWarningOpen, setIsNoSlotsWarningOpen] = useState(false);
   const [shareTab, setShareTab] = useState<"desc" | "msg">("desc");
@@ -1205,13 +1209,31 @@ export default function CampaignDetail() {
                                 )}
                               </div>
 
-                              <button
-                                onClick={() => setSlotToDelete(slot._id)}
-                                className="text-[#CE0500] hover:text-[#a60400] hover:bg-[#FFE9E9] p-2 rounded-lg transition-colors duration-150 self-start border border-transparent hover:border-[#FCE8E6] cursor-pointer"
-                                title="Supprimer ce créneau"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                              <div className="flex gap-2 self-start">
+                                <button
+                                  onClick={() => {
+                                    setSlotToEdit({
+                                      _id: slot._id,
+                                      startTime: slot.startTime,
+                                      endTime: slot.endTime,
+                                      maxCapacity: slot.maxCapacity,
+                                      bookedCount: slot.candidates?.length || 0,
+                                    });
+                                    setIsEditSlotOpen(true);
+                                  }}
+                                  className="text-[#000091] hover:text-[#0b0b7d] hover:bg-[#E3E3FD]/60 p-2 rounded-lg transition-colors duration-150 border border-transparent hover:border-[#E3E3FD] cursor-pointer"
+                                  title="Modifier ce créneau"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => setSlotToDelete(slot._id)}
+                                  className="text-[#CE0500] hover:text-[#a60400] hover:bg-[#FFE9E9] p-2 rounded-lg transition-colors duration-150 border border-transparent hover:border-[#FCE8E6] cursor-pointer"
+                                  title="Supprimer ce créneau"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
                             </div>
                           );
                         })}
@@ -1540,6 +1562,20 @@ export default function CampaignDetail() {
         campaignId={campaignId}
         campaigns={[]}
         onSuccess={() => setIsAddSlotOpen(false)}
+        setToast={setToast}
+      />
+
+      <EditSlotDialog
+        isOpen={isEditSlotOpen}
+        onClose={() => {
+          setIsEditSlotOpen(false);
+          setSlotToEdit(null);
+        }}
+        slot={slotToEdit}
+        onSuccess={() => {
+          setIsEditSlotOpen(false);
+          setSlotToEdit(null);
+        }}
         setToast={setToast}
       />
 

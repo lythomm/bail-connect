@@ -556,8 +556,10 @@ export const updateSlot = mutation({
       throw new ConvexError("La nouvelle capacité est inférieure au nombre de réservations existantes.");
     }
 
-    // If start time has changed, notify booked candidates
-    const startTimeChanged = args.startTime !== undefined && args.startTime !== slot.startTime;
+    // If start or end time has changed, notify booked candidates
+    const scheduleChanged =
+      (args.startTime !== undefined && args.startTime !== slot.startTime) ||
+      (args.endTime !== undefined && args.endTime !== slot.endTime);
 
     // Update slot
     await ctx.db.patch(args.slotId, {
@@ -566,7 +568,7 @@ export const updateSlot = mutation({
       maxCapacity: newMaxCapacity,
     });
 
-    if (startTimeChanged) {
+    if (scheduleChanged) {
       const appointments = await ctx.db
         .query("appointments")
         .withIndex("by_slotId", (q) => q.eq("slotId", args.slotId))

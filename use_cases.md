@@ -123,7 +123,7 @@ Ce document répertorie les cas d'utilisation manquants ou à améliorer dans le
 
 ## 🛠️ Priorité 4 : Expérience Utilisateur et Confort (Faible)
 
-### 1. Édition de Créneau de Visite (Nouveau)
+### 1. [FAIT] Édition de Créneau de Visite (Nouveau)
 * **Objectif** : Permettre de modifier la date/heure ou la capacité d'un créneau existant sans le supprimer pour préserver les réservations actives.
 * **Fonctions Convex à créer** : `appointments.ts:updateSlot`
 * **Arguments** : `slotId`, `startTime` (optionnel), `endTime` (optionnel), `maxCapacity` (optionnel).
