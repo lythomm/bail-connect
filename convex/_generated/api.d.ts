@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as ResendOTPPasswordReset from "../ResendOTPPasswordReset.js";
 import type * as appointments from "../appointments.js";
 import type * as auth from "../auth.js";
 import type * as campaigns from "../campaigns.js";
@@ -20,6 +21,7 @@ import type * as notifications from "../notifications.js";
 import type * as resend from "../resend.js";
 import type * as stripe from "../stripe.js";
 import type * as stripeMutations from "../stripeMutations.js";
+import type * as tests from "../tests.js";
 import type * as twilio from "../twilio.js";
 import type * as users from "../users.js";
 
@@ -30,6 +32,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  ResendOTPPasswordReset: typeof ResendOTPPasswordReset;
   appointments: typeof appointments;
   auth: typeof auth;
   campaigns: typeof campaigns;
@@ -42,6 +45,7 @@ declare const fullApi: ApiFromModules<{
   resend: typeof resend;
   stripe: typeof stripe;
   stripeMutations: typeof stripeMutations;
+  tests: typeof tests;
   twilio: typeof twilio;
   users: typeof users;
 }>;
