@@ -18,6 +18,7 @@ import {
   Plus,
   Trash2,
   Pencil,
+  FileText,
   ExternalLink,
   CalendarRange,
   Check,
@@ -43,6 +44,7 @@ import {
 } from "@tanstack/react-table";
 import Toast, { ToastType } from "@/components/Toast";
 import { toParisDateStr, formatDateParis, formatTimeParis } from "@/lib/dateUtils";
+import { formatError } from "@/lib/errors";
 
 function TrigramCell({
   trigram,
@@ -156,6 +158,38 @@ export default function CampaignDetail() {
   const [isEditSlotOpen, setIsEditSlotOpen] = useState(false);
   const [slotToEdit, setSlotToEdit] = useState<any | null>(null);
   const [isShareOpen, setIsShareOpen] = useState(false);
+
+  // Candidate Private Notes States
+  const [isNotesDialogOpen, setIsNotesDialogOpen] = useState(false);
+  const [candidateForNotes, setCandidateForNotes] = useState<{ _id: string; name: string; notes: string } | null>(null);
+  const [notesInput, setNotesInput] = useState("");
+  const [notesSaving, setNotesSaving] = useState(false);
+  const updateNotesMutation = useMutation(api.candidates.updateNotes);
+
+  useEffect(() => {
+    if (candidateForNotes) {
+      setNotesInput(candidateForNotes.notes || "");
+    }
+  }, [candidateForNotes]);
+
+  const handleSaveNotes = async () => {
+    if (!candidateForNotes) return;
+    setNotesSaving(true);
+    try {
+      await updateNotesMutation({
+        candidateId: candidateForNotes._id as any,
+        notes: notesInput,
+      });
+      setToast({ message: "Notes enregistrées avec succès !", type: "success" });
+      setIsNotesDialogOpen(false);
+      setCandidateForNotes(null);
+      setNotesInput("");
+    } catch (err: any) {
+      setToast({ message: formatError(err), type: "error" });
+    } finally {
+      setNotesSaving(false);
+    }
+  };
   const [isNoSlotsWarningOpen, setIsNoSlotsWarningOpen] = useState(false);
   const [shareTab, setShareTab] = useState<"desc" | "msg">("desc");
   const [slotToDelete, setSlotToDelete] = useState<string | null>(null);
@@ -717,6 +751,40 @@ export default function CampaignDetail() {
       enableSorting: false,
     },
     {
+      id: "notes",
+      header: "Notes",
+      cell: ({ row }) => {
+        const isLocked = !isPremium && !unlockedCandidateIds.has(row.original._id);
+        if (isLocked) {
+          return <span className="text-[#94A3B8] font-mono select-none">••</span>;
+        }
+        const candidateNotes = (row.original as any).notes || "";
+        return (
+          <div className="flex justify-center items-center">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setCandidateForNotes({
+                  _id: row.original._id,
+                  name: `${row.original.firstName} ${row.original.lastName}`,
+                  notes: candidateNotes,
+                });
+                setIsNotesDialogOpen(true);
+              }}
+              className={`p-1.5 rounded-md border transition-all duration-150 cursor-pointer ${candidateNotes
+                ? "bg-[#E3E3FD] border-[#000091]/20 text-[#000091] hover:bg-[#E3E3FD]"
+                : "bg-white border-[#E2E8F0] text-[#64748B] hover:border-[#94A3B8] hover:text-[#0F172A]"
+                }`}
+              title={candidateNotes ? `Note : ${candidateNotes}` : "Ajouter une note privée"}
+            >
+              <FileText className="w-4 h-4" />
+            </button>
+          </div>
+        );
+      },
+      enableSorting: false,
+    },
+    {
       accessorKey: "status",
       header: "État",
       cell: ({ row }) => {
@@ -1264,7 +1332,8 @@ export default function CampaignDetail() {
                             header.column.id === "select" ||
                             header.column.id === "hasGuarantor" ||
                             header.column.id === "dossierFacileUrl" ||
-                            header.column.id === "status"
+                            header.column.id === "status" ||
+                            header.column.id === "notes"
                           ) {
                             alignmentClass = "text-center";
                           }
@@ -1342,7 +1411,8 @@ export default function CampaignDetail() {
                               cell.column.id === "select" ||
                               cell.column.id === "hasGuarantor" ||
                               cell.column.id === "dossierFacileUrl" ||
-                              cell.column.id === "status"
+                              cell.column.id === "status" ||
+                              cell.column.id === "notes"
                             ) {
                               alignmentClass = "text-center";
                             }
@@ -1578,6 +1648,65 @@ export default function CampaignDetail() {
         }}
         setToast={setToast}
       />
+
+      <Dialog
+        isOpen={isNotesDialogOpen}
+        onClose={() => {
+          setIsNotesDialogOpen(false);
+          setCandidateForNotes(null);
+          setNotesInput("");
+        }}
+        title={`Notes privées — ${candidateForNotes?.name || ""}`}
+        size="md"
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-[#64748B] leading-relaxed">
+            Saisissez vos notes privées concernant ce candidat. Elles ne sont visibles que par vous.
+          </p>
+
+          <div className="space-y-1.5">
+            <textarea
+              value={notesInput}
+              onChange={(e) => setNotesInput(e.target.value)}
+              className="w-full text-sm border border-[#CCCCCC] rounded-md p-3 bg-white focus:outline-none focus:border-[#000091] transition-all min-h-[120px]"
+              placeholder="Ex: Bon profil, garant solide. Attente de la visite..."
+              maxLength={1024}
+            />
+            <div className="flex justify-between text-[10px] text-[#666666]">
+              <span>Les notes sont automatiquement enregistrées lors de la validation.</span>
+              <span>{notesInput.length} / 1024</span>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-[#F0F0F0] flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setIsNotesDialogOpen(false);
+                setCandidateForNotes(null);
+                setNotesInput("");
+              }}
+              className="btn-secondary text-xs px-4 py-2 cursor-pointer"
+              disabled={notesSaving}
+            >
+              Annuler
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveNotes}
+              disabled={notesSaving}
+              className="btn-primary text-xs px-4 py-2 cursor-pointer bg-[#000091] text-white hover:bg-[#0b0b7d] rounded font-bold flex items-center gap-1.5"
+            >
+              {notesSaving ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Check className="w-3.5 h-3.5" />
+              )}
+              <span>Enregistrer</span>
+            </button>
+          </div>
+        </div>
+      </Dialog>
 
       {/* Share Campaign Dialog */}
       <Dialog

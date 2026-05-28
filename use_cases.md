@@ -147,7 +147,7 @@ Ce document répertorie les cas d'utilisation manquants ou à améliorer dans le
 * **Interface Utilisateur (UI/UX)** :
   * Afficher un message de confirmation explicite (ex: boîte de dialogue de confirmation) avant de valider le retrait, avertissant le candidat que cette action est définitive et irréversible.
 
-### 3. Notes Privées sur les Candidats (Nouveau)
+### 3. [FAIT] Notes Privées sur les Candidats (Nouveau)
 * **Objectif** : Permettre au propriétaire d'ajouter et d'éditer des notes textuelles sur la fiche d'un candidat.
 * **Fonctions Convex à modifier/créer** : 
   * Schéma : Ajouter un champ `notes: v.optional(v.string())` dans la table `candidates`.

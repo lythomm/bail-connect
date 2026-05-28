@@ -469,3 +469,39 @@ export const withdraw = mutation({
   },
 });
 
+/**
+ * Update candidate notes by landlord.
+ */
+export const updateNotes = mutation({
+  args: {
+    candidateId: v.id("candidates"),
+    notes: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new ConvexError("Veuillez vous connecter pour effectuer cette action.");
+    }
+
+    const candidate = await ctx.db.get(args.candidateId);
+    if (!candidate) {
+      throw new ConvexError("Candidat introuvable.");
+    }
+
+    const campaign = await ctx.db.get(candidate.campaignId);
+    if (!campaign || campaign.userId !== userId) {
+      throw new ConvexError("Accès non autorisé aux informations de ce candidat.");
+    }
+
+    if (args.notes.length > 1024) {
+      throw new ConvexError("La note ne doit pas dépasser 1024 caractères.");
+    }
+
+    await ctx.db.patch(args.candidateId, {
+      notes: args.notes.trim(),
+    });
+
+    return true;
+  },
+});
+

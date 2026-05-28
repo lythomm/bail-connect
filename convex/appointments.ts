@@ -519,17 +519,17 @@ export const updateSlot = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
-      throw new Error("Unauthorized");
+      throw new ConvexError("Veuillez vous connecter pour effectuer cette action.");
     }
 
     const slot = await ctx.db.get(args.slotId);
     if (!slot) {
-      throw new Error("Slot not found");
+      throw new ConvexError("Créneau introuvable.");
     }
 
     const campaign = await ctx.db.get(slot.campaignId);
     if (!campaign || campaign.userId !== userId) {
-      throw new Error("Unauthorized access to this campaign");
+      throw new ConvexError("Accès non autorisé à ce créneau.");
     }
 
     const newStartTime = args.startTime !== undefined ? args.startTime : slot.startTime;
