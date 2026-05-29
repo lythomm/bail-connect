@@ -40,7 +40,7 @@ export default function ConfidentialitePage() {
               </h2>
               <p>
                 Le responsable du traitement des données collectées via BailConnect est :<br />
-                <span className="text-[#CE0500]">[Nom Prénom ou Dénomination sociale — Adresse — Email de contact]</span>
+                <strong>Thomas LY EI</strong>, demeurant au 6 rue louise weiss, 31200 Toulouse, email : <Link href="mailto:contact@bailconnect.fr" className="text-[#000091] underline">contact@bailconnect.fr</Link>.
               </p>
             </section>
 
@@ -128,8 +128,8 @@ export default function ConfidentialitePage() {
                     <tr className="bg-[#F9F9F9]">
                       <td className="border border-[#DDDDDD] px-3 py-2">Convex Inc.</td>
                       <td className="border border-[#DDDDDD] px-3 py-2">Base de données et fonctions serveur</td>
-                      <td className="border border-[#DDDDDD] px-3 py-2">USA</td>
-                      <td className="border border-[#DDDDDD] px-3 py-2">CCT UE — DPA disponible</td>
+                      <td className="border border-[#DDDDDD] px-3 py-2">Irlande (UE)</td>
+                      <td className="border border-[#DDDDDD] px-3 py-2">Données stockées dans l&apos;UE — DPA disponible</td>
                     </tr>
                     <tr>
                       <td className="border border-[#DDDDDD] px-3 py-2">DossierFacile (État)</td>
@@ -157,7 +157,7 @@ export default function ConfidentialitePage() {
                 <li><strong>Droit à la limitation</strong> — limiter temporairement le traitement</li>
               </ul>
               <p className="mt-4">
-                Pour exercer ces droits, contactez-nous à : <span className="text-[#CE0500]">[contact@bailconnect.fr]</span>
+                Pour exercer ces droits, contactez-nous à : <Link href="mailto:contact@bailconnect.fr" className="text-[#000091] underline">contact@bailconnect.fr</Link>
               </p>
               <p className="mt-2">
                 En cas de litige, vous pouvez saisir la <a href="https://www.cnil.fr" target="_blank" rel="noopener noreferrer" className="text-[#000091] underline">CNIL</a> (Commission Nationale de l&apos;Informatique et des Libertés).
@@ -168,8 +168,7 @@ export default function ConfidentialitePage() {
               <h2 className="text-lg font-bold text-[#161616] mb-3 pb-2 border-b border-[#DDDDDD]">
                 6. Cookies
               </h2>
-              <p>BailConnect utilise uniquement des cookies <strong>strictement nécessaires</strong> au fonctionnement du service (session d&apos;authentification). Aucun cookie analytique ou publicitaire n&apos;est déposé sans votre consentement.</p>
-              <p className="mt-3 text-[#CE0500]">[Si vous utilisez Vercel Analytics ou tout autre outil analytique, détaillez-le ici et ajoutez un bandeau de consentement]</p>
+              <p>BailConnect utilise uniquement des cookies <strong>strictement nécessaires</strong> au fonctionnement du service (session d&apos;authentification). Aucun cookie analytique ou publicitaire n&apos;est déposé.</p>
             </section>
 
             <section>

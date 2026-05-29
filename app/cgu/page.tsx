@@ -66,7 +66,7 @@ export default function CGUPage() {
                 L&apos;accès aux fonctionnalités principales de BailConnect nécessite la création d&apos;un compte Utilisateur (espace propriétaire). L&apos;Utilisateur s&apos;engage à fournir des informations exactes, complètes et à jour lors de son inscription.
               </p>
               <p className="mt-3">
-                L&apos;Utilisateur est seul responsable de la confidentialité de ses identifiants et de toutes les actions réalisées sous son compte. En cas d&apos;utilisation frauduleuse constatée, il s&apos;engage à en informer immédiatement l&apos;éditeur à l&apos;adresse : <span className="text-[#CE0500]">[contact@bailconnect.fr]</span>.
+                L&apos;Utilisateur est seul responsable de la confidentialité de ses identifiants et de toutes les actions réalisées sous son compte. En cas d&apos;utilisation frauduleuse constatée, il s&apos;engage à en informer immédiatement l&apos;éditeur à l&apos;adresse : <Link href="mailto:contact@bailconnect.fr" className="text-[#000091] underline">contact@bailconnect.fr</Link>.
               </p>
             </section>
 
@@ -128,9 +128,7 @@ export default function CGUPage() {
               </p>
             </section>
 
-            <div className="bg-[#FFF8E6] border border-[#FFD700] rounded-2xl p-4 text-xs text-[#3A3A3A]">
-              <strong>⚠️ Note pour le déploiement :</strong> Renseignez l&apos;adresse de contact <span className="text-[#CE0500]">[contact@bailconnect.fr]</span> ou vos informations réelles avant la mise en ligne.
-            </div>
+
 
           </div>
         </div>

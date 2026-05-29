@@ -39,7 +39,7 @@ export default function CGVPage() {
                 1. Parties et objet
               </h2>
               <p>
-                Les présentes CGV régissent les relations entre BailConnect (<span className="text-[#CE0500]">[Raison sociale — SIRET]</span>, ci-après &quot;le Prestataire&quot;) et toute personne physique ou morale procédant à l&apos;achat d&apos;un plan payant (ci-après &quot;le Client&quot;).
+                Les présentes CGV régissent les relations entre BailConnect (<strong>Thomas LY EI</strong>, SIRET : 10557895900014, ci-après &quot;le Prestataire&quot;) et toute personne physique ou morale procédant à l&apos;achat d&apos;un plan payant (ci-après &quot;le Client&quot;).
               </p>
               <p className="mt-3">
                 BailConnect est un service en ligne permettant aux bailleurs de collecter et gérer des candidatures locataires certifiées via DossierFacile.
@@ -83,7 +83,7 @@ export default function CGVPage() {
                 </table>
               </div>
               <p className="mt-3">
-                Les prix sont indiqués en euros TTC. <span className="text-[#CE0500]">[Préciser si soumis à TVA et à quel taux]</span>. Le Prestataire se réserve le droit de modifier ses tarifs à tout moment. Les modifications de tarif prennent effet pour les abonnements existants avec un préavis d&apos;un mois.
+                Les prix sont indiqués en euros TTC. <strong>TVA non applicable, article 293 B du CGI</strong>. Le Prestataire se réserve le droit de modifier ses tarifs à tout moment. Les modifications de tarif prennent effet pour les abonnements existants avec un préavis d&apos;un mois.
               </p>
             </section>
 
@@ -92,7 +92,7 @@ export default function CGVPage() {
                 3. Modalités de paiement
               </h2>
               <p>
-                Le paiement s&apos;effectue en ligne par carte bancaire via <span className="text-[#CE0500]">[Stripe / Mollie / etc. — à préciser]</span>, opérateur de paiement sécurisé. Les données bancaires ne transitent pas par les serveurs de BailConnect.
+                Le paiement s&apos;effectue en ligne par carte bancaire via <strong>Stripe</strong>, opérateur de paiement sécurisé. Les données bancaires ne transitent pas par les serveurs de BailConnect.
               </p>
               <p className="mt-3">
                 Pour l&apos;Abonnement Pro, le paiement est prélevé automatiquement chaque mois à la date anniversaire de la souscription.
@@ -113,7 +113,7 @@ export default function CGVPage() {
                 <strong>Exception :</strong> Si vous demandez expressément que le service commence avant l&apos;expiration du délai de rétractation (en cochant la case lors de la souscription), vous reconnaissez perdre votre droit de rétractation dès que le service a été pleinement exécuté.
               </p>
               <p className="mt-3">
-                Pour exercer votre droit de rétractation : <span className="text-[#CE0500]">[contact@bailconnect.fr]</span> avec l&apos;objet &quot;Rétractation&quot; et votre numéro de commande.
+                Pour exercer votre droit de rétractation : contactez-nous par email à <Link href="mailto:contact@bailconnect.fr" className="text-[#000091] underline">contact@bailconnect.fr</Link> avec l&apos;objet &quot;Rétractation&quot; et votre numéro de commande.
               </p>
             </section>
 
@@ -122,7 +122,7 @@ export default function CGVPage() {
                 5. Résiliation de l&apos;Abonnement Pro
               </h2>
               <p>
-                Le Client peut résilier son Abonnement Pro à tout moment, sans frais, depuis son espace personnel ou par email à <span className="text-[#CE0500]">[contact@bailconnect.fr]</span>. La résiliation prend effet à la fin de la période mensuelle en cours déjà facturée.
+                Le Client peut résilier son Abonnement Pro à tout moment, sans frais, depuis son espace personnel ou par email à <Link href="mailto:contact@bailconnect.fr" className="text-[#000091] underline">contact@bailconnect.fr</Link>. La résiliation prend effet à la fin de la période mensuelle en cours déjà facturée.
               </p>
               <p className="mt-3">Aucun remboursement au prorata ne sera effectué pour la période restante après résiliation.</p>
             </section>
@@ -132,7 +132,7 @@ export default function CGVPage() {
                 6. Disponibilité du service
               </h2>
               <p>
-                BailConnect s&apos;engage à maintenir une disponibilité du service de <span className="text-[#CE0500]">[99% — à adapter selon votre SLA réel]</span>, hors maintenances planifiées notifiées à l&apos;avance. BailConnect ne peut garantir la disponibilité permanente de l&apos;API DossierFacile, qui dépend du Ministère du Logement.
+                BailConnect s&apos;engage à maintenir une disponibilité du service de <strong>99%</strong>, hors maintenances planifiées notifiées à l&apos;avance. BailConnect ne peut garantir la disponibilité permanente de l&apos;API DossierFacile, qui dépend du Ministère du Logement.
               </p>
             </section>
 
@@ -156,13 +156,11 @@ export default function CGVPage() {
                 Les présentes CGV sont soumises au droit français. En cas de litige, une solution amiable sera recherchée en priorité. À défaut, les tribunaux compétents du ressort du siège social du Prestataire seront saisis.
               </p>
               <p className="mt-3">
-                Conformément au Code de la consommation, vous pouvez avoir recours à la médiation de la consommation. <span className="text-[#CE0500]">[Indiquer le nom du médiateur agréé retenu]</span>.
+                Conformément au Code de la consommation, vous pouvez avoir recours à la médiation de la consommation en contactant un médiateur de la consommation agréé (tel que CM2C, 49 Rue de Ponthieu, 75008 Paris - https://www.cm2c.net).
               </p>
             </section>
 
-            <div className="bg-[#FFF8E6] border border-[#FFD700] rounded-2xl p-4 text-xs text-[#3A3A3A]">
-              <strong>⚠️ Note pour le déploiement :</strong> Les champs en rouge <span className="text-[#CE0500]">[À COMPLÉTER]</span> doivent être renseignés avant la mise en ligne. En particulier : l&apos;opérateur de paiement, le médiateur de la consommation, et les informations sur la TVA. Ces CGV engagent votre responsabilité commerciale — faites-les relire par un professionnel.
-            </div>
+
 
           </div>
         </div>

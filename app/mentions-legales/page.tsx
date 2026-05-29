@@ -41,14 +41,14 @@ export default function MentionsLegalesPage() {
               </h2>
               <p>Le site <strong>bailconnect.fr</strong> est édité par :</p>
               <ul className="mt-3 space-y-1 pl-4 list-none">
-                <li><strong>Nom / Raison sociale :</strong> <span className="text-[#CE0500]">[À COMPLÉTER — Nom Prénom ou Dénomination sociale]</span></li>
-                <li><strong>Forme juridique :</strong> <span className="text-[#CE0500]">[Auto-entrepreneur / SASU / SAS / etc.]</span></li>
-                <li><strong>Adresse :</strong> <span className="text-[#CE0500]">[Adresse complète]</span></li>
-                <li><strong>SIRET :</strong> <span className="text-[#CE0500]">[Numéro SIRET]</span></li>
-                <li><strong>Capital social :</strong> <span className="text-[#CE0500]">[Si applicable]</span></li>
-                <li><strong>TVA intracommunautaire :</strong> <span className="text-[#CE0500]">[Si assujetti]</span></li>
-                <li><strong>Email de contact :</strong> <span className="text-[#CE0500]">[contact@bailconnect.fr]</span></li>
-                <li><strong>Directeur de la publication :</strong> <span className="text-[#CE0500]">[Nom Prénom]</span></li>
+                <li><strong>Nom / Raison sociale :</strong> <span>Thomas LY EI.</span></li>
+                <li><strong>Forme juridique :</strong> <span>Auto-entrepreneur</span></li>
+                <li><strong>Adresse :</strong> <span>6 rue louise weiss, 31200 Toulouse</span></li>
+                <li><strong>SIRET :</strong> <span>10557895900014</span></li>
+                <li><strong>Capital social :</strong> <span>Non applicable</span></li>
+                <li><strong>TVA intracommunautaire :</strong> <span>TVA non applicable, article 293 B du CGI</span></li>
+                <li><strong>Email de contact :</strong> <span>contact@bailconnect.fr</span></li>
+                <li><strong>Directeur de la publication :</strong> <span>Thomas LY</span></li>
               </ul>
             </section>
 
@@ -104,7 +104,7 @@ export default function MentionsLegalesPage() {
                 </Link>.
               </p>
               <p className="mt-3">
-                Conformément au RGPD et à la loi Informatique et Libertés, vous disposez d&apos;un droit d&apos;accès, de rectification et de suppression de vos données. Pour exercer ces droits : <span className="text-[#CE0500]">[contact@bailconnect.fr]</span>.
+                Conformément au RGPD et à la loi Informatique et Libertés, vous disposez d&apos;un droit d&apos;accès, de rectification et de suppression de vos données. Pour exercer ces droits : <Link href="mailto:[EMAIL_ADDRESS]">contact@bailconnect.fr</Link>.
               </p>
             </section>
 
@@ -116,11 +116,6 @@ export default function MentionsLegalesPage() {
                 Les présentes mentions légales sont soumises au droit français. En cas de litige, les tribunaux français seront seuls compétents.
               </p>
             </section>
-
-            <div className="bg-[#FFF8E6] border border-[#FFD700] rounded-2xl p-4 text-xs text-[#3A3A3A]">
-              <strong>⚠️ Note pour le déploiement :</strong> Les champs en rouge <span className="text-[#CE0500]">[À COMPLÉTER]</span> doivent être renseignés avec vos informations réelles avant la mise en ligne. Ces informations sont obligatoires et peuvent être exigées par les autorités.
-            </div>
-
           </div>
         </div>
       </main>
