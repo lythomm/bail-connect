@@ -143,6 +143,12 @@ export default function Navbar() {
             Tarifs
           </Link>
           <Link
+            href="/guides"
+            className={`text-sm font-medium px-4 py-2 transition-colors ${pathname === "/guides" ? "text-[#000091] underline underline-offset-8" : "text-[#3A3A3A] hover:text-[#000091]"}`}
+          >
+            Guides & Conseils
+          </Link>
+          <Link
             href="/#faq"
             onClick={(e) => handleScroll(e, "faq")}
             className="text-sm font-medium text-[#3A3A3A] hover:text-[#000091] px-4 py-2 transition-colors"
@@ -323,6 +329,17 @@ export default function Navbar() {
             }`}
           >
             Tarifs
+          </Link>
+          <Link
+            href="/guides"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`text-lg font-bold text-[#161616] hover:text-[#000091] py-1 transition-all duration-500 ${
+              isMobileMenuOpen
+                ? "opacity-100 translate-x-0 delay-[250ms]"
+                : "opacity-0 -translate-x-4"
+            }`}
+          >
+            Guides & Conseils
           </Link>
           <Link
             href="/#faq"

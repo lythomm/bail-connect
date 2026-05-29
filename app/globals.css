@@ -415,4 +415,106 @@ input[type="number"] {
   appearance: textfield !important;
 }
 
+/* -------------------------------------------------------------
+   Guide/Blog Content Typography Styles
+   ------------------------------------------------------------- */
+.guide-content {
+  font-family: var(--font-sans);
+  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.guide-content p {
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+}
+
+.guide-content h1,
+.guide-content h2,
+.guide-content h3,
+.guide-content h4 {
+  color: var(--text-primary);
+  font-weight: 700;
+  line-height: 1.25;
+  margin-top: 1.6em;
+  margin-bottom: 0.6em;
+}
+
+.guide-content h1 {
+  font-size: 2.25em;
+}
+
+.guide-content h2 {
+  font-size: 1.5em;
+  border-bottom: 1px solid var(--border-inset);
+  padding-bottom: 0.3em;
+}
+
+.guide-content h3 {
+  font-size: 1.25em;
+}
+
+.guide-content h4 {
+  font-size: 1.1em;
+}
+
+.guide-content blockquote {
+  font-style: italic;
+  color: var(--text-primary);
+  border-left: 4px solid var(--republic-blue);
+  padding-left: 1.25em;
+  margin-top: 1.6em;
+  margin-bottom: 1.6em;
+  background-color: var(--surface-light);
+  padding-top: 0.75em;
+  padding-bottom: 0.75em;
+}
+
+.guide-content blockquote p {
+  margin: 0;
+}
+
+.guide-content ul,
+.guide-content ol {
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+  padding-left: 1.625em;
+}
+
+.guide-content ul {
+  list-style-type: disc;
+}
+
+.guide-content ol {
+  list-style-type: decimal;
+}
+
+.guide-content li {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.guide-content hr {
+  border-color: var(--border-inset);
+  margin-top: 3em;
+  margin-bottom: 3em;
+}
+
+.guide-content strong {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.guide-content a {
+  color: var(--republic-blue);
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.guide-content a:hover {
+  color: var(--republic-blue-hover);
+}
+
+
 

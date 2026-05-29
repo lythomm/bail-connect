@@ -791,6 +791,65 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Guides & Resources Section */}
+        <section className="bg-white border-b border-[#DDDDDD] py-20 px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12 reveal">
+              <span className="gov-badge mb-3">Ressources & SEO</span>
+              <h2 className="text-3xl font-extrabold text-[#161616] mb-4">
+                Nos guides pour vous accompagner dans votre gestion locative
+              </h2>
+              <p className="text-base text-[#3A3A3A] max-w-2xl mx-auto">
+                Retrouvez nos conseils d'experts pour louer rapidement, sécuriser votre dossier et utiliser les bons outils.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Guide 1 */}
+              <div className="bg-[#F6F6F6] p-6 border border-[#DDDDDD] rounded-2xl flex flex-col justify-between hover:border-[#CBCBFC] transition-colors duration-300 reveal reveal-delay-100">
+                <div>
+                  <span className="text-xs font-bold text-[#000091] bg-[#E3E3FD] px-2.5 py-1 rounded-full">Recherche Locataire</span>
+                  <h3 className="text-lg font-bold text-[#161616] mt-4 mb-2">Comment trouver un locataire rapidement et sans stress</h3>
+                  <p className="text-xs text-[#3A3A3A] leading-relaxed mb-6">
+                    Découvrez les étapes essentielles pour trouver un locataire fiable, de la rédaction de l'annonce aux visites.
+                  </p>
+                </div>
+                <Link href="/guides/comment-trouver-un-locataire" className="text-xs font-bold text-[#000091] hover:underline flex items-center gap-1">
+                  Lire le guide ↗
+                </Link>
+              </div>
+
+              {/* Guide 2 */}
+              <div className="bg-[#F6F6F6] p-6 border border-[#DDDDDD] rounded-2xl flex flex-col justify-between hover:border-[#CBCBFC] transition-colors duration-300 reveal reveal-delay-200">
+                <div>
+                  <span className="text-xs font-bold text-[#000091] bg-[#E3E3FD] px-2.5 py-1 rounded-full">Gestion Locative</span>
+                  <h3 className="text-lg font-bold text-[#161616] mt-4 mb-2">Logiciel de gestion locative gratuit : comment choisir ?</h3>
+                  <p className="text-xs text-[#3A3A3A] leading-relaxed mb-6">
+                    Notre comparatif et conseils pour choisir le meilleur outil gratuit pour gérer seul vos biens immobiliers.
+                  </p>
+                </div>
+                <Link href="/guides/logiciel-gestion-locative-gratuit" className="text-xs font-bold text-[#000091] hover:underline flex items-center gap-1">
+                  Lire le guide ↗
+                </Link>
+              </div>
+
+              {/* CTA to all Guides */}
+              <div className="bg-[#F5F5FE] p-6 border border-[#E3E3FD] rounded-2xl flex flex-col justify-between hover:border-[#CBCBFC] transition-colors duration-300 reveal reveal-delay-300">
+                <div>
+                  <span className="text-xs font-bold text-[#000091] bg-[#E3E3FD] px-2.5 py-1 rounded-full">Plus d'articles</span>
+                  <h3 className="text-lg font-bold text-[#161616] mt-4 mb-2">Tous nos guides & conseils pratiques</h3>
+                  <p className="text-xs text-[#3A3A3A] leading-relaxed mb-6">
+                    Retrouvez l'intégralité de nos ressources gratuites rédigées par des experts pour faciliter votre quotidien de bailleur.
+                  </p>
+                </div>
+                <Link href="/guides" className="text-xs font-bold text-[#000091] hover:underline flex items-center gap-1">
+                  Découvrir tous les guides →
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Final Call to Action */}
         <section className="bg-[#000091] text-white py-16 px-6 text-center reveal">
           <div className="max-w-4xl mx-auto">
@@ -823,6 +882,7 @@ export default function Home() {
               <a href="#dossier-facile" className="hover:underline">DossierFacile</a>
               <a href="#tarifs" className="hover:underline">Tarifs</a>
               <a href="#faq" className="hover:underline">FAQ</a>
+              <Link href="/guides" className="hover:underline">Guides & Conseils</Link>
               <Link href="/dashboard" className="hover:underline font-semibold text-[#000091]">Espace Propriétaire</Link>
             </div>
           </div>
