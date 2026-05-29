@@ -77,7 +77,6 @@ export const getLandlordBookingInfo = internalQuery({
     const campaign = await ctx.db.get(candidate.campaignId);
     return {
       landlordEmail: landlord.email ?? null,
-      candidateTrigram: candidate.nameTrigram,
       candidateFirstName: candidate.firstName,
       candidateLastName: candidate.lastName,
       campaignTitle: campaign?.title ?? "Annonce inconnue",
@@ -235,8 +234,8 @@ export const sendBookingNotification = internalAction({
         <div style="background: #F5F5FE; border-left: 4px solid #000091; padding: 16px; border-radius: 2px; margin-bottom: 24px;">
           <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
             <tr>
-              <td style="padding: 6px 0; font-weight: bold; color: #666666;">Trigramme :</td>
-              <td style="padding: 6px 0; font-weight: bold; color: #000091; font-family: monospace;">${info.candidateTrigram}</td>
+              <td style="padding: 6px 0; font-weight: bold; color: #666666;">Candidat :</td>
+              <td style="padding: 6px 0; color: #161616; font-weight: bold;">${info.candidateFirstName} ${info.candidateLastName}</td>
             </tr>
             <tr>
               <td style="padding: 6px 0; font-weight: bold; color: #666666;">Date de visite :</td>

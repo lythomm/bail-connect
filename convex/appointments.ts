@@ -2,6 +2,7 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { mutation, query } from "./_generated/server";
 import { v, ConvexError } from "convex/values";
 import { internal } from "./_generated/api";
+import { maskCandidate } from "./candidates";
 
 /**
  * Create a new visit slot for a campaign.
@@ -143,7 +144,7 @@ export const getCampaignSlots = query({
         if (candidate) {
           candidates.push({
             appointmentId: appt._id,
-            ...candidate,
+            ...maskCandidate(candidate),
           });
         }
       }
@@ -391,7 +392,7 @@ export const getAllUpcomingAppointments = query({
             slotId: slot._id,
             startTime: slot.startTime,
             endTime: slot.endTime,
-            candidate,
+            candidate: maskCandidate(candidate),
             campaign,
           });
         }
@@ -437,7 +438,7 @@ export const getAllCampaignSlots = query({
           if (candidate) {
             candidates.push({
               appointmentId: appt._id,
-              ...candidate,
+              ...maskCandidate(candidate),
             });
           }
         }

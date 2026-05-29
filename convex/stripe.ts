@@ -5,8 +5,16 @@ import { api, internal } from "./_generated/api";
 import Stripe from "stripe";
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
-const PASS_PRICE_ID = "price_1Tb2H6LgWBAz3vS7VLna4vSJ";
-const PRO_PRICE_ID = "price_1Tb2H9LgWBAz3vS7w7HUcYNV";
+const isProd = STRIPE_SECRET_KEY?.startsWith("sk_live_");
+
+const PASS_PRICE_ID = isProd
+  ? "price_1TcCeOQK5uBrBgDG3EMN2aR3"
+  : "price_1Tb2H6LgWBAz3vS7VLna4vSJ";
+
+const PRO_PRICE_ID = isProd
+  ? "price_1TcCeNQK5uBrBgDGx6otzd7n"
+  : "price_1Tb2H9LgWBAz3vS7w7HUcYNV";
+
 const ONE_TIME_COUPONS = ["TluNqzID"];
 
 export const createCheckoutSession = action({

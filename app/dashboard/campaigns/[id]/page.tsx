@@ -26,7 +26,8 @@ import {
   MapPin,
   Share2,
   AlertCircle,
-  Sparkles
+  Sparkles,
+  Mail
 } from "lucide-react";
 import Dialog from "@/components/Dialog";
 import DeleteSlotDialog from "@/components/DeleteSlotDialog";
@@ -46,40 +47,6 @@ import Toast, { ToastType } from "@/components/Toast";
 import { toParisDateStr, formatDateParis, formatTimeParis } from "@/lib/dateUtils";
 import { formatError } from "@/lib/errors";
 
-function TrigramCell({
-  trigram,
-  onCopy,
-}: {
-  trigram: string;
-  onCopy: (message: string, type: ToastType) => void;
-}) {
-  const handleCopy = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      await navigator.clipboard.writeText(trigram);
-      onCopy(`Trigramme "${trigram}" copié.`, "success");
-    } catch (err) {
-      console.error("Failed to copy", err);
-      onCopy("Une erreur est survenue lors de la copie.", "error");
-    }
-  };
-
-  return (
-    <div className="justify-center flex">
-      <button
-        onClick={handleCopy}
-        title="Copier le trigramme"
-        className="font-mono font-bold text-[#000091] hover:text-[#0b0b7d] hover:bg-[#F5F5FE] px-2.5 py-1 rounded-md border border-[#E3E3FD] bg-[#F5F5FE]/40 cursor-pointer focus:outline-none flex items-center gap-1.5 group transition-all duration-150"
-      >
-        <span>{trigram}</span>
-        <svg className="w-3.5 h-3.5 text-[#000091] opacity-70 group-hover:opacity-100 transition-opacity flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <rect x="9" y="9" width="13" height="13" rx="1.5" ry="1.5" />
-          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-        </svg>
-      </button>
-    </div>
-  );
-}
 
 const JOB_STATUS_OPTIONS = [
   { value: "CDI", label: "CDI" },
@@ -158,6 +125,8 @@ export default function CampaignDetail() {
   const [isEditSlotOpen, setIsEditSlotOpen] = useState(false);
   const [slotToEdit, setSlotToEdit] = useState<any | null>(null);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [targetStatus, setTargetStatus] = useState<"accepted" | "rejected" | null>(null);
 
   // Candidate Private Notes States
   const [isNotesDialogOpen, setIsNotesDialogOpen] = useState(false);
@@ -427,6 +396,11 @@ export default function CampaignDetail() {
       setBulkActionLoading(false);
     }
   }, [selectedIds, updateStatuses]);
+
+  const triggerBulkStatusChange = useCallback((status: "accepted" | "rejected") => {
+    setTargetStatus(status);
+    setConfirmDialogOpen(true);
+  }, []);
 
   const handleCopyApplyUrl = useCallback(async () => {
     if (typeof window === "undefined" || !campaign?.slug) return;
@@ -729,23 +703,6 @@ export default function CampaignDetail() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
           </a>
-        );
-      },
-      enableSorting: false,
-    },
-    {
-      accessorKey: "nameTrigram",
-      header: "Trigramme",
-      cell: ({ row }) => {
-        const isLocked = !isPremium && !unlockedCandidateIds.has(row.original._id);
-        if (isLocked) {
-          return <span className="text-[#94A3B8] font-mono select-none">•••</span>;
-        }
-        return (
-          <TrigramCell
-            trigram={row.original.nameTrigram}
-            onCopy={(message, type) => setToast({ message, type })}
-          />
         );
       },
       enableSorting: false,
@@ -1441,7 +1398,7 @@ export default function CampaignDetail() {
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => handleBulkStatusChange("accepted")}
+              onClick={() => triggerBulkStatusChange("accepted")}
               disabled={bulkActionLoading}
               className="bg-[#18753C] text-white text-xs font-bold py-2 px-4 rounded-lg hover:bg-[#135c2f] disabled:opacity-50 cursor-pointer transition-all duration-150 flex items-center gap-1.5 shadow-sm"
             >
@@ -1449,7 +1406,7 @@ export default function CampaignDetail() {
               <span>Accepter</span>
             </button>
             <button
-              onClick={() => handleBulkStatusChange("rejected")}
+              onClick={() => triggerBulkStatusChange("rejected")}
               disabled={bulkActionLoading}
               className="bg-[#CE0500] text-white text-xs font-bold py-2 px-4 rounded-lg hover:bg-[#a60400] disabled:opacity-50 cursor-pointer transition-all duration-150 flex items-center gap-1.5 shadow-sm"
             >
@@ -1553,6 +1510,76 @@ export default function CampaignDetail() {
           </div>
         </div>
       )}
+      {/* Bulk Status Confirmation Dialog */}
+      <Dialog
+        isOpen={confirmDialogOpen}
+        onClose={() => {
+          if (!bulkActionLoading) {
+            setConfirmDialogOpen(false);
+            setTargetStatus(null);
+          }
+        }}
+        title={targetStatus === "accepted" ? "Accepter les candidatures ?" : "Refuser les candidatures ?"}
+        size="md"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-[#475569] leading-relaxed">
+            Vous êtes sur le point de {targetStatus === "accepted" ? "d'accepter" : "de refuser"} les{" "}
+            <strong>{selectedIds.size}</strong> candidature(s) sélectionnée(s).
+          </p>
+
+          <div className="bg-[#F5F5FE] border border-[#CBCBFC] p-4 rounded-xl flex items-start gap-3">
+            <div className="bg-white p-2 rounded-lg border border-[#CBCBFC] shadow-sm flex-shrink-0">
+              <Mail className="w-5 h-5 text-[#000091]" />
+            </div>
+            <div>
+              <h4 className="text-xs font-bold text-[#161616]">
+                Envoi d'e-mail automatique
+              </h4>
+              <p className="text-[10px] text-[#666666] mt-0.5 leading-relaxed">
+                Un e-mail de notification sera envoyé automatiquement à chaque candidat pour l'informer de votre décision.
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-[#F0F0F0] flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setConfirmDialogOpen(false);
+                setTargetStatus(null);
+              }}
+              className="btn-secondary text-xs px-4 py-2 cursor-pointer"
+              disabled={bulkActionLoading}
+            >
+              Annuler
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                if (targetStatus) {
+                  await handleBulkStatusChange(targetStatus);
+                  setConfirmDialogOpen(false);
+                  setTargetStatus(null);
+                }
+              }}
+              disabled={bulkActionLoading}
+              className={`btn-primary text-xs px-4 py-2 cursor-pointer text-white rounded font-bold flex items-center gap-1.5 ${
+                targetStatus === "accepted"
+                  ? "!bg-[#18753C] hover:!bg-[#135c2f] border-[#B9DFC5]"
+                  : "!bg-[#CE0500] hover:!bg-[#a60400] border-[#F8C0BC]"
+              }`}
+            >
+              {bulkActionLoading ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <span>Confirmer</span>
+              )}
+            </button>
+          </div>
+        </div>
+      </Dialog>
+
       {/* Archive Campaign Confirmation Dialog */}
       <Dialog
         isOpen={isArchiveConfirmOpen}
@@ -1580,7 +1607,7 @@ export default function CampaignDetail() {
               </option>
               {candidates?.map((c) => (
                 <option key={c._id} value={c._id}>
-                  {c.firstName} {c.lastName} ({c.nameTrigram})
+                  {c.firstName} {c.lastName}
                 </option>
               ))}
             </select>

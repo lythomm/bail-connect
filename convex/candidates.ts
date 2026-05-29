@@ -7,6 +7,18 @@ import { internal } from "./_generated/api";
 // Regex to validate DossierFacile public sharing URLs (accepts locataire.dossierfacile.logement.gouv.fr or locataire.dossierfacile.fr)
 const DOSSIER_FACILE_REGEX = /^https:\/\/[a-z0-9.-]*dossierfacile\.(logement\.gouv\.fr|fr)\/(file|pf)\/[a-zA-Z0-9-]+$/i;
 
+export function maskCandidate(candidate: any) {
+  if (candidate.status !== "accepted") {
+    return {
+      ...candidate,
+      lastName: candidate.lastName ? `${candidate.lastName.trim().charAt(0)}.` : "",
+      email: "Masqué (en attente)",
+      phone: "Masqué (en attente)",
+    };
+  }
+  return candidate;
+}
+
 /**
  * Fetch all candidates linked to a specific campaign.
  */
@@ -28,11 +40,13 @@ export const getByCampaign = query({
     }
 
     // Return candidates sorted by creation date (newest first)
-    return await ctx.db
+    const candidates = await ctx.db
       .query("candidates")
       .withIndex("by_campaignId", (q) => q.eq("campaignId", args.campaignId))
       .order("desc")
       .collect();
+
+    return candidates.map(maskCandidate);
   },
 });
 
@@ -52,7 +66,6 @@ export const create = mutation({
     jobStatus: v.string(),
     hasGuarantor: v.boolean(),
     dossierFacileUrl: v.string(),
-    nameTrigram: v.string(),
   },
   handler: async (ctx, args) => {
     // 1. Strict DossierFacile URL Validation
@@ -115,18 +128,20 @@ export const create = mutation({
       jobStatus: args.jobStatus.trim() as any,
       hasGuarantor: args.hasGuarantor,
       dossierFacileUrl: cleanUrl,
-      nameTrigram: args.nameTrigram.trim().toUpperCase(),
       bookingToken: token,
       createdAt: Date.now(),
     });
 
     // 3. Enqueue digest notification for landlord
+    const maskedLastName = args.lastName.trim() ? `${args.lastName.trim().charAt(0)}.` : "";
+    const maskedName = `${args.firstName.trim()} ${maskedLastName}`;
+
     await ctx.db.insert("notificationQueue", {
       userId: campaign.userId,
       campaignId: args.campaignId,
       type: "candidate",
       payload: {
-        trigram: args.nameTrigram.trim().toUpperCase(),
+        maskedName,
         jobStatus: args.jobStatus.trim(),
         monthlyIncome: args.monthlyIncome,
         hasGuarantor: args.hasGuarantor,
@@ -258,7 +273,7 @@ export const getLandlordInfo = internalQuery({
 export const sendNotificationEmail = internalAction({
   args: {
     campaignId: v.id("campaigns"),
-    candidateTrigram: v.string(),
+    candidateName: v.string(),
     candidateJobStatus: v.string(),
     candidateMonthlyIncome: v.number(),
     candidateHasGuarantor: v.boolean(),
@@ -297,8 +312,8 @@ export const sendNotificationEmail = internalAction({
         <div style="background-color: #F6F6F6; padding: 15px; margin: 20px 0; border-left: 4px solid #000091;">
           <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
             <tr>
-              <td style="padding: 6px 0; font-weight: bold; color: #666666;">Trigramme anonyme :</td>
-              <td style="padding: 6px 0; font-weight: bold; color: #000091; font-family: monospace;">${args.candidateTrigram}</td>
+              <td style="padding: 6px 0; font-weight: bold; color: #666666;">Candidat :</td>
+              <td style="padding: 6px 0; font-weight: bold; color: #000091;">${args.candidateName}</td>
             </tr>
             <tr>
               <td style="padding: 6px 0; font-weight: bold; color: #666666;">Situation professionnelle :</td>
@@ -392,7 +407,6 @@ export const seedCandidates = mutation({
         monthlyIncome = 2000 + Math.floor(Math.random() * 3000);
       }
 
-      const nameTrigram = (firstName.slice(0, 1) + lastName.slice(0, 2)).toUpperCase();
       const dossierFacileUrl = `https://locataire.dossierfacile.logement.gouv.fr/file/dummy-file-id-${i}`;
 
       await ctx.db.insert("candidates", {
@@ -407,7 +421,6 @@ export const seedCandidates = mutation({
         jobStatus,
         hasGuarantor,
         dossierFacileUrl,
-        nameTrigram,
         createdAt: Date.now() - (20 - i) * 3600000, // staggered over the last 20 hours
       });
     }

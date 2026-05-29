@@ -201,9 +201,6 @@ export default function Dashboard() {
                             <span className="text-sm font-bold text-[#161616]">
                               {apt.candidate.firstName} {apt.candidate.lastName}
                             </span>
-                            <span className="text-[10px] font-mono font-bold bg-[#F5F5FE] text-[#000091] px-1.5 py-0.5 border border-[#E3E3FD] rounded-[3px]">
-                              {apt.candidate.nameTrigram}
-                            </span>
                             <span className="text-[10px] font-semibold bg-[#E8F6EE] text-[#18753C] px-1.5 py-0.5 border border-[#18753C]/20 rounded-sm flex items-center gap-0.5">
                               <Check className="w-2.5 h-2.5" /> Dossier Certifié
                             </span>

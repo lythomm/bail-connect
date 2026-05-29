@@ -47,7 +47,6 @@ export default function ApplyPage() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [assignedTrigram, setAssignedTrigram] = useState("");
 
   const validateStep1 = (): boolean => {
     setError(null);
@@ -147,12 +146,8 @@ export default function ApplyPage() {
       return;
     }
 
-    // Auto-generate name trigram (First letter of First Name + First two letters of Last Name)
     const cleanFirstName = firstName.trim();
     const cleanLastName = lastName.trim();
-    const firstLetter = cleanFirstName.substring(0, 1);
-    const lastLetters = cleanLastName.replace(/[^a-zA-Z]/g, "").substring(0, 2);
-    const trigram = `${firstLetter}${lastLetters}`.toUpperCase().padEnd(3, "X");
 
     try {
       if (!campaign?._id) {
@@ -170,10 +165,8 @@ export default function ApplyPage() {
         jobStatus,
         hasGuarantor,
         dossierFacileUrl: cleanUrl,
-        nameTrigram: trigram,
       });
 
-      setAssignedTrigram(trigram);
       setSubmitted(true);
     } catch (err: any) {
       console.error(err);
@@ -217,14 +210,8 @@ export default function ApplyPage() {
             </div>
 
             <p className="text-sm text-[#3A3A3A]">
-              Pour protéger votre identité sur le tableau de bord du bailleur, votre dossier est associé au trigramme unique :
+              Votre candidature est en cours de validation par le propriétaire.
             </p>
-
-            <div className="bg-[#F5F5FE] p-4 text-center border border-[#E3E3FD]">
-              <span className="text-3xl font-mono font-bold text-[#000091] tracking-widest">
-                {assignedTrigram}
-              </span>
-            </div>
 
             <p className="text-xs text-[#666666]">
               Le propriétaire pourra valider vos pièces directement sur la plateforme officielle <strong>DossierFacile</strong> à l'aide de votre lien sécurisé. Vous serez contacté par email si votre dossier est retenu.
