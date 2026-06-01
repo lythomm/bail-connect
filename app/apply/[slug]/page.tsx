@@ -95,7 +95,7 @@ export default function ApplyPage() {
     const dossierFacileRegex = /^https:\/\/[a-z0-9.-]*dossierfacile\.(logement\.gouv\.fr|fr)\/(file|pf|public-file)\/[a-zA-Z0-9-]+$/i;
     if (!dossierFacileRegex.test(cleanUrl)) {
       setError(
-        "L'URL DossierFacile est invalide. Exemple de format attendu : https://locataire.dossierfacile.logement.gouv.fr/file/votre-identifiant"
+        "L'URL DossierFacile est invalide. Exemples de formats attendus : https://locataire.dossierfacile.logement.gouv.fr/file/votre-identifiant ou https://locataire.dossierfacile.logement.gouv.fr/public-file/votre-identifiant"
       );
       return false;
     }
@@ -141,7 +141,7 @@ export default function ApplyPage() {
     const dossierFacileRegex = /^https:\/\/[a-z0-9.-]*dossierfacile\.(logement\.gouv\.fr|fr)\/(file|pf|public-file)\/[a-zA-Z0-9-]+$/i;
     if (!dossierFacileRegex.test(cleanUrl)) {
       setError(
-        "L'URL DossierFacile est invalide. Exemple de format attendu : https://locataire.dossierfacile.logement.gouv.fr/file/votre-identifiant"
+        "L'URL DossierFacile est invalide. Exemples de formats attendus : https://locataire.dossierfacile.logement.gouv.fr/file/votre-identifiant ou https://locataire.dossierfacile.logement.gouv.fr/public-file/votre-identifiant"
       );
       setLoading(false);
       return;
