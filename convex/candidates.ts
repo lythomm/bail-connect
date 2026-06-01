@@ -5,7 +5,7 @@ import { internal } from "./_generated/api";
 
 
 // Regex to validate DossierFacile public sharing URLs (accepts locataire.dossierfacile.logement.gouv.fr or locataire.dossierfacile.fr)
-const DOSSIER_FACILE_REGEX = /^https:\/\/[a-z0-9.-]*dossierfacile\.(logement\.gouv\.fr|fr)\/(file|pf)\/[a-zA-Z0-9-]+$/i;
+const DOSSIER_FACILE_REGEX = /^https:\/\/[a-z0-9.-]*dossierfacile\.(logement\.gouv\.fr|fr)\/(file|pf|public-file)\/[a-zA-Z0-9-]+$/i;
 
 export function maskCandidate(candidate: any) {
   if (candidate.status !== "accepted") {

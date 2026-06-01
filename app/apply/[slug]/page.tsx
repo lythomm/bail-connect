@@ -27,6 +27,7 @@ export default function ApplyPage() {
   const [dossierFacileUrl, setDossierFacileUrl] = useState("");
   const [age, setAge] = useState("");
   const [showWarningDialog, setShowWarningDialog] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     const dismissed = localStorage.getItem("bailconnect_warning_dismissed");
@@ -41,7 +42,7 @@ export default function ApplyPage() {
   };
 
   // Stepper states
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(3);
 
   // Status states
   const [submitted, setSubmitted] = useState(false);
@@ -91,7 +92,7 @@ export default function ApplyPage() {
   const validateStep3 = (): boolean => {
     setError(null);
     const cleanUrl = dossierFacileUrl.trim();
-    const dossierFacileRegex = /^https:\/\/[a-z0-9.-]*dossierfacile\.(logement\.gouv\.fr|fr)\/(file|pf)\/[a-zA-Z0-9-]+$/i;
+    const dossierFacileRegex = /^https:\/\/[a-z0-9.-]*dossierfacile\.(logement\.gouv\.fr|fr)\/(file|pf|public-file)\/[a-zA-Z0-9-]+$/i;
     if (!dossierFacileRegex.test(cleanUrl)) {
       setError(
         "L'URL DossierFacile est invalide. Exemple de format attendu : https://locataire.dossierfacile.logement.gouv.fr/file/votre-identifiant"
@@ -137,7 +138,7 @@ export default function ApplyPage() {
 
     // Double check DossierFacile URL format client-side
     const cleanUrl = dossierFacileUrl.trim();
-    const dossierFacileRegex = /^https:\/\/[a-z0-9.-]*dossierfacile\.(logement\.gouv\.fr|fr)\/(file|pf)\/[a-zA-Z0-9-]+$/i;
+    const dossierFacileRegex = /^https:\/\/[a-z0-9.-]*dossierfacile\.(logement\.gouv\.fr|fr)\/(file|pf|public-file)\/[a-zA-Z0-9-]+$/i;
     if (!dossierFacileRegex.test(cleanUrl)) {
       setError(
         "L'URL DossierFacile est invalide. Exemple de format attendu : https://locataire.dossierfacile.logement.gouv.fr/file/votre-identifiant"
@@ -274,9 +275,24 @@ export default function ApplyPage() {
           </div>
           <h1 className="text-2xl font-bold text-[#161616]">{campaign.title}</h1>
           {campaign.description && (
-            <p className="text-sm text-[#666666] mt-2 bg-white p-4 border border-[#DDDDDD] whitespace-pre-line">
-              {campaign.description}
-            </p>
+            <div className="text-sm text-[#666666] mt-2 bg-white p-4 border border-[#DDDDDD] whitespace-pre-line">
+              <p className="inline">
+                {campaign.description.length <= 100
+                  ? campaign.description
+                  : isExpanded
+                    ? campaign.description
+                    : `${campaign.description.substring(0, 100)}...`}
+              </p>
+              {campaign.description.length > 100 && (
+                <button
+                  type="button"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="text-[#000091] font-medium text-xs hover:underline ml-2 focus:outline-none cursor-pointer"
+                >
+                  {isExpanded ? "Voir moins" : "Voir plus"}
+                </button>
+              )}
+            </div>
           )}
         </div>
 
@@ -497,13 +513,9 @@ export default function ApplyPage() {
 
               {currentStep === 3 && (
                 <div className="space-y-6">
-                  <div className="gov-callout gov-callout-info mb-6 text-xs">
-                    <strong>Zéro document hébergé :</strong> Pour votre sécurité et conformément au RGPD, nous ne stockons aucun justificatif PDF. Fournissez simplement votre lien public <strong>DossierFacile</strong> validé par l'État.
-                  </div>
-
                   <div>
-                    <label htmlFor="dossierfacile" className="form-label">
-                      Lien public de partage DossierFacile *
+                    <label htmlFor="dossierfacile" className="form-label font-bold">
+                      Lien DossierFacile*
                     </label>
                     <input
                       id="dossierfacile"
@@ -515,16 +527,33 @@ export default function ApplyPage() {
                       placeholder="https://locataire.dossierfacile.logement.gouv.fr/file/..."
                     />
                     <span className="text-xs text-[#666666] mt-2 block leading-relaxed">
-                      Le dépôt de dossier sur DossierFacile (service public gratuit) est requis. Obtenez votre lien de partage sécurisé dans votre espace locataire DossierFacile.
+                      Collez le lien de partage public obtenu sur DossierFacile.
                     </span>
-                    <a
-                      href="https://www.dossierfacile.logement.gouv.fr/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs font-bold text-[#000091] hover:underline mt-2.5 inline-flex items-center gap-1"
-                    >
-                      Accéder à DossierFacile.fr ↗
-                    </a>
+                  </div>
+
+                  <div className="relative flex py-2 items-center">
+                    <div className="flex-grow border-t border-[#DDDDDD]"></div>
+                    <span className="flex-shrink mx-4 text-xs font-semibold text-[#666666] uppercase select-none">OU</span>
+                    <div className="flex-grow border-t border-[#DDDDDD]"></div>
+                  </div>
+
+                  <div className="border border-[#E3E3FD] bg-[#F5F5FE] p-5 space-y-4">
+                    <h3 className="text-sm font-bold text-[#000091] uppercase tracking-wider">
+                      Vous n'avez pas de dossier DossierFacile ?
+                    </h3>
+                    <div className="flex flex-col gap-2">
+                      <a
+                        href="https://www.dossierfacile.logement.gouv.fr/?mtm_campaign=bailconnect"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-primary w-full text-center text-sm font-semibold select-none cursor-pointer"
+                      >
+                        Créer ma candidature
+                      </a>
+                      <p className="text-xs text-[#666666] leading-relaxed">
+                        DossierFacile est le service numérique de l'État qui permet la constitution d'un dossier de location conforme et sécurisé.
+                      </p>
+                    </div>
                   </div>
 
                   <div className="pt-4 border-t border-[#DDDDDD] flex justify-between items-center gap-4">
