@@ -159,7 +159,7 @@ export default function Home() {
       <div className="flex-1 flex flex-col min-h-screen bg-white">
         {/* Hero Section */}
         <section
-          className="bg-cover bg-center border-b border-[#DDDDDD] h-dvh flex items-center relative"
+          className="bg-cover bg-center border-b border-[#DDDDDD] h-[90vh] py-16 md:py-28 flex items-center relative"
           style={{
             backgroundImage: "linear-gradient(to bottom, rgba(0, 0, 0, 0.20), rgba(0, 0, 0, 0.45)), url('/assets/hero-bg.png')"
           }}
@@ -189,9 +189,12 @@ export default function Home() {
                 </Link>
               </div>
 
-              <div className="mt-8 flex items-center gap-3 text-sm text-white/90 drop-shadow-sm animate-fade-in-up animation-delay-400">
-                <ShieldCheck className="w-5 h-5 text-[#22c55e] flex-shrink-0" />
-                <span>Conforme RGPD : aucun stockage local de documents d'identité</span>
+              <div
+                className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/80 hover:text-white transition-colors duration-300 animate-fade-in-up animation-delay-400 group"
+                aria-label="Défiler vers le bas"
+              >
+                <ChevronDown className="w-8 h-8 animate-bounce" />
+                <span className="text-sm">Défilez pour découvrir comment ça marche</span>
               </div>
             </div>
           </div>
