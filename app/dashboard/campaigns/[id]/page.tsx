@@ -46,6 +46,7 @@ import {
 import Toast, { ToastType } from "@/components/Toast";
 import { toParisDateStr, formatDateParis, formatTimeParis } from "@/lib/dateUtils";
 import { formatError } from "@/lib/errors";
+import posthog from "posthog-js";
 
 
 const JOB_STATUS_OPTIONS = [
@@ -358,6 +359,9 @@ export default function CampaignDetail() {
     setActionLoadingId(candidateId);
     try {
       await updateStatus({ id: candidateId, status: newStatus });
+
+      posthog.capture("candidate_status_updated", { new_status: newStatus, bulk: false });
+
       setToast({
         message: `Statut mis à jour avec succès : ${newStatus === "accepted" ? "Accepté" : newStatus === "rejected" ? "Refusé" : "En attente"
           }`,
@@ -380,6 +384,9 @@ export default function CampaignDetail() {
     const idsArray = Array.from(selectedIds) as Id<"candidates">[];
     try {
       await updateStatuses({ ids: idsArray, status: newStatus });
+
+      posthog.capture("candidate_status_updated", { new_status: newStatus, bulk: true, count: idsArray.length });
+
       setToast({
         message: `${selectedIds.size} candidat(s) mis à jour avec succès : ${newStatus === "accepted" ? "Accepté" : newStatus === "rejected" ? "Refusé" : "En attente"
           }`,

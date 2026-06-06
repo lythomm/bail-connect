@@ -20,6 +20,7 @@ import Toast, { ToastType } from "@/components/Toast";
 import Dialog from "@/components/Dialog";
 import { formatDateParis, formatTimeParis, formatTimeRangeParis, toParisDateStr } from "@/lib/dateUtils";
 import { formatError } from "@/lib/errors";
+import posthog from "posthog-js";
 
 function BookingContent() {
   const searchParams = useSearchParams();
@@ -52,6 +53,9 @@ function BookingContent() {
         candidateId: candidateId as any,
         bookingToken: bookingToken || "",
       });
+
+      posthog.capture("visit_cancelled", { campaign_title: campaign?.title });
+
       setSuccessAppt(null);
       setSelectedSlotId(null);
       setIsEditing(false);
@@ -114,6 +118,12 @@ function BookingContent() {
         const dateStr = formatDateParis(selectedSlot.startTime, { year: "numeric" });
         const timeStr = formatTimeRangeParis(selectedSlot.startTime, selectedSlot.endTime);
         setSuccessAppt({ date: dateStr, time: timeStr });
+
+        posthog.capture("visit_booked", {
+          campaign_title: campaign?.title,
+          is_rescheduled: isEditing,
+          slot_start: selectedSlot.startTime,
+        });
       }
 
       setToast({ message: "Votre rendez-vous a été enregistré !", type: "success" });

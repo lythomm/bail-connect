@@ -8,6 +8,7 @@ import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import Dialog from "@/components/Dialog";
 import { formatError } from "@/lib/errors";
+import posthog from "posthog-js";
 
 export default function ApplyPage() {
   const params = useParams();
@@ -166,6 +167,15 @@ export default function ApplyPage() {
         jobStatus,
         hasGuarantor,
         dossierFacileUrl: cleanUrl,
+      });
+
+      posthog.capture("application_submitted", {
+        campaign_slug: slug,
+        campaign_title: campaign.title,
+        job_status: jobStatus,
+        monthly_income: parseFloat(monthlyIncome),
+        has_guarantor: hasGuarantor,
+        rent_amount: campaign.rentAmount,
       });
 
       setSubmitted(true);

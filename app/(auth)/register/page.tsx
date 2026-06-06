@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { api } from "@/convex/_generated/api";
 import { Eye, EyeOff, ArrowLeft, ArrowRight, Check, Info } from "lucide-react";
 import Link from "next/link";
+import posthog from "posthog-js";
 
 export default function RegisterPage() {
   const { isAuthenticated, isLoading } = useConvexAuth();
@@ -140,6 +141,9 @@ export default function RegisterPage() {
         phone: phone.trim(),
       });
 
+      posthog.identify(email.trim(), { email: email.trim(), name: name.trim() });
+      posthog.capture("user_signed_up", { email: email.trim(), name: name.trim() });
+
       router.push("/verify-email");
     } catch (err: any) {
       console.error(err);
@@ -149,6 +153,7 @@ export default function RegisterPage() {
           userFriendlyMessage = "Cette adresse email est déjà enregistrée.";
         }
       }
+      posthog.capture("sign_up_failed", { error: err.message });
       setError(userFriendlyMessage);
     } finally {
       setLoading(false);

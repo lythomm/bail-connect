@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
+import posthog from "posthog-js";
 
 export default function SignInPage() {
   const { isAuthenticated, isLoading } = useConvexAuth();
@@ -35,6 +36,9 @@ export default function SignInPage() {
         flow: "signIn",
       });
 
+      posthog.identify(email.trim(), { email: email.trim() });
+      posthog.capture("user_signed_in", { email: email.trim() });
+
       // Successfully authenticated, middleware/router redirects to dashboard
       router.push("/dashboard");
     } catch (err: any) {
@@ -47,6 +51,7 @@ export default function SignInPage() {
           userFriendlyMessage = "Cette adresse email n'est pas enregistrée.";
         }
       }
+      posthog.capture("sign_in_failed", { error: err.message });
       setError(userFriendlyMessage);
     } finally {
       setLoading(false);

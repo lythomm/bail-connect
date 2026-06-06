@@ -10,6 +10,7 @@ import Toast, { ToastType } from "@/components/Toast";
 import Dialog from "@/components/Dialog";
 import { getBookmarkletCode } from "./bookmarklet";
 import { formatError } from "@/lib/errors";
+import posthog from "posthog-js";
 
 export default function NewCampaign() {
   const { isAuthenticated, isLoading } = useConvexAuth();
@@ -246,6 +247,13 @@ export default function NewCampaign() {
         address: address.trim(),
         adType: adType,
       });
+
+      posthog.capture("campaign_created", {
+        ad_type: adType,
+        rent_amount: parsedRent,
+        has_description: !!description.trim(),
+      });
+
       router.push(`/dashboard/campaigns/new/success?campaign_id=${campaignId}`);
     } catch (err: any) {
       console.error(err);
@@ -259,6 +267,10 @@ export default function NewCampaign() {
     e.preventDefault();
     setError(null);
     setPaymentLoading(true);
+
+    posthog.capture("upgrade_to_pass_initiated", {
+      rent_amount: rentAmount ? parseFloat(rentAmount) : undefined,
+    });
 
     try {
       const parsedRent = rentAmount ? parseFloat(rentAmount) : undefined;
@@ -286,6 +298,9 @@ export default function NewCampaign() {
   const handleUpgradeToPro = async () => {
     setError(null);
     setPaymentLoading(true);
+
+    posthog.capture("upgrade_to_pro_initiated");
+
     try {
       const { url } = await createCheckoutSession({
         type: "pro",
